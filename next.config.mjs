@@ -30,7 +30,9 @@ const nextConfig = {
               // поисковый виджет туров не работает.
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://mc.yandex.ru https://mc.yandex.by https://yastatic.net https://cdn.jsdelivr.net https://tourvisor.ru https://*.tourvisor.ru",
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://tourvisor.ru https://*.tourvisor.ru",
-              "img-src 'self' data: blob: https: http:",
+              // Только https: mixed content (http-картинки) запрещён — браузеры
+              // и так блокируют его на https-сайте, теперь это явно в политике.
+              "img-src 'self' data: blob: https:",
               "font-src 'self' https://fonts.gstatic.com https://tourvisor.ru https://*.tourvisor.ru",
               "connect-src 'self' https://www.google.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://mc.yandex.ru https://mc.yandex.by https://api.resend.com https://tourvisor.ru https://*.tourvisor.ru",
               "frame-src 'self' https://www.google.com https://www.youtube.com https://www.youtube-nocookie.com https://mc.yandex.ru https://mc.yandex.by https://yandex.ru https://*.yandex.ru https://yandex.by https://*.yandex.by https://tourvisor.ru https://*.tourvisor.ru",

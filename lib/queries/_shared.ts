@@ -115,7 +115,13 @@ export function mapTour(
   // Corner-cut: tours-listing price conversion assumes datesTable.currency matches the base currency.
   const derivedPriceAmount = fillFromDates ? minTablePrice(datesTable) : 0
   const priceAmount = !row.priceAmount && derivedPriceAmount ? derivedPriceAmount : row.priceAmount
-  const price = !row.priceAmount && derivedPriceAmount ? formatMoney(derivedPriceAmount, datesTable.currency) : row.price
+  // Цена форматируется при чтении из priceAmount + datesCurrency — хранимая
+  // строка row.price была зафиксирована в момент сохранения тура и устаревала
+  // при смене валюты/суммы. Fallback на row.price — только когда суммы нет
+  // вовсе (нестандартный текст цены, забитый руками в старых данных).
+  const price = priceAmount > 0
+    ? formatMoney(priceAmount, !row.priceAmount && derivedPriceAmount ? datesTable.currency : row.datesCurrency || "BYN")
+    : row.price
   const duration = !row.duration.trim() && firstDatedRow ? deriveDuration(firstDatedRow.startDate, firstDatedRow.endDate) : row.duration
   const nights = !row.nights && firstDatedRow ? deriveNights(firstDatedRow.startDate, firstDatedRow.endDate) : row.nights
   const cover = coerceMediaNode(row.image) ?? { url: row.image || "" }

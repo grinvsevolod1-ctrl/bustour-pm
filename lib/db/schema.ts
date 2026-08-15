@@ -63,6 +63,17 @@ export const tours = pgTable("tours", {
   toursExtraPriceAmountNonNeg: check("tours_extra_price_amount_nonneg", sql`${table.extraPriceAmount} >= 0`),
   toursNightsNonNeg: check("tours_nights_nonneg", sql`${table.nights} >= 0`),
   toursCategoryEnum: check("tours_category_enum", sql`${table.category} IN ('bus','avia','hot')`),
+  // JSON-поля хранятся как text (весь код читает через JSON.parse) — БД
+  // валидирует содержимое через IS JSON (PG16+, прод PG18): битый JSON
+  // больше не сможет попасть в базу и уронить рендер страницы тура.
+  toursProgramJson: check("tours_program_is_json", sql`${table.program} IS JSON`),
+  toursIncludedJson: check("tours_included_is_json", sql`${table.included} IS JSON`),
+  toursExcludedJson: check("tours_excluded_is_json", sql`${table.excluded} IS JSON`),
+  toursWhatIncludedJson: check("tours_what_included_is_json", sql`${table.whatIncluded} IS JSON`),
+  toursGalleryJson: check("tours_gallery_is_json", sql`${table.gallery} IS JSON`),
+  toursDatesTableJson: check("tours_dates_table_is_json", sql`${table.datesTable} IS JSON`),
+  toursDocumentsJson: check("tours_documents_is_json", sql`${table.documents} IS JSON`),
+  toursLayoutJson: check("tours_layout_is_json", sql`${table.layout} IS JSON`),
 }))
 
 export const buses = pgTable("buses", {
@@ -82,6 +93,9 @@ export const buses = pgTable("buses", {
   createdAt: createdAt("createdAt"),
 }, (table) => ({
   archivedIdx: index("buses_archived_idx").on(table.archived),
+  busesGalleryJson: check("buses_gallery_is_json", sql`${table.gallery} IS JSON`),
+  busesDocumentsJson: check("buses_documents_is_json", sql`${table.documents} IS JSON`),
+  busesSeatingJson: check("buses_seating_is_json", sql`${table.seating} IS JSON`),
 }))
 
 export const transfers = pgTable(
@@ -138,8 +152,14 @@ export const tourDates = pgTable(
   },
   (t) => [
     index("tour_dates_tour_id_idx").on(t.tourId),
+    // Составной индекс: выборки дат тура почти всегда сортируются по startDate.
+    index("tour_dates_tour_start_idx").on(t.tourId, t.startDate),
     check("tour_dates_end_after_start", sql`${t.endDate} >= ${t.startDate}`),
     check("tour_dates_extra_price_nonneg", sql`${t.extraPriceAmount} >= 0`),
+    // Лексикографический check выше работает ТОЛЬКО для строгого ISO-формата —
+    // фиксируем его на уровне БД (пустая строка = дата ещё не заполнена).
+    check("tour_dates_start_iso", sql`${t.startDate} = '' OR ${t.startDate} ~ '^\\d{4}-\\d{2}-\\d{2}$'`),
+    check("tour_dates_end_iso", sql`${t.endDate} = '' OR ${t.endDate} ~ '^\\d{4}-\\d{2}-\\d{2}$'`),
   ],
 )
 
@@ -192,6 +212,7 @@ export const reviews = pgTable("reviews", {
   archivedIdx: index("reviews_archived_idx").on(table.archived),
   archivedApprovedIdx: index("reviews_archived_approved_idx").on(table.archived, table.approved),
   reviewsRatingRange: check("reviews_rating_range", sql`${table.rating} >= 1 AND ${table.rating} <= 5`),
+  reviewsShowOnJson: check("reviews_show_on_is_json", sql`${table.showOn} IS JSON`),
 }))
 
 export const articles = pgTable("articles", {
@@ -214,6 +235,7 @@ export const articles = pgTable("articles", {
 }, (table) => ({
   archivedIdx: index("articles_archived_idx").on(table.archived),
   articlesCategoryEnum: check("articles_category_enum", sql`${table.category} IN ('news','special','reviews')`),
+  articlesContentJson: check("articles_content_is_json", sql`${table.content} IS JSON`),
 }))
 
 export const leads = pgTable(
@@ -292,6 +314,7 @@ export const cityDestinations = pgTable(
     index("city_destinations_archived_idx").on(t.archived),
     index("city_destinations_category_archived_idx").on(t.category, t.archived),
     check("city_destinations_category_enum", sql`${t.category} IN ('bus','avia','hot')`),
+    check("city_destinations_sections_is_json", sql`${t.sections} IS JSON`),
   ],
 )
 
@@ -423,7 +446,10 @@ export const contentBlocks = pgTable(
     visible: boolean("visible").notNull().default(true),
     createdAt: createdAt("createdAt"),
   },
-  (t) => [index("content_blocks_collection_page_idx").on(t.collection, t.page)],
+  (t) => [
+    index("content_blocks_collection_page_idx").on(t.collection, t.page),
+    check("content_blocks_extra_is_json", sql`${t.extra} IS JSON`),
+  ],
 )
 
 export const shortcodes = pgTable("shortcodes", {
