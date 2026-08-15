@@ -107,6 +107,13 @@ export async function loginAction(_prev: unknown, formData: FormData) {
   if (!rate.ok) {
     return { error: `Слишком много попыток входа. Повторите через ${Math.ceil(rate.retryAfterSec / 60)} мин.` }
   }
+  // Второй bucket по логину: распределённый перебор одного аккаунта
+  // со многих IP не обойдёт лимит по IP, поэтому считаем и по username.
+  const userKey = username.toLowerCase()
+  const userRate = consumeRateLimit("login-user", userKey, LOGIN_RATE_MAX, LOGIN_RATE_WINDOW)
+  if (!userRate.ok) {
+    return { error: `Слишком много попыток входа. Повторите через ${Math.ceil(userRate.retryAfterSec / 60)} мин.` }
+  }
 
   try {
     const ok = await login(username, password)
@@ -114,6 +121,7 @@ export async function loginAction(_prev: unknown, formData: FormData) {
       return { error: "Неверный логин или пароль" }
     }
     resetRateLimit("login", ip)
+    resetRateLimit("login-user", userKey)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes("AUTH_SECRET")) {
@@ -345,14 +353,24 @@ export async function saveTourAction(_prev: unknown, formData: FormData): Promis
     before: before ? auditTourSnapshot(before) : undefined,
     after: auditTourSnapshot({ id: savedTourId, ...input }),
   })
-  await saveSettings({
-    [`tour:${savedTourId}.metaTitle`]: String(formData.get("metaTitle") || "").trim(),
-    [`tour:${savedTourId}.metaDescription`]: String(formData.get("metaDescription") || "").trim(),
-    [`tour:${savedTourId}.metaShortDesc`]: String(formData.get("metaShortDesc") || "").trim(),
-    [`tour:${savedTourId}.metaImage`]: String(formData.get("metaImage") || "").trim(),
-    [`tour:${savedTourId}.metaImageAlt`]: String(formData.get("metaImageAlt") || "").trim(),
-  })
-  await replacePageFaqs(`tour:${input.slug}`, parseFaqGroups(formData))
+  // Meta и FAQ сохраняются отдельными запросами после тура (без общей
+  // транзакции). Все операции — идемпотентные upsert'ы, поэтому при падении
+  // здесь достаточно явно попросить админа пересохранить форму: повторное
+  // сохранение приведёт данные в согласованное состояние.
+  try {
+    await saveSettings({
+      [`tour:${savedTourId}.metaTitle`]: String(formData.get("metaTitle") || "").trim(),
+      [`tour:${savedTourId}.metaDescription`]: String(formData.get("metaDescription") || "").trim(),
+      [`tour:${savedTourId}.metaShortDesc`]: String(formData.get("metaShortDesc") || "").trim(),
+      [`tour:${savedTourId}.metaImage`]: String(formData.get("metaImage") || "").trim(),
+      [`tour:${savedTourId}.metaImageAlt`]: String(formData.get("metaImageAlt") || "").trim(),
+    })
+    await replacePageFaqs(`tour:${input.slug}`, parseFaqGroups(formData))
+  } catch (err) {
+    return {
+      error: mapDbError(err, "Тур сохранён, но не удалось сохранить SEO-мета или FAQ — сохраните форму ещё раз"),
+    }
+  }
   revalidatePath("/admin/tours")
   revalidatePath(`/admin/tours/${savedTourId}`)
   revalidatePath("/")
@@ -701,7 +719,7 @@ export async function purgeBusAction(formData: FormData) {
         action: "bus_purge",
         entityType: "bus",
         entityId: id,
-        summary: `Удалён автобус #${id}`,
+        summary: `Удалё�� автобус #${id}`,
       })
       revalidatePath("/admin/buses")
       revalidatePath("/admin/archive")

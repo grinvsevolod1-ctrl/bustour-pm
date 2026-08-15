@@ -32,26 +32,39 @@ export async function POST(request: Request) {
     )
   }
 
-  try {
-    const uploaded = await Promise.all(
-      files.map((file) => mediaService.saveFile(file, { folderId })),
-    )
+  // allSettled вместо Promise.all: при падении одного файла остальные уже
+  // сохранены на диск — их нельзя «потерять» без записи в аудит, иначе
+  // в медиатеке появляются файлы, которых нет в журнале действий.
+  const results = await Promise.allSettled(files.map((file) => mediaService.saveFile(file, { folderId })))
+  const uploaded = results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))
+  const failed = results
+    .map((r, i) => (r.status === "rejected" ? { name: files[i]?.name || "media", reason: r.reason } : null))
+    .filter((f): f is { name: string; reason: unknown } => f !== null)
+
+  if (uploaded.length) {
     await writeAudit({
       admin,
       action: "media_upload",
       entityType: "media",
       entityId: uploaded.map((f) => f.id).join(",") || undefined,
       summary:
-        uploaded.length === 1
+        uploaded.length === 1 && !failed.length
           ? `Загружен файл «${files[0]?.name || "media"}»`
-          : `Загружено файлов: ${uploaded.length}`,
+          : `Загружено файлов: ${uploaded.length}${failed.length ? `, с ошибкой: ${failed.length}` : ""}`,
       after: { count: uploaded.length, names: files.map((f) => f.name), ids: uploaded.map((f) => f.id) },
-    })
-    return NextResponse.json(uploaded.length === 1 ? uploaded[0] : uploaded)
-  } catch (error) {
-    console.error("[media/upload]", error)
-    const msg = error instanceof Error ? error.message : String(error)
-    const detail = msg.trim() ? ` ${msg.replace(/\s+/g, " ").slice(0, 240)}` : ""
-    return NextResponse.json({ error: `Не удалось сохранить файл.${detail}` }, { status: 500 })
+    }).catch((err) => console.error("[media/upload] audit failed:", err))
   }
+
+  if (failed.length) {
+    for (const f of failed) console.error("[media/upload]", f.name, f.reason)
+    const first = failed[0].reason
+    const msg = first instanceof Error ? first.message : String(first)
+    const detail = msg.trim() ? ` ${msg.replace(/\s+/g, " ").slice(0, 240)}` : ""
+    const prefix = uploaded.length
+      ? `Сохранено файлов: ${uploaded.length}, не удалось: ${failed.map((f) => `«${f.name}»`).join(", ")}.`
+      : "Не удалось сохранить файл."
+    return NextResponse.json({ error: `${prefix}${detail}`, uploaded }, { status: 500 })
+  }
+
+  return NextResponse.json(uploaded.length === 1 ? uploaded[0] : uploaded)
 }

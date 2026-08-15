@@ -50,6 +50,23 @@ function sanitizeMediaStyle(raw: string): string | null {
   return safe.length ? safe.join(";") : null
 }
 
+// Разрешённые хосты для <iframe src> — зеркалирует frame-src из CSP
+// (next.config.mjs). До этого защита embed'ов держалась ТОЛЬКО на CSP:
+// санитайзер пропускал любой https-iframe. Дублируем на уровне HTML.
+const IFRAME_HOST_RE =
+  /^(www\.google\.com|www\.youtube(-nocookie)?\.com|([a-z0-9-]+\.)*yandex\.(ru|by)|([a-z0-9-]+\.)*tourvisor\.ru)$/i
+
+function isAllowedIframeSrc(src: string): boolean {
+  // Относительные URL — same-origin, безопасны.
+  if (src.startsWith("/") || src.startsWith("#")) return true
+  try {
+    const url = new URL(src)
+    return url.protocol === "https:" && IFRAME_HOST_RE.test(url.hostname)
+  } catch {
+    return false
+  }
+}
+
 function normalizeProtocol(href: string): string | null {
   if (!href) return null
   const trimmed = href.trim()
@@ -139,11 +156,15 @@ function sanitizeAttrs(tag: string, attrsIn: Record<string, string>): Record<str
     }
     if ((key === "src" || key === "poster") && (tag === "img" || tag === "video" || tag === "source" || tag === "iframe")) {
       const norm = normalizeProtocol(value)
-      if (norm) out[key] = norm
+      if (!norm) continue
+      // iframe принимает только хосты из allowlist (см. isAllowedIframeSrc).
+      if (tag === "iframe" && key === "src" && !isAllowedIframeSrc(norm)) continue
+      out[key] = norm
       continue
     }
     if (key === "target") {
-      out.target = value === "_blank" ? "_blank" : ""
+      // Не эмитим пустой target="" — только валидное значение.
+      if (value === "_blank") out.target = "_blank"
       continue
     }
     // structural / safe attributes

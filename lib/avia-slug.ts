@@ -31,6 +31,17 @@ const RESERVED_SLUGS = new Set([
   "robots.txt",
   "favicon.ico",
   "_next",
+  // Реальные корневые разделы app/(site), которых не было в списке:
+  // слаг "info" переписал бы /info/* → /aviatory/* и убил бы раздел «Информация».
+  "info",
+  "bus-rental",
+  "tour",
+  // Каталоги public/: matcher middleware не исключает их, слаг "images"
+  // сломал бы раздачу всех статических картинок сайта.
+  "images",
+  "files",
+  "figma",
+  "icon.svg",
 ])
 
 /**

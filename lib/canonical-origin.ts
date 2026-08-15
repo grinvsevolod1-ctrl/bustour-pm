@@ -11,6 +11,15 @@
 
 const DEFAULT_ORIGIN = "https://bastur.by"
 
+// В production потеря NEXT_PUBLIC_SITE_URL — тихая SEO-катастрофа:
+// canonical/sitemap/OG молча уезжают на дефолтный домен. Кричим в лог,
+// чтобы проблема была видна в pm2 logs сразу после деплоя.
+if (!process.env.NEXT_PUBLIC_SITE_URL && process.env.NODE_ENV === "production") {
+  console.error(
+    `[canonical-origin] NEXT_PUBLIC_SITE_URL не задан — использую fallback ${DEFAULT_ORIGIN}. Проверьте .env на сервере!`,
+  )
+}
+
 const rawOrigin = String(process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_ORIGIN).trim()
 const withProtocol = /^https?:\/\//i.test(rawOrigin) ? rawOrigin : `https://${rawOrigin}`
 

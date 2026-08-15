@@ -7,7 +7,8 @@ import assert from "node:assert/strict"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
-import {import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
+import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
+import {
 
   DEFAULT_REVIEW_LIST_FILTERS,
   filterAndSortReviews,

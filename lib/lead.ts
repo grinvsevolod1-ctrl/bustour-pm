@@ -20,7 +20,8 @@ export type LeadResult =
   | { ok: true }
   | { ok: false; errors: Record<string, string> }
 
-const PHONE_RE = /^\+?[\d\s().-]{7,30}$/
+/** Единый формат телефона для всех форм (заявки, отзывы): сервер и клиент используют один regex. */
+export const PHONE_RE = /^\+?[\d\s().-]{7,30}$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const BY_OPERATOR_CODES = new Set(["25", "29", "33", "44"])
 

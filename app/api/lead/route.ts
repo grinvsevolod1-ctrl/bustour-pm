@@ -3,7 +3,7 @@ import { createLead } from "@/lib/queries"
 import { notifyLead } from "@/lib/notify"
 import { verifyRecaptchaToken } from "@/lib/recaptcha"
 import type { LeadType } from "@/lib/types"
-import { formatPhoneIfComplete, isSupportedPhone } from "@/lib/lead"
+import { formatPhoneIfComplete, isSupportedPhone, PHONE_RE } from "@/lib/lead"
 import { clientIpFromHeaders, consumeRateLimit } from "@/lib/rate-limit"
 
 type LeadPayload = {
@@ -17,7 +17,6 @@ type LeadPayload = {
   consent?: unknown
 }
 
-const PHONE_RE = /^\+?[\d\s().-]{7,30}$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const VALID_TYPES: LeadType[] = ["booking", "contact", "callback", "rentbus"]
 

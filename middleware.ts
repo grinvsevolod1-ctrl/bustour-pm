@@ -15,11 +15,20 @@ export const runtime = "nodejs"
 let cachedAviaSlug: string | null = null
 let cacheTs = 0
 const CACHE_TTL_MS = 60_000 // 1 minute
+// Негативный кеш: без него при недоступном внутреннем роуте и пустом кеше
+// КАЖДЫЙ публичный запрос ждал бы таймаут 2 секунды. Короткий TTL, чтобы
+// после восстановления роута быстро вернуться к актуальному слагу.
+let failTs = 0
+const FAIL_TTL_MS = 10_000 // 10 seconds
 
 async function getAviaSlug(): Promise<string> {
   const now = Date.now()
   if (cachedAviaSlug !== null && now - cacheTs < CACHE_TTL_MS) {
     return cachedAviaSlug
+  }
+  // Недавняя ошибка и кеша нет — не долбим роут, отдаём дефолт сразу.
+  if (cachedAviaSlug === null && now - failTs < FAIL_TTL_MS) {
+    return DEFAULT_AVIA_SLUG
   }
 
   try {
@@ -33,6 +42,7 @@ async function getAviaSlug(): Promise<string> {
     cacheTs = now
     return slug
   } catch {
+    failTs = now
     // On failure serve the stale value if we ever had one, else the default.
     return cachedAviaSlug ?? DEFAULT_AVIA_SLUG
   }

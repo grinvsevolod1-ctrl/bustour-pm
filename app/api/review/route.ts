@@ -3,7 +3,7 @@ import { createReview } from "@/lib/queries"
 import { mediaService, validateMediaFile } from "@/lib/media/service"
 import { notifyLead, phoneCorrelationTag } from "@/lib/notify"
 import { encodeReviewPhoneSourceId } from "@/lib/review-contact"
-import { formatPhoneIfComplete, isSupportedPhone } from "@/lib/lead"
+import { formatPhoneIfComplete, isSupportedPhone, PHONE_RE } from "@/lib/lead"
 import { verifyRecaptchaToken } from "@/lib/recaptcha"
 import { stripReviewLinks } from "@/lib/review-utils"
 import { clientIpFromHeaders, consumeRateLimit } from "@/lib/rate-limit"
@@ -11,8 +11,6 @@ import { clientIpFromHeaders, consumeRateLimit } from "@/lib/rate-limit"
 export const runtime = "nodejs"
 /** Review media may run image/video normalize. */
 export const maxDuration = 180
-
-const PHONE_RE = /^\+?[\d\s().-]{7,20}$/
 
 const RATE_WINDOW = 5 * 60_000 // 5 minutes
 const RATE_MAX = 3 // 3 reviews per IP in window
@@ -80,11 +78,13 @@ export async function POST(request: Request) {
   }
 
   let mediaUrl = ""
+  let mediaId = ""
   if (file && mediaType) {
     try {
       const uploaded = await mediaService.saveFile(file)
       const ready = uploaded.status === "ready" ? uploaded : await mediaService.waitForMediaReady(uploaded.id)
       mediaUrl = ready.url
+      mediaId = ready.id
     } catch (err) {
       console.error("review media upload failed:", (err as Error).message)
       return NextResponse.json(
@@ -112,18 +112,29 @@ export async function POST(request: Request) {
     })
   } catch (err) {
     console.error("review save failed:", (err as Error).message)
+    // Отзыв не сохранился — подчищаем уже загруженный файл, иначе он
+    // навсегда останется сиротой в медиатеке.
+    if (mediaId) {
+      await mediaService.deleteFile(mediaId).catch((cleanupErr: unknown) => {
+        console.error("review media cleanup failed:", (cleanupErr as Error).message)
+      })
+    }
     return NextResponse.json(
       { ok: false, errors: { form: "Не удалось сохранить отзыв. Попробуйте позже." } },
       { status: 500 },
     )
   }
 
-  // Notify staff — NO plaintext phone/PII in content: only hashed correlation id (matches server logs)
+  // Notify staff — NO plaintext phone/PII in content: only hashed correlation id (matches server logs).
+  // Хеш считаем один раз и передаём как correlationId, чтобы buildSafeMeta
+  // не хешировал его повторно и cid в логах совпадал с текстом уведомления.
+  const correlationId = phoneCorrelationTag(phone)
   void notifyLead({
     type: "contact",
     name: name.length > 0 ? "Пользователь" : "",
-    phone: phoneCorrelationTag(phone),
-    message: `Новый отзыв на модерацию. CorrelationId: ${phoneCorrelationTag(phone)}`,
+    phone: correlationId,
+    correlationId,
+    message: `Новый отзыв на модерацию. CorrelationId: ${correlationId}`,
   })
 
   return NextResponse.json({ ok: true })

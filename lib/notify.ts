@@ -8,6 +8,12 @@ export type LeadData = {
   message?: string | null
   tour?: string | null
   type: LeadType
+  /**
+   * Готовый correlation-тег, если вызывающий код передаёт в `phone` уже
+   * хешированное значение (отзывы). Без него buildSafeMeta хешировал бы
+   * хеш повторно, и cid в логах не совпадал бы с CorrelationId в уведомлении.
+   */
+  correlationId?: string
 }
 
 function typeLabel(type: LeadType) {
@@ -114,7 +120,7 @@ async function sendTelegram(lines: string[], config: NotifyChannelConfig) {
 }
 
 export function buildSafeMeta(data: LeadData) {
-  const correlationId = phoneCorrelationTag(data.phone)
+  const correlationId = data.correlationId || phoneCorrelationTag(data.phone)
   return {
     type: data.type,
     hasName: Boolean(data.name?.trim()),
