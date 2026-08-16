@@ -64,7 +64,6 @@ export default async function EditCityPage({
   const toggleKeys = sections.map((s) => s.key).join(",")
 
   const staticGroups = page.groups.filter((g) => STATIC_HEADINGS.includes(g.heading))
-  const seoMetaGroup = page.groups.find((g) => g.heading === "SEO и мета")
   const citiesGroup = page.groups.find(
     (g) => g.heading === "Секция «Карточки курортов»" || g.heading === "Секция «Другие курорты»"
   )
@@ -153,6 +152,12 @@ export default async function EditCityPage({
     : isBus
     ? undefined
     : `https://pro.tourvisor.ru/module/search/9974602?siteUrl=${siteOrigin}${pageHref}`
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: pageHref,
+    fallbackTitle: city.name || page.heading,
+  })
 
   const countriesOptions = allCountries.map((c) => ({ id: c.id, name: c.name }))
   const homeVisKey = isHot ? "hot.visible" : isBus ? "bustours.visible" : "aviatory.visible"
@@ -165,7 +170,6 @@ export default async function EditCityPage({
     city.name.trim() ||
       city.slug.trim() ||
       city.country?.trim() ||
-      (seoMetaGroup && hasSettings(seoMetaGroup.fields)) ||
       hasSettings(staticGroups.flatMap((group) => group.fields)),
   )
   const contentFields = [
@@ -184,7 +188,7 @@ export default async function EditCityPage({
       id: "main",
       label: "Основное",
       badge: basicBadge,
-      anchorIds: ["s-city-base", "s-seo-meta", "s-page-header"],
+      anchorIds: ["s-city-base", "s-page-header"],
     },
     {
       id: "content",
@@ -197,6 +201,7 @@ export default async function EditCityPage({
         "sec-faq",
       ],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     { id: "tables", label: "Таблицы", badge: resortBlocks.length > 0, anchorIds: ["resort-table"] },
     {
       id: "order",
@@ -235,11 +240,6 @@ export default async function EditCityPage({
             >
               <CityBaseForm city={city} countries={countriesOptions} />
             </FormSection>
-            {seoMetaGroup && (
-              <FormSection key="seo-meta" id="s-seo-meta" title="SEO и мета">
-                <SectionFieldsForm fields={seoMetaGroup.fields} settings={settings} />
-              </FormSection>
-            )}
             {staticGroups.map((group) => (
               <FormSection
                 key={group.heading}
@@ -253,6 +253,7 @@ export default async function EditCityPage({
           </div>
         }
         workspaceExtraPanels={[
+          ...(seoWorkspace ? [seoWorkspace.seoPanel] : []),
           <div key="resort-table" id="resort-table" className="mt-6 scroll-mt-4">
             <ResortTableBuilder
               pageKey={pageKey}

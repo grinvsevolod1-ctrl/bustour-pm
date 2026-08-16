@@ -183,7 +183,7 @@ export default async function HotHomePage() {
         }
         workspaceExtraPanels={[
           ...(seoWorkspace ? [seoWorkspace.seoPanel] : []),
-          <div id="resort-table" className="mt-6 scroll-mt-4">
+          <div key="resort-table" id="resort-table" className="mt-6 scroll-mt-4">
               <ResortTableBuilder
                 pageKey={pageKey}
                 blocks={resortBlocks}

@@ -50,7 +50,8 @@ export function buildSeoWorkspace({
   }
 
   const seoPanel = (
-    <div id="s-seo" className="scroll-mt-4">
+    // key обязателен: панель попадает в массив workspaceExtraPanels
+    <div key="s-seo" id="s-seo" className="scroll-mt-4">
       <SeoPanel
         fields={seoMetaGroup.fields}
         settings={settings}

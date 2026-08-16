@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getBlocks, getSettings, getFaqBlocksForPage } from "@/lib/cms"
 import { pageSettingsGroups, type PageSection } from "@/lib/admin-config"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -36,7 +37,14 @@ export default async function CompanyAdminPage() {
   const faqSlots = buildFaqSlots(pageKey, initialOrder, faqBlocks)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = sections.map((section) => section.key).join(",")
-  const fields = page.groups.flatMap((group) => group.fields)
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: page.url ?? "/company/",
+    fallbackTitle: page.heading,
+  })
+  const mainGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups
+  const fields = mainGroups.flatMap((group) => group.fields)
   const hasSettings = (keys: string[]) => keys.some((key) => Boolean(settings[key]?.trim()))
 
   const workspaceGroups: EditorWorkspaceGroup[] = [
@@ -52,6 +60,7 @@ export default async function CompanyAdminPage() {
       badge: faqBlocks.length > 0,
       anchorIds: ["sec-faq"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     {
       id: "order",
       label: "Порядок секций",
@@ -69,11 +78,12 @@ export default async function CompanyAdminPage() {
         workspaceGroups={workspaceGroups}
         workspaceBeforeForm={
           <FormSection id="s-company-base" title="Основные данные" collapsible={false}>
-            {page.groups.map((group) => (
+            {mainGroups.map((group) => (
               <SectionFieldsForm key={group.heading} fields={group.fields} settings={settings} />
             ))}
           </FormSection>
         }
+        workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : undefined}
         workspaceAfterForm={
           <div id="sec-order" className="scroll-mt-4">
             <PageSectionsManager
