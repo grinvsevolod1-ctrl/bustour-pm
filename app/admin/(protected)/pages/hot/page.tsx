@@ -7,6 +7,7 @@ import { PageSettingsForm } from "@/components/admin/page-settings-form"
 import { ResortTableBuilder } from "@/components/admin/resort-table-builder"
 import { TablePickerSelect } from "@/components/admin/table-picker-select"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
 import { buildFaqFormIds } from "@/lib/faq-slots"
@@ -42,7 +43,6 @@ export default async function HotHomePage() {
   const toggleKeys = sections.map((s) => s.key).join(",")
 
   const staticGroups = page.groups.filter((g) => STATIC_HEADINGS.includes(g.heading))
-  const seoMetaGroup = page.groups.find((g) => g.heading === "SEO и мета")
   const citiesGroup = page.groups.find((g) => g.heading === "Секция «Карточки курортов»")
   const searchGroup = page.groups.find(
     (g) =>
@@ -111,12 +111,15 @@ export default async function HotHomePage() {
   }
 
   const pageHref = resolveHotPublicHref(settings["hot.slug"])
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: pageHref,
+    fallbackTitle: page.heading,
+  })
   const hasSettings = (fields: { key: string }[]) =>
     fields.some((field) => Boolean(settings[field.key]?.trim()))
-  const basicBadge = Boolean(
-    (seoMetaGroup && hasSettings(seoMetaGroup.fields)) ||
-      hasSettings(staticGroups.flatMap((group) => group.fields)),
-  )
+  const basicBadge = hasSettings(staticGroups.flatMap((group) => group.fields))
   const contentFields = [
     ...(citiesGroup?.fields ?? []),
   ]
@@ -132,7 +135,7 @@ export default async function HotHomePage() {
       id: "main",
       label: "Основное",
       badge: basicBadge,
-      anchorIds: ["s-seo-meta", "s-page-header"],
+      anchorIds: ["s-page-header"],
     },
     {
       id: "content",
@@ -140,6 +143,7 @@ export default async function HotHomePage() {
       badge: contentBadge,
       anchorIds: ["sec-search", "sec-cities", "sec-seo", "sec-faq"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     {
       id: "tables",
       label: "Таблицы",
@@ -165,11 +169,6 @@ export default async function HotHomePage() {
         workspaceGroups={workspaceGroups}
         workspaceBeforeForm={
           <div className="space-y-4">
-            {seoMetaGroup && (
-              <FormSection key="seo-meta" id="s-seo-meta" title="SEO и мета">
-                <SectionFieldsForm fields={seoMetaGroup.fields} settings={settings} />
-              </FormSection>
-            )}
             {staticGroups.map((group) => (
               <FormSection
                 key={group.heading}
@@ -183,6 +182,7 @@ export default async function HotHomePage() {
           </div>
         }
         workspaceExtraPanels={[
+          ...(seoWorkspace ? [seoWorkspace.seoPanel] : []),
           <div id="resort-table" className="mt-6 scroll-mt-4">
               <ResortTableBuilder
                 pageKey={pageKey}
