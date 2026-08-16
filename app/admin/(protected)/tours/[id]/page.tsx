@@ -6,6 +6,8 @@ import { getCurrencies } from "@/lib/currencies-server"
 import { getBlocks, getSettings, isTourVisible } from "@/lib/cms"
 import { groupFaqBlocks } from "@/lib/faq-form"
 import { getBusTourTypes } from "@/lib/bus-tour-types"
+import { buildTourGuide } from "@/lib/setup-guide-builders"
+import { SetupGuide } from "@/components/admin/setup-guide"
 import { TourForm } from "@/components/admin/tour-form"
 
 export default async function EditTourPage({
@@ -32,9 +34,17 @@ export default async function EditTourPage({
     title: g.title,
     items: g.items.map((b) => ({ question: b.title, answer: b.body })),
   }))
+  const tourMeta = Object.fromEntries(
+    ["metaTitle", "metaDescription", "metaShortDesc", "metaImage"].map((key) => [
+      key,
+      settings[`tour:${tour.id}.${key}`] ?? "",
+    ]),
+  )
+  const guide = buildTourGuide({ tour, tourVisible, tourMeta })
 
   return (
     <div className="space-y-6">
+      <SetupGuide data={guide} />
       <TourForm
         tour={tour}
         countries={countries}
@@ -45,12 +55,7 @@ export default async function EditTourPage({
         faqGroups={faqGroups}
         arrivalCityName={arrivalCity?.name ?? ""}
         tourVisible={tourVisible}
-        tourMeta={Object.fromEntries(
-          ["metaTitle", "metaDescription", "metaShortDesc", "metaImage"].map((key) => [
-            key,
-            settings[`tour:${tour.id}.${key}`] ?? "",
-          ]),
-        )}
+        tourMeta={tourMeta}
       />
     </div>
   )

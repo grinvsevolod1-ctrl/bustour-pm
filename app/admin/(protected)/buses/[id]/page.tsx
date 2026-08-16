@@ -6,6 +6,8 @@ import { busPageConfig } from "@/lib/admin-config"
 import { BusBaseForm } from "@/components/admin/bus-base-form"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
 import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
+import { SetupGuide } from "@/components/admin/setup-guide"
+import { buildWorkspaceGuide } from "@/lib/setup-guide-builders"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -154,6 +156,13 @@ export default async function EditBusPage({
 
   return (
     <div className="space-y-4">
+      <SetupGuide
+        data={buildWorkspaceGuide({
+          groups: workspaceGroups,
+          previewUrl: page.url,
+          entityLabel: `автобус «${bus.title || page.heading}»`,
+        })}
+      />
       <PageSettingsForm
         title={page.heading}
         description="Данные автобуса, расширенный текст, таблицы и FAQ."

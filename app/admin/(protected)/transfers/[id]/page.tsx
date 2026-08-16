@@ -6,6 +6,8 @@ import { TransferBaseForm } from "@/components/admin/transfer-base-form"
 import { TransferSchedulesPanel } from "@/components/admin/transfer-schedules-panel"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
 import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
+import { SetupGuide } from "@/components/admin/setup-guide"
+import { buildWorkspaceGuide } from "@/lib/setup-guide-builders"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -90,6 +92,14 @@ export default async function EditTransferPage({ params }: { params: Promise<{ i
     { id: "order", label: "Порядок секций", badge: initialOrder.length > 0, anchorIds: ["sec-order"] },
   ]
   return (
+    <div className="space-y-4">
+    <SetupGuide
+      data={buildWorkspaceGuide({
+        groups: workspaceGroups,
+        previewUrl: page.url,
+        entityLabel: `трансфер «${transfer.title || page.heading}»`,
+      })}
+    />
     <PageSettingsForm
       title={page.heading}
       description="Данные трансфера, расписания, FAQ и SEO."
@@ -134,5 +144,6 @@ export default async function EditTransferPage({ params }: { params: Promise<{ i
         }}
       />
     </PageSettingsForm>
+    </div>
   )
 }

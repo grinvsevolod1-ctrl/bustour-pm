@@ -15,6 +15,8 @@ import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
 import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
+import { SetupGuide } from "@/components/admin/setup-guide"
+import { buildWorkspaceGuide } from "@/lib/setup-guide-builders"
 import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { buildSectionTitles } from "@/lib/section-titles"
 import { DESTINATION_DEFAULT_SECTION_ORDER, resolveInitialOrder } from "@/lib/section-order"
@@ -208,6 +210,13 @@ export default async function EditCountryPage({
 
   return (
     <div className="space-y-4">
+      <SetupGuide
+        data={buildWorkspaceGuide({
+          groups: workspaceGroups,
+          previewUrl: pageHref,
+          entityLabel: `страна «${country.name || page.heading}»`,
+        })}
+      />
       <PageSettingsForm
         title={page.heading}
         saveAction={saveCountryPageAction}
