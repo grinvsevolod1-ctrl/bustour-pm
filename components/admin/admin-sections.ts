@@ -243,6 +243,9 @@ export const ADMIN_SECTIONS: AdminSectionEntry[] = [
     synonyms: ['contacts', 'телефон', 'адрес', 'почта', 'email', 'режим работы', 'как связаться'],
     group: 'Инфо-страницы',
     icon: Contact,
+    // Страница правит глобальные site.*-ключи и требует manage_settings —
+    // без capability здесь менеджер видел пункт, но получал отказ при клике.
+    capability: 'manage_settings',
   },
   {
     href: '/admin/pages/memos',

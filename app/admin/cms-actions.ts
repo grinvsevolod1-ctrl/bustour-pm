@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin, requireCapability } from "@/lib/auth"
+import { requireAdmin } from "@/lib/auth"
+import { roleHasCapability } from "@/lib/admin-roles"
 import {
   writeAudit,
   pickSettingsSubset,
@@ -87,12 +88,22 @@ export async function validateSettingsAction(formData: FormData) {
   return settingsValidationError(formData) ?? { ok: true as const }
 }
 
+/**
+ * Глобальные (site-wide) пространства ключей настроек — соответствуют группам
+ * страницы /admin/settings (settingsGroups в lib/admin-config.ts) + social.links.
+ * Право manage_settings выводится из САМИХ ключей, а не из клиентского флага
+ * формы: скрытое поле можно подделать в POST, ключи — нет.
+ */
+const GLOBAL_SETTINGS_PREFIXES = ["site.", "analytics.", "announcement.", "notify.", "social."] as const
+
+function isGlobalSettingsKey(key: string): boolean {
+  return GLOBAL_SETTINGS_PREFIXES.some((prefix) => key.startsWith(prefix))
+}
+
 export async function saveSettingsAction(_prev: unknown, formData: FormData) {
-  // Site-wide settings page only (managers may still save page-scoped settings elsewhere).
-  const admin =
-    String(formData.get("__siteSettings") || "") === "1"
-      ? await requireCapability("manage_settings")
-      : await requireAdmin()
+  // Любой админ может открыть сохранение; право на глобальные ключи
+  // проверяется ниже по фактическому содержимому entries (key-derived).
+  const admin = await requireAdmin()
   const validationError = settingsValidationError(formData)
   if (validationError) return validationError
   const entries: Record<string, string> = {}
@@ -156,6 +167,14 @@ export async function saveSettingsAction(_prev: unknown, formData: FormData) {
     }
   }
   const keys = Object.keys(entries)
+  // Key-derived enforcement: если среди сохраняемых ключей есть глобальные
+  // (site.*, analytics.*, announcement.*, notify.*, social.*) — требуется
+  // manage_settings, независимо от того, с какой формы пришёл POST.
+  if (keys.some(isGlobalSettingsKey) && !roleHasCapability(admin.role, "manage_settings")) {
+    return {
+      error: "Недостаточно прав: глобальные настройки сайта доступны только роли с правом «Настройки»",
+    }
+  }
   const current = currentBefore
   const beforeFull = pickSettingsSubset(current, keys)
   const namespacedFaqs: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
@@ -409,7 +428,7 @@ export async function savePageSectionsOrderAction(formData: FormData) {
       action: "settings_update",
       entityType: "page",
       entityId: pageKey,
-      summary: `Обновлён порядок секций «${pageKey}»`,
+      summary: `��бновлён порядок секций «${pageKey}»`,
       before: diff.before,
       after: diff.after,
     })

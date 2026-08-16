@@ -133,7 +133,11 @@ export function buildSections(role: AdminRole): NavSection[] {
         leaf('/admin/reviews', 'Отзывы', Star),
         branch('info', 'Инфо-страницы', Building2, [
           leaf('/admin/pages/company', 'Компания', Building2),
-          leaf('/admin/pages/contacts', 'Контакты', Contact),
+          // Контакты редактируют глобальные site.*-ключи (телефоны, адрес) —
+          // страница требует manage_settings, прячем пункт от менеджера.
+          leaf('/admin/pages/contacts', 'Контакты', Contact, {
+            capability: 'manage_settings',
+          }),
           leaf('/admin/pages/memos', 'Памятка', ScrollText),
           leaf('/admin/licenses', 'Документы', BadgeCheck),
           leaf('/admin/staff', 'Сотрудники', UserRound),

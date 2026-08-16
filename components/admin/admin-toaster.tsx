@@ -10,6 +10,12 @@ const NOTICE_MESSAGES: Record<string, string> = {
   purged: "Запись удалена навсегда",
 }
 
+// Служебные ключи ошибок из redirect'ов (?error=forbidden) — человеческий текст.
+// Неизвестные значения показываются как есть (произвольные сообщения actions).
+const ERROR_MESSAGES: Record<string, string> = {
+  forbidden: "Недостаточно прав для этого раздела. Если доступ нужен для работы — обратитесь к администратору.",
+}
+
 function FlashFromQuery() {
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -29,7 +35,7 @@ function FlashFromQuery() {
 
     if (notice && NOTICE_MESSAGES[notice]) toast.success(NOTICE_MESSAGES[notice])
     else if (notice) toast.success(notice)
-    if (error) toast.error(error)
+    if (error) toast.error(ERROR_MESSAGES[error] ?? error)
 
     const next = new URLSearchParams(searchParams.toString())
     next.delete("notice")
