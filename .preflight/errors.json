@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-08-16T03:43:51.979Z",
-  "finishedAt": "2026-08-16T03:43:56.016Z",
+  "startedAt": "2026-08-16T04:33:07.764Z",
+  "finishedAt": "2026-08-16T04:33:42.294Z",
   "errors": [],
   "warnings": [
     {
       "stage": "selfcheck",
       "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/admin-nav-sidebar.selfcheck.ts",
+      "file": "/vercel/share/v0-project/scripts/recaptcha.selfcheck.ts",
       "line": null,
       "column": null,
       "code": "SELFCHECK_FAIL",
-      "message": " | [SmartTest] Selfcheck failed: scripts/admin-nav-sidebar.selfcheck.ts (exit 1) | ",
-      "raw": "    '          );\\n' +\n    '        })}\\n' +\n    '      </nav>\\n' +\n    '\\n' +\n    '      <div className=\"mt-3 shrink-0 space-y-2 border-t border-slate-700 pt-3\">\\n' +\n    '        <Guar'... 5159 more characters,\n  expected: /Операции/,\n  operator: 'match',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/admin-nav-sidebar.selfcheck.ts (exit 1)\n"
+      "message": "dev-stand (BASTUR_DEPLOY_ENV=dev, NODE_ENV=prod) auto-bypasses captcha",
+      "raw": "AssertionError [ERR_ASSERTION]: dev-stand (BASTUR_DEPLOY_ENV=dev, NODE_ENV=prod) auto-bypasses captcha\n\nfalse !== true\n\n    at main (/vercel/share/v0-project/scripts/recaptcha.selfcheck.ts:147:10) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\n[SmartTest] Selfcheck failed: scripts/recaptcha.selfcheck.ts (exit 1)\n"
     }
   ],
   "totals": {
