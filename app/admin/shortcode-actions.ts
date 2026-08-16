@@ -9,6 +9,7 @@ import { requireAdmin, requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { shortcodeSaveSchema, zodFirstError } from "@/lib/validations/admin"
 import { listShortcodes } from "@/lib/shortcodes"
+import { revalidateCmsSettings } from "@/lib/cms"
 
 /** List for editor insert — any logged-in admin (managers edit tours). */
 export async function getAllShortcodesAction() {
@@ -77,6 +78,8 @@ export async function saveShortcodeAction(
     throw e
   }
 
+  // Шорткоды расширяются внутри кешированных публичных настроек — сбрасываем.
+  revalidateCmsSettings()
   revalidatePath("/admin/shortcodes")
   revalidatePath("/")
   return { ok: true }
@@ -95,6 +98,7 @@ export async function deleteShortcodeAction(formData: FormData): Promise<void> {
     entityId: id,
     summary: `Удалён шорткод #${id}`,
   })
+  revalidateCmsSettings()
   revalidatePath("/admin/shortcodes")
   revalidatePath("/")
 }

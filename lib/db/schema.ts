@@ -115,6 +115,8 @@ export const transfers = pgTable(
   },
   (t) => [
     uniqueIndex("transfers_category_slug").on(t.category, t.slug),
+    // Все листинги трансферов фильтруют по archived.
+    index("transfers_archived_idx").on(t.archived),
     check("transfers_price_roundtrip_nonneg", sql`${t.priceRoundTrip} >= 0`),
     check("transfers_price_oneway_nonneg", sql`${t.priceOneWay} >= 0`),
     check("transfers_category_enum", sql`${t.category} IN ('airport','railway','bus_station','city')`),
@@ -211,6 +213,12 @@ export const reviews = pgTable("reviews", {
 }, (table) => ({
   archivedIdx: index("reviews_archived_idx").on(table.archived),
   archivedApprovedIdx: index("reviews_archived_approved_idx").on(table.archived, table.approved),
+  // Дедупликация импорта (holiday_by и др.) на уровне БД: приложение проверяет
+  // дубликаты в памяти, но гонка (двойной клик по «Импортировать») её обходит.
+  // Частичный unique: ручные отзывы (sourceId = '') не ограничиваются.
+  sourceUniq: uniqueIndex("reviews_source_source_id_uniq")
+    .on(table.source, table.sourceId)
+    .where(sql`"sourceId" <> ''`),
   reviewsRatingRange: check("reviews_rating_range", sql`${table.rating} >= 1 AND ${table.rating} <= 5`),
   reviewsShowOnJson: check("reviews_show_on_is_json", sql`${table.showOn} IS JSON`),
 }))
@@ -234,6 +242,8 @@ export const articles = pgTable("articles", {
   createdAt: createdAt("createdAt"),
 }, (table) => ({
   archivedIdx: index("articles_archived_idx").on(table.archived),
+  // Каталог статей: WHERE archived ORDER BY createdAt DESC.
+  archivedCreatedIdx: index("articles_archived_created_idx").on(table.archived, table.createdAt),
   articlesCategoryEnum: check("articles_category_enum", sql`${table.category} IN ('news','special','reviews')`),
   articlesContentJson: check("articles_content_is_json", sql`${table.content} IS JSON`),
 }))
@@ -252,7 +262,11 @@ export const leads = pgTable(
     archived: boolean("archived").notNull().default(false),
     createdAt: createdAt("createdAt"),
   },
-  (t) => [index("leads_archived_idx").on(t.archived)],
+  (t) => [
+    index("leads_archived_idx").on(t.archived),
+    // Листинги лидов всегда сортируются по createdAt DESC при фильтре archived.
+    index("leads_archived_created_idx").on(t.archived, t.createdAt),
+  ],
 )
 
 export const admins = pgTable("admins", {
@@ -290,6 +304,8 @@ export const adminAuditLog = pgTable(
   (t) => [
     index("admin_audit_log_admin_created_idx").on(t.adminId, t.createdAt),
     index("admin_audit_log_entity_idx").on(t.entityType, t.entityId),
+    // Листинг журнала (ORDER BY createdAt DESC) и purge (WHERE createdAt < cutoff).
+    index("admin_audit_log_created_idx").on(t.createdAt),
   ],
 )
 
@@ -392,6 +408,8 @@ export const mediaFiles = pgTable("media_files", {
   folderIdx: index("media_files_folder_id_idx").on(table.folderId),
   statusIdx: index("media_files_status_idx").on(table.status),
   leaseIdx: index("media_files_lease_until_idx").on(table.leaseUntil),
+  // size хранится текстом (legacy) — БД гарантирует, что это число.
+  sizeNumeric: check("media_files_size_numeric", sql`${table.size} ~ '^\\d+$'`),
 }))
 
 export const certSections = pgTable("cert_sections", {

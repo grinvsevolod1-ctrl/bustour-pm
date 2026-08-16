@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 import { Button, Input, IconButton } from "@/components/admin/ui"
-import { RichEditor } from "@/components/admin/rich-editor"
+import { RichEditor } from "@/components/admin/rich-editor-lazy"
 
 type FaqItem = { question: string; answer: string }
 export type FaqGroupState = { title: string; items: FaqItem[] }

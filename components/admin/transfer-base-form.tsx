@@ -9,7 +9,7 @@ import { PageSettingsFormContext } from "@/components/admin/page-settings-form"
 import { SlugField } from "@/components/admin/slug-field"
 import { MediaUploader } from "@/components/admin/media-uploader"
 import { uploadedFileFromUrl, type UploadedFile } from "@/components/admin/media-uploader"
-import { RichEditor } from "@/components/admin/rich-editor"
+import { RichEditor } from "@/components/admin/rich-editor-lazy"
 import { ShortcodeInput } from "@/components/admin/shortcode-input"
 import { useActionToast } from "@/components/admin/use-action-toast"
 

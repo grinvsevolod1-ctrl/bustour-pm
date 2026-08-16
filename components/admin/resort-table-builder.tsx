@@ -9,7 +9,7 @@ import {
   moveBlockAction,
 } from "@/app/admin/cms-actions"
 import { Button, Card, CardBody, CardHeader, CardTitle, Input, Label, TableWrap, Tbody, Td, Th, Thead, Tr } from "@/components/admin/ui"
-import { RichEditor } from "@/components/admin/rich-editor"
+import { RichEditor } from "@/components/admin/rich-editor-lazy"
 import { CellRichEditor } from "@/components/admin/cell-rich-editor"
 import { PublicTableColHeader } from "@/components/admin/public-table-col-header"
 import {

@@ -3,7 +3,7 @@
 import { useActionState } from "react"
 import { saveCountryAction } from "@/app/admin/country-actions"
 import type { Country } from "@/lib/types"
-import { RichEditor } from "@/components/admin/rich-editor"
+import { RichEditor } from "@/components/admin/rich-editor-lazy"
 import { FaqEditor, type FaqGroupState } from "@/components/admin/faq-editor"
 import {
   FormSection,

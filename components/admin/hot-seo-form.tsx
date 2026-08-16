@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react"
 import { Check } from "lucide-react"
 import { saveSettingsAction } from "@/app/admin/cms-actions"
-import { RichEditor } from "@/components/admin/rich-editor"
+import { RichEditor } from "@/components/admin/rich-editor-lazy"
 import { Button, Card, CardHeader, CardTitle, CardBody } from "@/components/admin/ui"
 
 export function HotSeoForm({ seoHtml }: { seoHtml: string }) {

@@ -1,4 +1,5 @@
 import { cache } from "react"
+import { unstable_cache, revalidateTag } from "next/cache"
 import { and, asc, eq, like, or } from "drizzle-orm"
 import { db, type DbExecutor } from "@/lib/db"
 import { settings, contentBlocks } from "@/lib/db/schema"
@@ -18,15 +19,43 @@ export async function getSettings(): Promise<SiteSettings> {
   return map
 }
 
+/** Тег кеша публичных настроек: инвалидируется при сохранении настроек и шорткодов. */
+export const CMS_SETTINGS_TAG = "cms-settings"
+
+/**
+ * Межзапросный кеш: полная выборка site_settings + расширение шорткодов
+ * выполнялись на КАЖДЫЙ запрос каждой публичной страницы. Теперь результат
+ * живёт между запросами; TTL 5 минут — страховка от пропущенной инвалидации
+ * (основной путь — revalidateCmsSettings() из saveSettings и shortcode-actions).
+ */
+const getCachedPublicSettings = unstable_cache(
+  async (): Promise<SiteSettings> => expandSettingsValues(await getSettings()),
+  ["public-settings"],
+  { tags: [CMS_SETTINGS_TAG], revalidate: 300 },
+)
+
 /**
  * Public pages only: settings with `[Shortcodes]` already expanded. Admin must use `getSettings()`.
  *
  * Обёрнуто в React cache(): layout, generateMetadata и страница дёргают эту функцию
- * в одном запросе — SQL выполняется один раз на рендер, а не 3-4 раза.
+ * в одном запросе — дедуп в рамках рендера поверх межзапросного unstable_cache.
  */
 export const getPublicSettings = cache(async (): Promise<SiteSettings> => {
-  return expandSettingsValues(await getSettings())
+  return getCachedPublicSettings()
 })
+
+/**
+ * Сбрасывает кеш публичных настроек. Вызывать после мутаций settings/shortcodes.
+ * try/catch: saveSettings дёргают и cron/скрипты вне request-scope, где
+ * revalidateTag недоступен — там кеш просто истечёт по TTL.
+ */
+export function revalidateCmsSettings() {
+  try {
+    revalidateTag(CMS_SETTINGS_TAG, "max")
+  } catch {
+    // вне request-scope (cron, selfcheck-скрипты) — полагаемся на TTL
+  }
+}
 
 /**
  * Returns the site origin with protocol and no trailing slash for Tourvisor widget URLs.
@@ -72,6 +101,7 @@ export async function saveSettings(entries: Record<string, string>, executor?: D
   if (!pairs.length) return
   if (executor) {
     for (const [key, value] of pairs) await executor.insert(settings).values({ key, value }).onConflictDoUpdate({ target: settings.key, set: { value } })
+    revalidateCmsSettings()
     return
   }
   await db.transaction(async (tx) => {
@@ -82,6 +112,7 @@ export async function saveSettings(entries: Record<string, string>, executor?: D
         .onConflictDoUpdate({ target: settings.key, set: { value } })
     }
   })
+  revalidateCmsSettings()
 }
 
 /* ---------------- Content blocks ---------------- */
