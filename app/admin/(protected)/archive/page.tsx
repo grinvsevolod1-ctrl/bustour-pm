@@ -2,9 +2,8 @@ import { ArchiveRestore, Trash2 } from "lucide-react"
 import { getArchivedPages } from "@/lib/queries"
 import { generatePreviewUrl } from "@/lib/preview-url"
 import type { PreviewEntityType } from "@/lib/preview-token"
+import { restoreTourAction, purgeTourAction } from "@/app/admin/tour-actions"
 import {
-  restoreTourAction,
-  purgeTourAction,
   restoreArticleAction,
   purgeArticleAction,
   restoreBusAction,

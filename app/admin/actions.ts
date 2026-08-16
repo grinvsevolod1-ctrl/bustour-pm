@@ -138,18 +138,9 @@ export async function logoutAction() {
   redirect("/admin/login")
 }
 
-/* ---------------- Tours (вынесены в tour-actions.ts) ----------------
- * Реэкспорт для обратной совместимости: формы импортируют из "@/app/admin/actions".
- * Новый код импортируй напрямую из "@/app/admin/tour-actions". */
-export {
-  saveTourAction,
-  saveTourDatesTableAction,
-  deleteTourAction,
-  moveTourAction,
-  reorderToursAction,
-  restoreTourAction,
-  purgeTourAction,
-} from "./tour-actions"
+/* ---------------- Tours ----------------
+ * Туровые actions вынесены в app/admin/tour-actions.ts — файлы с "use server"
+ * не могут реэкспортировать, поэтому импортируй их оттуда напрямую. */
 
 /* ---------------- Buses ---------------- */
 

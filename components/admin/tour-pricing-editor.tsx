@@ -7,7 +7,7 @@ import type { Currency, DatesTable, DatesTableRow, DatesTableTag, DatesTableRoom
 import { CurrencySelect } from "@/components/currency/currency-select"
 import { deriveDuration, finalPrice, isUpcomingDeparture, datesTableRangeError, dateRangeOrderError, TAG_ICONS, coerceDatesTable } from "@/lib/dates-table"
 import { ALERT_KIND_OPTIONS } from "@/lib/alert-kind"
-import { saveTourDatesTableAction } from "@/app/admin/actions"
+import { saveTourDatesTableAction } from "@/app/admin/tour-actions"
 import { resolveTourLayout } from "@/lib/tour-sections"
 import { Button, Card, CardBody, CardHeader, CardTitle, IconButton, Input, Label, Select, Textarea } from "@/components/admin/ui"
 import { useActionToast } from "@/components/admin/use-action-toast"
