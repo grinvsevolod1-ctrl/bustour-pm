@@ -6,6 +6,7 @@ import { pageSettingsGroups, type PageSection } from "@/lib/admin-config"
 import { deleteCertSectionAction, deleteCertificateAction, moveCertSectionAction, moveCertificateAction } from "@/app/admin/cert-actions"
 import { SortOrderButtons } from "@/components/admin/sort-order-buttons"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { PageSettingsForm } from "@/components/admin/page-settings-form"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
@@ -49,7 +50,14 @@ export default async function AdminLicensesPage() {
   const faqSlots = buildFaqSlots(pageKey, initialOrder, pageFaqs)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = pageSections.map((section) => section.key).join(",")
-  const fields = page.groups.flatMap((group) => group.fields)
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: "/company/licenses",
+    fallbackTitle: "Лицензии и сертификаты",
+  })
+  const mainGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups
+  const fields = mainGroups.flatMap((group) => group.fields)
   const workspaceGroups: EditorWorkspaceGroup[] = [
     {
       id: "main",
@@ -69,6 +77,7 @@ export default async function AdminLicensesPage() {
       badge: pageFaqs.length > 0,
       anchorIds: ["sec-faq"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     {
       id: "order",
       label: "Порядок секций",
@@ -85,7 +94,7 @@ export default async function AdminLicensesPage() {
       workspaceGroups={workspaceGroups}
       workspaceBeforeForm={
         <FormSection id="general-settings" title="Настройки страницы" collapsible={false}>
-          {page.groups.map((group) => (
+          {mainGroups.map((group) => (
             <div key={group.heading}>
               <h2 className="mb-2 text-sm font-medium text-admin-fg">{group.heading}</h2>
               <SectionFieldsForm fields={group.fields} settings={settings} />
@@ -93,6 +102,7 @@ export default async function AdminLicensesPage() {
           ))}
         </FormSection>
       }
+      workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : undefined}
       workspaceMidPanels={[
         <div key="licenses-list" id="licenses-list" className="scroll-mt-4 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">

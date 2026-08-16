@@ -135,6 +135,105 @@ function readControlValue(key: string): string | null {
   return null
 }
 
+/**
+ * Живое SERP-превью для клиентских форм с прямыми инпутами (тур, статья):
+ * семплирует контролы по name и показывает превью + счётчики. Полями не
+ * управляет — только отображает эффективные значения (ручное → авто из контента).
+ */
+export function SeoLivePreview({
+  serpHost,
+  serpPath,
+  titleName,
+  descriptionName,
+  shortDescName,
+  sourceTitleName,
+  sourceDescriptionName,
+  fallbackTitle,
+}: {
+  serpHost: string
+  serpPath: string
+  /** name контрола ручного Title (metaTitle). */
+  titleName: string
+  /** name контрола ручного Description (metaDescription). */
+  descriptionName: string
+  /** name короткого описания — в превью приоритетнее длинного. */
+  shortDescName?: string
+  /** name контрола-источника авто-заголовка (title). */
+  sourceTitleName?: string
+  /** name контрола-источника авто-описания (description). */
+  sourceDescriptionName?: string
+  fallbackTitle?: string
+}) {
+  const [live, setLive] = useState<Record<string, string>>({})
+  const watchedKeys = useMemo(
+    () =>
+      [titleName, descriptionName, shortDescName, sourceTitleName, sourceDescriptionName].filter(
+        (k): k is string => Boolean(k),
+      ),
+    [titleName, descriptionName, shortDescName, sourceTitleName, sourceDescriptionName],
+  )
+
+  const sample = useCallback(() => {
+    setLive((prev) => {
+      let changed = false
+      const next: Record<string, string> = { ...prev }
+      for (const key of watchedKeys) {
+        const value = readControlValue(key)
+        if (value !== null && value !== prev[key]) {
+          next[key] = value
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [watchedKeys])
+
+  useEffect(() => {
+    sample()
+    document.addEventListener("input", sample, true)
+    const interval = window.setInterval(sample, 1200)
+    return () => {
+      document.removeEventListener("input", sample, true)
+      window.clearInterval(interval)
+    }
+  }, [sample])
+
+  const valueOf = (key?: string) => (key ? (live[key] ?? "").trim() : "")
+  const manualTitle = valueOf(titleName)
+  const manualDescription = valueOf(shortDescName) || valueOf(descriptionName)
+  const autoTitle = buildAutoTitle(valueOf(sourceTitleName)) || (fallbackTitle ?? "")
+  const autoDescription = buildAutoDescription(valueOf(sourceDescriptionName))
+  const effectiveTitle = manualTitle || autoTitle
+  const effectiveDescription = manualDescription || autoDescription
+
+  return (
+    <div className="space-y-3">
+      <SerpPreview
+        host={serpHost}
+        path={serpPath}
+        title={stripHtmlToText(effectiveTitle)}
+        description={stripHtmlToText(effectiveDescription)}
+        titleIsAuto={!manualTitle}
+        descriptionIsAuto={!manualDescription}
+      />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-admin-border bg-admin-muted/40 px-4 py-2.5">
+        <MetaLengthCounter
+          label="Title"
+          length={stripHtmlToText(effectiveTitle).length}
+          max={SEO_TITLE_MAX}
+          isAuto={!manualTitle}
+        />
+        <MetaLengthCounter
+          label="Description"
+          length={stripHtmlToText(effectiveDescription).length}
+          max={SEO_DESCRIPTION_MAX}
+          isAuto={!manualDescription}
+        />
+      </div>
+    </div>
+  )
+}
+
 export type SeoPanelProps = {
   /** Поля группы «SEO и мета» из конфига страницы (рендерятся FieldsGrid). */
   fields: SettingField[]
@@ -149,6 +248,8 @@ export type SeoPanelProps = {
   sourceDescriptionKey?: string
   /** Статический fallback заголовка, когда источник пуст (заголовок страницы). */
   fallbackTitle?: string
+  /** Заголовок секции полей — для страниц с несколькими панелями (legal). */
+  heading?: string
 }
 
 /**
@@ -166,6 +267,7 @@ export function SeoPanel({
   sourceTitleKey,
   sourceDescriptionKey,
   fallbackTitle,
+  heading,
 }: SeoPanelProps) {
   const pageForm = useContext(PageSettingsFormContext)
 
@@ -312,7 +414,12 @@ export function SeoPanel({
         </div>
       </div>
 
-      <FormSection id="s-seo-fields" title="Поля SEO" collapsible={false}>
+      {/* На страницах с несколькими панелями (legal) id выводится из serpPath — иначе дублирование id */}
+      <FormSection
+        id={heading ? `s-seo-fields-${serpPath.replace(/[^a-z0-9]+/gi, "-")}` : "s-seo-fields"}
+        title={heading ?? "Поля SEO"}
+        collapsible={false}
+      >
         <p className="mb-3 text-xs text-admin-fg-muted">
           Пустое поле = автоматический режим: сайт подставит значение из контента страницы.
           Шорткоды (например {"{телефон}"}) разворачиваются при публикации.

@@ -23,6 +23,8 @@ import { DocumentsBuilder } from "@/components/admin/documents-builder"
 import { TourLayoutBuilder } from "@/components/admin/tour-layout-builder"
 import { AdminCombobox } from "@/components/admin/combobox"
 import { SlugField } from "@/components/admin/slug-field"
+import { SeoLivePreview } from "@/components/admin/seo-panel"
+import { getCanonicalOrigin } from "@/lib/canonical-origin"
 import {
   FormSection,
   Button,
@@ -372,7 +374,7 @@ export function TourForm({
                 }}
                 allowCreate={false}
                 required
-                placeholder={countryHasNoCities ? "В выбранной стране нет городов" : "Выберите город"}
+                placeholder={countryHasNoCities ? "В выбранной стране нет городо��" : "Выберите город"}
                 hint={
                   selectedCountry.trim()
                     ? `Выберите город из списка страны «${selectedCountry}» (только автобусные).`
@@ -549,7 +551,7 @@ export function TourForm({
                         setProgram((p) => p.filter((_, idx) => idx !== i))
                         markDirty()
                       }}
-                      aria-label="Удалить блок программы"
+                      aria-label="Удалить блок ��рограммы"
                       className="shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -668,6 +670,18 @@ export function TourForm({
 
       <>
       <FormSection id="s-seo-meta" title="SEO и мета">
+        <div className="mb-4">
+          <SeoLivePreview
+            serpHost={new URL(getCanonicalOrigin()).host}
+            serpPath={tour ? `/tour/${tour.slug}/` : "/tour/"}
+            titleName="metaTitle"
+            descriptionName="metaDescription"
+            shortDescName="metaShortDesc"
+            sourceTitleName="title"
+            sourceDescriptionName="description"
+            fallbackTitle={tour?.title}
+          />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="tour-meta-title">Title (SEO)</Label>

@@ -6,6 +6,7 @@ import { ReviewForm } from "@/components/admin/review-form"
 import { HolidayImportButton } from "@/components/admin/holiday-import-button"
 import { ReviewsListPanel } from "@/components/admin/reviews-list-panel"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { PageSettingsForm } from "@/components/admin/page-settings-form"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
@@ -66,13 +67,21 @@ export default async function AdminReviewsPage() {
   const faqSlots = buildFaqSlots(pageKey, initialOrder, effectiveFaqs)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = sections.map((section) => section.key).join(",")
-  const fields = pageSettingsGroups.reviews.groups.flatMap((group) => group.fields)
+  const seoWorkspace = buildSeoWorkspace({
+    groups: pageSettingsGroups.reviews.groups,
+    settings,
+    pagePath: "/testimonials",
+    fallbackTitle: "Отзывы",
+  })
+  const mainGroups = seoWorkspace?.groupsWithoutSeo ?? pageSettingsGroups.reviews.groups
+  const fields = mainGroups.flatMap((group) => group.fields)
   const workspaceGroups: EditorWorkspaceGroup[] = [
     { id: "main", label: "Основное", badge: fields.some((field) => Boolean(settings[field.key]?.trim())), anchorIds: ["reviews-settings"] },
     { id: "list", label: "Список", badge: reviews.length > 0, anchorIds: ["reviews-list"] },
     { id: "add", label: "Добавить отзыв", badge: false, anchorIds: ["reviews-add"] },
     { id: "import", label: "Импорт (Holiday.by)", badge: holidayCount > 0, anchorIds: ["reviews-import"] },
     { id: "content", label: "Контент", badge: effectiveFaqs.length > 0, anchorIds: ["sec-faq"] },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     { id: "order", label: "Порядок секций", badge: initialOrder.length > 0, anchorIds: ["sec-order"] },
   ]
 
@@ -89,7 +98,7 @@ export default async function AdminReviewsPage() {
             description={`Всего: ${reviews.length} · На проверке: ${pendingCount}`}
           />
           <FormSection id="reviews-settings" title="Настройки страницы" collapsible={false}>
-            {pageSettingsGroups.reviews.groups.map((group) => (
+            {mainGroups.map((group) => (
               <div key={group.heading}>
                 <h2 className="mb-2 text-sm font-medium text-admin-fg">{group.heading}</h2>
                 <SectionFieldsForm fields={group.fields} settings={settings} />
@@ -98,6 +107,7 @@ export default async function AdminReviewsPage() {
           </FormSection>
         </div>
       }
+      workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : undefined}
       workspaceMidPanels={[
         <div id="reviews-list" key="list" className="scroll-mt-4">
           <ReviewsListPanel reviews={reviewsForAdmin} />

@@ -20,6 +20,8 @@ import {
   SEO_META_SHORT_DESC_HINT,
   SEO_META_SHORT_DESC_LABEL,
 } from "@/lib/admin-config"
+import { SeoLivePreview } from "@/components/admin/seo-panel"
+import { getCanonicalOrigin } from "@/lib/canonical-origin"
 
 export function ArticleForm({ article }: { article?: Article }) {
   const [state, action, pending] = useActionState(saveArticleAction, null)
@@ -63,6 +65,15 @@ export function ArticleForm({ article }: { article?: Article }) {
       </div>
       <div className="space-y-4 border-t border-admin-border pt-4">
         <p className="text-sm font-semibold text-admin-fg">SEO и мета</p>
+        <SeoLivePreview
+          serpHost={new URL(getCanonicalOrigin()).host}
+          serpPath={article ? `/info/${article.slug}` : "/info/"}
+          titleName="metaTitle"
+          descriptionName="metaDescription"
+          shortDescName="metaShortDesc"
+          sourceTitleName="title"
+          fallbackTitle={article?.title}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="article-meta-title" required>Title (SEO)</Label>

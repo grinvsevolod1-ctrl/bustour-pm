@@ -90,7 +90,7 @@ export default async function AdminPageSlug({ params }: Props) {
           workspaceGroups={workspaceGroups}
           workspaceBeforeForm={
             <FormSection id="page-settings" title="Основные данные" collapsible={false}>
-              {staticPage.groups.map((group) => (
+              {mainGroups.map((group) => (
                 <div key={group.heading}>
                   <h2 className="mb-2 text-sm font-medium text-admin-fg">{group.heading}</h2>
                   <SectionFieldsForm fields={group.fields} settings={settings} />
@@ -98,6 +98,7 @@ export default async function AdminPageSlug({ params }: Props) {
               ))}
             </FormSection>
           }
+          workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : undefined}
           workspaceAfterForm={
             <div id="sec-order" className="scroll-mt-4">
               <PageSectionsManager
