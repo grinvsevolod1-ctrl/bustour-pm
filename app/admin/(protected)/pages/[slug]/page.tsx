@@ -5,6 +5,7 @@ import { getSettings, getBlocks, getFaqBlocksForPage } from "@/lib/cms"
 import { pageSettingsGroups } from "@/lib/admin-config"
 import { SettingsForm } from "@/components/admin/settings-form"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { PageFaqForm } from "@/components/admin/page-faq-form"
 import { PageHeader } from "@/components/admin/ui"
 import { getCountry } from "@/lib/countries"
@@ -62,7 +63,14 @@ export default async function AdminPageSlug({ params }: Props) {
       const faqSlots = buildFaqSlots(slug, initialOrder, pageFaqs)
       const faqFormIds = buildFaqFormIds(slug, initialOrder)
       const toggleKeys = sections.map((section) => section.key).join(",")
-      const fields = staticPage.groups.flatMap((group) => group.fields)
+      const seoWorkspace = buildSeoWorkspace({
+        groups: staticPage.groups,
+        settings,
+        pagePath: staticPage.url,
+        fallbackTitle: staticPage.heading,
+      })
+      const mainGroups = seoWorkspace?.groupsWithoutSeo ?? staticPage.groups
+      const fields = mainGroups.flatMap((group) => group.fields)
       const workspaceGroups: EditorWorkspaceGroup[] = [
         {
           id: "main",
@@ -71,6 +79,7 @@ export default async function AdminPageSlug({ params }: Props) {
           anchorIds: ["page-settings"],
         },
         { id: "content", label: "Контент", badge: pageFaqs.length > 0, anchorIds: ["sec-faq"] },
+        ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
         { id: "order", label: "Порядок секций", badge: initialOrder.length > 0, anchorIds: ["sec-order"] },
       ]
       return (

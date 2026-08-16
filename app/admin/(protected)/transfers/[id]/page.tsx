@@ -5,6 +5,7 @@ import { transferPageConfig } from "@/lib/admin-config"
 import { TransferBaseForm } from "@/components/admin/transfer-base-form"
 import { TransferSchedulesPanel } from "@/components/admin/transfer-schedules-panel"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -38,7 +39,12 @@ export default async function EditTransferPage({ params }: { params: Promise<{ i
   const faqSlots = buildFaqSlots(pageKey, initialOrder, faqBlocks)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = sections.map((s) => s.key).join(",")
-  const meta = page.groups[0]
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: page.url ?? `/transfers/${transfer.slug}/`,
+    fallbackTitle: transfer.title || page.heading,
+  })
 
   const seoKeysInOrder = initialOrder.filter((key) => key === "seo" || /^seo\d+$/.test(key))
   const maxSeoN = seoKeysInOrder.reduce((max, key) => {
@@ -72,13 +78,14 @@ export default async function EditTransferPage({ params }: { params: Promise<{ i
 
   const has = (keys: string[]) => keys.some((key) => Boolean(settings[key]?.trim()))
   const workspaceGroups: EditorWorkspaceGroup[] = [
-    { id: "main", label: "Основное", badge: Boolean(transfer.title || transfer.image || transfer.intro), anchorIds: ["s-transfer-base", "s-transfer-meta"] },
+    { id: "main", label: "Основное", badge: Boolean(transfer.title || transfer.image || transfer.intro), anchorIds: ["s-transfer-base"] },
     {
       id: "content",
       label: "Контент",
       badge: has([`${pageKey}.seoTitle`, `${pageKey}.seoHtml`]) || faqBlocks.length > 0,
       anchorIds: ["sec-seo"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     { id: "schedules", label: "Расписания", badge: schedules.length > 0, anchorIds: ["transfer-schedules", "transfer-schedules-outbound", "transfer-schedules-return"] },
     { id: "order", label: "Порядок секций", badge: initialOrder.length > 0, anchorIds: ["sec-order"] },
   ]
@@ -98,9 +105,9 @@ export default async function EditTransferPage({ params }: { params: Promise<{ i
             pageHeadingValue={settings[`${pageKey}.h1`] ?? ""}
           />
         </FormSection>
-        <FormSection id="s-transfer-meta" title="SEO и мета"><SectionFieldsForm fields={meta.fields} settings={settings} /></FormSection>
       </div>}
       workspaceExtraPanels={[
+        ...(seoWorkspace ? [seoWorkspace.seoPanel] : []),
         <TransferSchedulesPanel
           key="schedules"
           transferId={transfer.id}

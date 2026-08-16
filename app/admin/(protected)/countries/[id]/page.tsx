@@ -14,6 +14,7 @@ import { TablePickerSelect } from "@/components/admin/table-picker-select"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { buildSectionTitles } from "@/lib/section-titles"
 import { DESTINATION_DEFAULT_SECTION_ORDER, resolveInitialOrder } from "@/lib/section-order"
@@ -63,7 +64,6 @@ export default async function EditCountryPage({
   const toggleKeys = sections.map((s) => s.key).join(",")
 
   const staticGroups = page.groups.filter((g) => STATIC_HEADINGS.includes(g.heading))
-  const seoMetaGroup = page.groups.find((g) => g.heading === "SEO и мета")
   const citiesGroup = page.groups.find((g) => g.heading === "Секция «Карточки курортов»")
   const searchGroup = page.groups.find(
     (g) =>
@@ -145,6 +145,12 @@ export default async function EditCountryPage({
     : isBus
     ? undefined
     : `https://pro.tourvisor.ru/module/search/9974602?siteUrl=${siteOrigin}${pageHref}`
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: pageHref,
+    fallbackTitle: country.name || page.heading,
+  })
 
   const homeVisKey = isHot ? "hot.visible" : isBus ? "bustours.visible" : "aviatory.visible"
   const homeVisible = homeVisKey ? settings[homeVisKey] !== "0" : true
@@ -154,7 +160,6 @@ export default async function EditCountryPage({
   const basicBadge = Boolean(
     country.name.trim() ||
       country.slug.trim() ||
-      (seoMetaGroup && hasSettings(seoMetaGroup.fields)) ||
       hasSettings(staticGroups.flatMap((group) => group.fields)),
   )
   const contentFields = [
@@ -173,7 +178,7 @@ export default async function EditCountryPage({
       id: "main",
       label: "Основное",
       badge: basicBadge,
-      anchorIds: ["s-country-base", "s-seo-meta", "s-page-header"],
+      anchorIds: ["s-country-base", "s-page-header"],
     },
     {
       id: "content",
@@ -186,6 +191,7 @@ export default async function EditCountryPage({
         "sec-faq",
       ],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     { id: "tables", label: "Таблицы", badge: resortBlocks.length > 0, anchorIds: ["resort-table"] },
     {
       id: "order",
@@ -222,11 +228,6 @@ export default async function EditCountryPage({
             >
               <CountryBaseForm country={country} />
             </FormSection>
-            {seoMetaGroup && (
-              <FormSection key="seo-meta" id="s-seo-meta" title="SEO и мета">
-                <SectionFieldsForm fields={seoMetaGroup.fields} settings={settings} />
-              </FormSection>
-            )}
             {staticGroups.map((group) => (
               <FormSection
                 key={group.heading}
@@ -240,6 +241,7 @@ export default async function EditCountryPage({
           </div>
         }
         workspaceExtraPanels={[
+          ...(seoWorkspace ? [seoWorkspace.seoPanel] : []),
           <div key="resort-table" id="resort-table" className="mt-6 scroll-mt-4">
             <ResortTableBuilder
               pageKey={pageKey}

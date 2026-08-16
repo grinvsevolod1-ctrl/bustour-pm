@@ -5,6 +5,7 @@ import { getBlocks, getSettings, getFaqBlocksForPage } from "@/lib/cms"
 import { busPageConfig } from "@/lib/admin-config"
 import { BusBaseForm } from "@/components/admin/bus-base-form"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -48,7 +49,12 @@ export default async function EditBusPage({
   const faqSlots = buildFaqSlots(pageKey, initialOrder, faqBlocks)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = sections.map((section) => section.key).join(",")
-  const seoMetaGroup = page.groups.find((group) => group.heading === "SEO и мета")
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: page.url ?? `/bus-rental/${bus.slug}/`,
+    fallbackTitle: bus.title || page.heading,
+  })
 
   const seoKeysInOrder = initialOrder.filter((key) => key === "seo" || /^seo\d+$/.test(key))
   const maxSeoN = seoKeysInOrder.reduce((max, key) => {
@@ -110,8 +116,7 @@ export default async function EditBusPage({
       bus.image.trim() ||
       bus.gallery.length ||
       bus.documents.length ||
-      bus.seating.length ||
-      (seoMetaGroup && hasSettings(seoMetaGroup.fields)),
+      bus.seating.length,
   )
   const contentBadge = Boolean(
     hasSettings([
@@ -124,7 +129,7 @@ export default async function EditBusPage({
       id: "main",
       label: "Основное",
       badge: basicBadge,
-      anchorIds: ["s-bus-base", "s-seo-meta"],
+      anchorIds: ["s-bus-base"],
     },
     {
       id: "content",
@@ -132,6 +137,7 @@ export default async function EditBusPage({
       badge: contentBadge,
       anchorIds: ["sec-seo", "sec-faq"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     {
       id: "tables",
       label: "Таблицы",
@@ -164,15 +170,11 @@ export default async function EditBusPage({
                 pageHeadingValue={settings[`${pageKey}.h1`] ?? ""}
               />
             </FormSection>
-            {seoMetaGroup && (
-              <FormSection id="s-seo-meta" title="SEO и мета">
-                <SectionFieldsForm fields={seoMetaGroup.fields} settings={settings} />
-              </FormSection>
-            )}
           </div>
         }
         workspaceExtraPanels={[
-          <div id="resort-table" className="mt-6 scroll-mt-4">
+          ...(seoWorkspace ? [seoWorkspace.seoPanel] : []),
+          <div key="resort-table" id="resort-table" className="mt-6 scroll-mt-4">
               <ResortTableBuilder
                 pageKey={pageKey}
                 blocks={resortBlocks}

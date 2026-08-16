@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { getSettings, getBlocks, getFaqBlocksForPage } from "@/lib/cms"
 import { pageSettingsGroups, getCollection, type PageSection } from "@/lib/admin-config"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { buildFaqFormIds } from "@/lib/faq-slots"
 import { PageSettingsForm } from "@/components/admin/page-settings-form"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -41,7 +42,13 @@ export default async function AdminHomePageSettings() {
     getBlocks("hero"),
   ])
 
-  const groups = page.groups.filter((g) => g.fields.length > 0)
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: "/",
+    fallbackTitle: page.heading,
+  })
+  const groups = (seoWorkspace?.groupsWithoutSeo ?? page.groups).filter((g) => g.fields.length > 0)
   const sectionKeys = HOME_SECTIONS.map((section) => section.key.replace(/^section\./, ""))
   const initialOrder = resolveInitialOrder(
     settings[`${pageKey}.sections.order`],
@@ -67,6 +74,7 @@ export default async function AdminHomePageSettings() {
       badge: pageFaqs.length > 0 || initialOrder.length > 0,
       anchorIds: initialOrder.map((key) => `sec-${key}`),
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     { id: "order", label: "Порядок секций", badge: initialOrder.length > 0, anchorIds: ["sec-order"] },
   ]
 
@@ -87,6 +95,7 @@ export default async function AdminHomePageSettings() {
           ))}
         </FormSection>
       }
+      workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : undefined}
       workspaceMidPanels={[
         <FormSection key="sec-hero" id="sec-hero" title="Слайды героя" collapsible={false}>
           <div className="mb-4 flex items-center justify-between gap-3">

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getBlocks, getSettings, getFaqBlocksForPage } from "@/lib/cms"
 import { pageSettingsGroups, type PageSection } from "@/lib/admin-config"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -39,7 +40,14 @@ export default async function RentalAdminPage() {
   const faqSlots = buildFaqSlots(pageKey, initialOrder, faqBlocks)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = sections.map((section) => section.key).join(",")
-  const fields = page.groups.flatMap((group) => group.fields)
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: page.url ?? "/bus-rental",
+    fallbackTitle: page.heading,
+  })
+  const mainGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups
+  const fields = mainGroups.flatMap((group) => group.fields)
   const hasSettings = (keys: string[]) => keys.some((key) => Boolean(settings[key]?.trim()))
 
   const seoSlots: Record<string, React.ReactNode> = {}
@@ -87,6 +95,7 @@ export default async function RentalAdminPage() {
       ),
       anchorIds: ["sec-seo", "sec-faq"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     {
       id: "order",
       label: "Порядок секций",
@@ -104,7 +113,7 @@ export default async function RentalAdminPage() {
         workspaceGroups={workspaceGroups}
         workspaceBeforeForm={
           <div className="space-y-4">
-            {page.groups.map((group) => (
+            {mainGroups.map((group) => (
               <FormSection
                 key={group.heading}
                 id={group.heading === "Шапка страницы" ? "s-page-header" : "s-rental-base"}
@@ -116,8 +125,7 @@ export default async function RentalAdminPage() {
             ))}
           </div>
         }
-        workspaceExtraPanels={[
-        ]}
+        workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : []}
         workspaceAfterForm={
           <div id="sec-order" className="scroll-mt-4">
             <PageSectionsManager

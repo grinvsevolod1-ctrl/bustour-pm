@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { getSettings, getFaqBlocksForPage } from "@/lib/cms"
 import { pageSettingsGroups, type PageSection } from "@/lib/admin-config"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection, Button, EmptyState } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -51,7 +52,14 @@ export default async function MemosAdminPage() {
   const faqSlots = buildFaqSlots(pageKey, initialOrder, faqBlocks)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = sections.map((section) => section.key).join(",")
-  const baseFields = page.groups.flatMap((group) => group.fields)
+  const seoWorkspace = buildSeoWorkspace({
+    groups: page.groups,
+    settings,
+    pagePath: page.url ?? "/info/memos",
+    fallbackTitle: page.heading,
+  })
+  const mainGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups
+  const baseFields = mainGroups.flatMap((group) => group.fields)
   const hasSettings = (keys: string[]) => keys.some((key) => Boolean(settings[key]?.trim()))
   const tabOrder = resolveMemosTabsOrder(settings)
   const rows = memoAdminRows(settings, tabOrder)
@@ -75,6 +83,7 @@ export default async function MemosAdminPage() {
       badge: faqBlocks.length > 0 || initialOrder.includes("callus"),
       anchorIds: ["sec-callus"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     {
       id: "order",
       label: "Порядок секций",
@@ -91,7 +100,7 @@ export default async function MemosAdminPage() {
       workspaceGroups={workspaceGroups}
       workspaceBeforeForm={
         <FormSection id="page-settings" title="Основные данные" collapsible={false}>
-          {page.groups.map((group) => (
+          {mainGroups.map((group) => (
             <div key={group.heading}>
               <h2 className="mb-2 text-sm font-medium text-admin-fg">{group.heading}</h2>
               <SectionFieldsForm fields={group.fields} settings={settings} />
@@ -99,6 +108,7 @@ export default async function MemosAdminPage() {
           ))}
         </FormSection>
       }
+      workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : undefined}
       workspaceMidPanels={[
         <div key="memos-list" id="memos-list" className="scroll-mt-4 space-y-4">
           <div className="flex items-center justify-between gap-3">

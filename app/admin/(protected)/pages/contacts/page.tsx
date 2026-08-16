@@ -8,6 +8,7 @@ import {
   type PageSection,
 } from "@/lib/admin-config"
 import { buildFaqSlots } from "@/components/admin/build-faq-slots"
+import { buildSeoWorkspace } from "@/components/admin/build-seo-workspace"
 import { EditorWorkspaceGroup } from "@/components/admin/editor-workspace"
 import { FormSection } from "@/components/admin/ui"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
@@ -48,7 +49,14 @@ export default async function ContactsAdminPage() {
   const faqSlots = buildFaqSlots(pageKey, initialOrder, faqBlocks)
   const faqFormIds = buildFaqFormIds(pageKey, initialOrder)
   const toggleKeys = sections.map((section) => section.key).join(",")
-  const fields = groups.flatMap((group) => group.fields)
+  const seoWorkspace = buildSeoWorkspace({
+    groups,
+    settings,
+    pagePath: "/contacts",
+    fallbackTitle: "Контакты",
+  })
+  const mainGroups = seoWorkspace?.groupsWithoutSeo ?? groups
+  const fields = mainGroups.flatMap((group) => group.fields)
   const hasSettings = (keys: string[]) => keys.some((key) => Boolean(settings[key]?.trim()))
 
   const workspaceGroups: EditorWorkspaceGroup[] = [
@@ -64,6 +72,7 @@ export default async function ContactsAdminPage() {
       badge: faqBlocks.length > 0,
       anchorIds: ["sec-faq"],
     },
+    ...(seoWorkspace ? [seoWorkspace.seoGroup] : []),
     {
       id: "order",
       label: "Порядок секций",
@@ -81,11 +90,12 @@ export default async function ContactsAdminPage() {
         workspaceGroups={workspaceGroups}
         workspaceBeforeForm={
           <FormSection id="s-contacts-base" title="Основные данные" collapsible={false}>
-            {groups.map((group) => (
+            {mainGroups.map((group) => (
               <SectionFieldsForm key={group.heading} fields={group.fields} settings={settings} />
             ))}
           </FormSection>
         }
+        workspaceExtraPanels={seoWorkspace ? [seoWorkspace.seoPanel] : undefined}
         workspaceAfterForm={
           <div id="sec-order" className="scroll-mt-4">
             <PageSectionsManager
