@@ -5,9 +5,11 @@ import path from "node:path"
 async function main() {
   const root = path.resolve(__dirname, "..")
   const src = fs.readFileSync(path.join(root, "app", "admin", "actions.ts"), "utf8")
+  // Туровые actions вынесены в tour-actions.ts — baseline-проверку читаем оттуда.
+  const tourSrc = fs.readFileSync(path.join(root, "app", "admin", "tour-actions.ts"), "utf8")
 
   assert.match(
-    src,
+    tourSrc,
     /rekeyPageScopedContent\(`tour:/,
     "tour save rekeyPageScopedContent tour:* exists (baseline)",
   )

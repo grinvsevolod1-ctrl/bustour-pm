@@ -14,7 +14,9 @@ function sectionConfigBody(source: string, functionName: string) {
   return source.slice(sectionsStart, sectionsEnd)
 }
 
-const adminConfig = read("lib/admin-config.ts")
+// Фабрики конфигов страниц вынесены из admin-config.ts в admin-page-configs.ts —
+// ищем функцию в объединённом исходнике обоих файлов.
+const adminConfig = read("lib/admin-config.ts") + read("lib/admin-page-configs.ts")
 const busConfig = sectionConfigBody(adminConfig, "busHomePageConfig")
 assert(busConfig.includes(".section.search") && busConfig.includes("Поиск и список туров"), "bus admin order must expose the catalog search section")
 

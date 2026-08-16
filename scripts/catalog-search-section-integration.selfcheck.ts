@@ -25,12 +25,16 @@ const registry = SECTION_REGISTRY.find((s) => s.id === "search")!
 assert(registry.allowMultiple === false, "search allowMultiple=false (one filter per page)")
 assert(registry.label.trim().length > 0, "search section label should be non-empty")
 
-const adminTs = readFileSync(join(root, "lib", "admin-config.ts"), "utf8")
+// Фабрики конфигов /admin/pages/* вынесены из admin-config.ts в admin-page-configs.ts —
+// проверяем суммарно по обоим файлам, чтобы selfcheck переживал дальнейшие переносы.
+const adminTs =
+  readFileSync(join(root, "lib", "admin-config.ts"), "utf8") +
+  readFileSync(join(root, "lib", "admin-page-configs.ts"), "utf8")
 const searchOccurrences = adminTs.match(/\.section\.search/g)?.length ?? 0
-assert(searchOccurrences >= 6, `expected >=6 '.section.search' in admin-config.ts (6 destination page configs), got ${searchOccurrences}`)
+assert(searchOccurrences >= 6, `expected >=6 '.section.search' in admin-config/admin-page-configs (6 destination page configs), got ${searchOccurrences}`)
 
 const labelOccurrences = adminTs.match(/Фильтр (поиска|и результаты поиска)/g)?.length ?? 0
-assert(labelOccurrences >= 6, `expected >=6 'Фильтр...' section labels in admin-config.ts, got ${labelOccurrences}`)
+assert(labelOccurrences >= 6, `expected >=6 'Фильтр...' section labels in admin-config/admin-page-configs, got ${labelOccurrences}`)
 
 const destMapTsx = readFileSync(join(root, "components", "site", "catalog", "destination-section-map.tsx"), "utf8")
 assert(/key === "search"/.test(destMapTsx), "DestinationSectionMap renderer must handle case 'search'")

@@ -24,13 +24,13 @@ function mustHave(rel: string, needles: string[]) {
 
 // --- Already covered (sanity) ---
 mustHave("lib/auth.ts", ["writeAudit", "login_fail", '"login"', "logout"])
-mustHave("app/admin/actions.ts", ["tour_create", "tour_update", "tour_archive", "tour_restore", "tour_purge", "tour_move", "tour_reorder"])
+// Туровые actions вынесены из actions.ts в tour-actions.ts.
+mustHave("app/admin/tour-actions.ts", ["tour_create", "tour_update", "tour_archive", "tour_restore", "tour_purge", "tour_move", "tour_reorder", "tour_dates_update"])
 mustHave("app/admin/cms-actions.ts", ["settings_update", "block_create", "block_update", "block_delete", "page_faqs_update", "memo_tab_create", "memo_tab_delete", "memo_tab_move", "memo_tab_reorder", "dictionary_tab_create", "dictionary_tab_delete", "dictionary_tab_move", "dictionary_tab_reorder"])
 mustHave("app/admin/user-actions.ts", ["user_create", "user_update", "user_delete"])
 
 // --- Gaps that must be closed ---
 mustHave("app/admin/actions.ts", [
-  "tour_dates_update",
   "bus_create",
   "bus_update",
   "bus_move",

@@ -39,6 +39,13 @@ jobs:
           BUSTOUR_DEPLOY_ENV: local
           CI: "true"
 
+      # Vitest-юниты (tests/): move, avia-slug, proxy-origin, orphan-media и др.
+      # Preflight их не запускает — гоняем отдельным шагом.
+      - name: Unit tests (vitest)
+        run: npm test
+        env:
+          CI: "true"
+
       - name: Upload preflight artifacts (errors report)
         if: failure()
         uses: actions/upload-artifact@v4

@@ -66,14 +66,13 @@ assert.ok(mgr.includes('"callus"'), "manager mockup for callus")
 assert.ok(mgr.includes("Добавить секцию"), "recovery via Add section")
 assert.ok(mgr.includes("isMultipliableSectionBase"), "multipliable picker uses registry helper")
 
-const configs = [
-  "lib/admin-config.ts",
-]
-for (const rel of configs) {
-  const src = read(rel)
-  assert.ok(src.includes('label: "«Есть вопросы?»"') || src.includes("Есть вопросы"), `${rel}: callus labeled`)
-  assert.ok(/\.section\.callus/.test(src), `${rel}: section.callus keys registered`)
-}
+// Фабрики конфигов страниц вынесены в admin-page-configs.ts — проверяем оба файла суммарно.
+const configsSrc = read("lib/admin-config.ts") + read("lib/admin-page-configs.ts")
+assert.ok(
+  configsSrc.includes('label: "«Есть вопросы?»"') || configsSrc.includes("Есть вопросы"),
+  "admin-config/admin-page-configs: callus labeled",
+)
+assert.ok(/\.section\.callus/.test(configsSrc), "admin-config/admin-page-configs: section.callus keys registered")
 
 const publicPages = [
   "app/(site)/hot/[countrySlug]/[citySlug]/page.tsx",

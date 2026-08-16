@@ -95,11 +95,12 @@ assert.ok(usersActions.includes("canAssignRole"), "tier assign guard")
 assert.ok(usersActions.includes("canManageTargetRole"), "tier target guard")
 assert.ok(usersActions.includes("Нельзя менять свою роль"), "self role lock")
 
-const actions = fs.readFileSync(path.join(root, "app/admin/actions.ts"), "utf8")
-assert.ok(actions.includes("tour_update"), "tour save audits")
-assert.ok(actions.includes("tour_archive"), "tour archive audits")
-assert.ok(actions.includes("tour_restore"), "tour restore audits")
-assert.ok(actions.includes("tour_purge"), "tour purge audits")
+// Туровые actions вынесены из actions.ts в tour-actions.ts — аудит проверяем там.
+const tourActions = fs.readFileSync(path.join(root, "app/admin/tour-actions.ts"), "utf8")
+assert.ok(tourActions.includes("tour_update"), "tour save audits")
+assert.ok(tourActions.includes("tour_archive"), "tour archive audits")
+assert.ok(tourActions.includes("tour_restore"), "tour restore audits")
+assert.ok(tourActions.includes("tour_purge"), "tour purge audits")
 
 const cms = fs.readFileSync(path.join(root, "app/admin/cms-actions.ts"), "utf8")
 assert.ok(cms.includes("manage_settings"), "site settings gated")
