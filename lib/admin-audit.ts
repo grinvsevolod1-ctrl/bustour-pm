@@ -1,4 +1,4 @@
-import { desc, and, eq, gte, lte, lt } from "drizzle-orm"
+import { desc, and, eq, gte, lte, lt, sql } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { adminAuditLog } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
@@ -225,8 +225,25 @@ export async function maybePurgeExpiredAuditLogs(): Promise<number | null> {
     const last = Number(site[AUDIT_LAST_PURGE_SETTING_KEY] || 0)
     if (Number.isFinite(last) && last > 0 && now - last < PURGE_COOLDOWN_MS) return null
 
+    // Advisory lock против гонки между процессами (bastur-app и bastur-cron):
+    // оба могли одновременно пройти settings-проверку и запустить purge дважды.
+    // Именно xact-вариант: с пулом соединений session-lock мог бы разлочиться
+    // на другом соединении; xact-лок отпускается автоматически при COMMIT.
     const days = resolveAuditRetentionDays(site[AUDIT_RETENTION_SETTING_KEY])
-    const deleted = await purgeExpiredAuditLogs(days)
+    const cutoff = auditRetentionCutoffMs(days, now)
+    const deleted = await db.transaction(async (tx) => {
+      const lockRows = await tx.execute(
+        sql`SELECT pg_try_advisory_xact_lock(hashtext('bastur_audit_purge')) AS locked`,
+      )
+      const locked = (lockRows as unknown as { rows?: { locked?: boolean }[] }).rows?.[0]?.locked
+      if (!locked) return null // другой процесс уже чистит
+      const removed = await tx
+        .delete(adminAuditLog)
+        .where(lt(adminAuditLog.createdAt, cutoff))
+        .returning({ id: adminAuditLog.id })
+      return removed.length
+    })
+    if (deleted === null) return null
     await saveSettings({ [AUDIT_LAST_PURGE_SETTING_KEY]: String(now) })
     return deleted
   } catch (err) {

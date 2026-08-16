@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import type { MediaItem, UploadedFile } from "@/components/admin/media-uploader"
+import { isImeComposing } from "@/lib/ime"
 import { isPersistedMediaId, updateMediaAlt } from "@/lib/media"
 import { Input } from "@/components/admin/ui"
 
@@ -48,7 +49,7 @@ export function MediaAltField({
         onBlur={() => void save()}
         onKeyDown={(event) => {
           event.stopPropagation()
-          if (event.key === "Enter") {
+          if (event.key === "Enter" && !isImeComposing(event)) {
             event.preventDefault()
             ;(event.currentTarget as HTMLInputElement).blur()
           }

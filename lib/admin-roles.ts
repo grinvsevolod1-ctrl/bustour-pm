@@ -24,6 +24,15 @@ const ALL_CAPS: readonly AdminCapability[] = [
 /** Caps for plain admin (no role catalog). */
 const ADMIN_CAPS: readonly AdminCapability[] = ALL_CAPS.filter((c) => c !== "manage_roles")
 
+/**
+ * Caps для менеджера. manage_content здесь потому, что менеджер ФАКТИЧЕСКИ
+ * редактирует контент: большинство контентных разделов и actions не требуют
+ * capability. Раньше матрица утверждала обратное (false) — это ловушка:
+ * разработчик, повесив проверку manage_content на контентный action,
+ * молча отрезал бы менеджера от того, что тот делал всегда.
+ */
+const MANAGER_CAPS: readonly AdminCapability[] = ["manage_content"] as const
+
 export const SYSTEM_ADMIN_ROLES: readonly AdminRole[] = ["superadmin", "admin", "manager"] as const
 
 /** Higher number = higher privilege. */
@@ -39,13 +48,17 @@ export function isAdminRole(value: string): value is AdminRole {
 
 export function parseAdminRole(value: unknown): AdminRole {
   const s = String(value ?? "").trim()
-  return isAdminRole(s) ? s : "admin"
+  // Fail-safe: неизвестное значение роли даёт НАИМЕНЬШИЕ привилегии.
+  // Раньше fallback был "admin" — мусор в колонке role (или в POST-форме
+  // user-actions) молча повышал права. Колонка NOT NULL DEFAULT 'admin',
+  // так что легитимные пользователи сюда не попадают.
+  return isAdminRole(s) ? s : "manager"
 }
 
 export function roleHasCapability(role: AdminRole, cap: AdminCapability): boolean {
   if (role === "superadmin") return ALL_CAPS.includes(cap)
   if (role === "admin") return ADMIN_CAPS.includes(cap)
-  return false
+  return MANAGER_CAPS.includes(cap)
 }
 
 export function roleLabel(role: AdminRole): string {

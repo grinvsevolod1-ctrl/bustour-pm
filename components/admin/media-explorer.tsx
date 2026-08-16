@@ -2,6 +2,7 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 import { Folder, FolderPlus, Images, LoaderCircle, Search, Trash2 } from "lucide-react"
+import { isImeComposing } from "@/lib/ime"
 import {
   createMediaFolder,
   deleteMediaFolder,
@@ -392,7 +393,7 @@ export function MediaExplorer({
             placeholder="Новая папка"
             aria-label="Название новой папки"
             onKeyDown={(event) => {
-              if (event.key === "Enter") {
+              if (event.key === "Enter" && !isImeComposing(event)) {
                 event.preventDefault()
                 void handleCreateFolder()
               }

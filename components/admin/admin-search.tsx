@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Search, CornerDownLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isImeComposing } from '@/lib/ime';
 import { useAdminDirty } from '@/components/admin/admin-dirty-provider';
 import { roleHasCapability, type AdminRole } from '@/lib/admin-roles';
 import { ADMIN_SECTIONS, type AdminSectionEntry } from '@/components/admin/admin-sections';
@@ -116,6 +117,7 @@ export function AdminSearch({ role }: { role: AdminRole }) {
       e.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter') {
+      if (isImeComposing(e)) return; // Enter подтверждения IME-композиции — не навигация
       e.preventDefault();
       const target = results[activeIndex];
       if (target) void navigate(target.href);

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import type { UploadedFile } from "@/components/admin/media-uploader"
 import { Input } from "@/components/admin/ui"
+import { isImeComposing } from "@/lib/ime"
 import { instanceAltPlaceholder, isMediaLibraryId } from "@/lib/media/node"
 
 /** Local override alt for a page binding (cover/gallery). Does not PATCH media library. */
@@ -56,7 +57,7 @@ export function InstanceAltField({
         }}
         onKeyDown={(event) => {
           event.stopPropagation()
-          if (event.key === "Enter") {
+          if (event.key === "Enter" && !isImeComposing(event)) {
             event.preventDefault()
             ;(event.currentTarget as HTMLInputElement).blur()
           }

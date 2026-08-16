@@ -23,8 +23,10 @@ assert.equal(isAdminRole("superadmin"), true)
 assert.equal(isAdminRole("god"), false)
 assert.equal(parseAdminRole("manager"), "manager")
 assert.equal(parseAdminRole("superadmin"), "superadmin")
-assert.equal(parseAdminRole(""), "admin")
-assert.equal(parseAdminRole(null), "admin")
+// Fail-safe: неизвестная роль = наименьшие привилегии (раньше был "admin").
+assert.equal(parseAdminRole(""), "manager")
+assert.equal(parseAdminRole(null), "manager")
+assert.equal(parseAdminRole("god"), "manager")
 
 assert.equal(roleTier("superadmin"), 3)
 assert.equal(roleTier("admin"), 2)
@@ -55,7 +57,8 @@ assert.equal(roleHasCapability("manager", "manage_users"), false)
 assert.equal(roleHasCapability("manager", "manage_roles"), false)
 assert.equal(roleHasCapability("manager", "manage_settings"), false)
 assert.equal(roleHasCapability("manager", "manage_currencies"), false)
-assert.equal(roleHasCapability("manager", "manage_content"), false)
+// Менеджер редактирует контент — матрица теперь отражает фактический доступ.
+assert.equal(roleHasCapability("manager", "manage_content"), true)
 assert.equal(roleHasCapability("manager", "purge"), false)
 assert.equal(roleHasCapability("manager", "view_audit"), false)
 
@@ -82,7 +85,8 @@ assert.ok(catalog.includes("hideAdminRole"), "hide")
 assert.ok(catalog.includes("restoreAdminRole"), "restore")
 assert.ok(catalog.includes("purgeAdminRole"), "purge")
 
-const nav = fs.readFileSync(path.join(root, "components/admin/admin-nav.tsx"), "utf8")
+// Данные навигации живут в admin-nav-tree.ts (admin-nav.tsx — только рендер).
+const nav = fs.readFileSync(path.join(root, "components/admin/admin-nav-tree.ts"), "utf8")
 assert.ok(nav.includes("/admin/roles"), "nav roles link")
 assert.ok(nav.includes("manage_roles"), "nav capability")
 

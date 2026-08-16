@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
+import { isImeComposing } from "@/lib/ime"
 import { normalizeMediaHeight, normalizeMediaWidth, type MediaAlignment } from "./media-helpers"
 import { Lock, Unlock } from "lucide-react"
 
@@ -163,7 +164,7 @@ export function MediaControls({
         value={draftWidth}
         onChange={(event) => setDraftWidth(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "Enter") {
+          if (event.key === "Enter" && !isImeComposing(event)) {
             event.preventDefault()
             commitWidth()
           }
@@ -216,7 +217,7 @@ export function MediaControls({
             value={draftHeight}
             onChange={(event) => setDraftHeight(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === "Enter") {
+              if (event.key === "Enter" && !isImeComposing(event)) {
                 event.preventDefault()
                 commitHeight()
               }
@@ -238,7 +239,7 @@ export function MediaControls({
           onChange={(event) => setDraftAlt(event.target.value)}
           onBlur={() => onAlt(draftAlt.trim())}
           onKeyDown={(event) => {
-            if (event.key === "Enter") {
+            if (event.key === "Enter" && !isImeComposing(event)) {
               event.preventDefault()
               onAlt(draftAlt.trim())
             }

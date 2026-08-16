@@ -91,6 +91,10 @@ export async function GET(
     "Accept-Ranges": "bytes",
     ETag: etag,
     "Last-Modified": info.mtime.toUTCString(),
+    // Дублируем глобальный nosniff локально: роут отдаёт пользовательские
+    // файлы (в т.ч. text/plain и octet-stream) — MIME-sniffing здесь опаснее
+    // всего, и защита не должна зависеть от конфигурации next.config.
+    "X-Content-Type-Options": "nosniff",
   }
 
   // Conditional GET — let browsers reuse their cache.
