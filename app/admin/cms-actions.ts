@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/auth"
 import { roleHasCapability } from "@/lib/admin-roles"
+import { isGlobalSettingsKey } from "@/lib/settings-scope"
 import {
   writeAudit,
   pickSettingsSubset,
@@ -86,18 +87,6 @@ function settingsValidationError(formData: FormData): { error: string; fieldErro
 export async function validateSettingsAction(formData: FormData) {
   await requireAdmin()
   return settingsValidationError(formData) ?? { ok: true as const }
-}
-
-/**
- * Глобальные (site-wide) пространства ключей настроек — соответствуют группам
- * страницы /admin/settings (settingsGroups в lib/admin-config.ts) + social.links.
- * Право manage_settings выводится из САМИХ ключей, а не из клиентского флага
- * формы: скрытое поле можно подделать в POST, ключи — нет.
- */
-const GLOBAL_SETTINGS_PREFIXES = ["site.", "analytics.", "announcement.", "notify.", "social."] as const
-
-function isGlobalSettingsKey(key: string): boolean {
-  return GLOBAL_SETTINGS_PREFIXES.some((prefix) => key.startsWith(prefix))
 }
 
 export async function saveSettingsAction(_prev: unknown, formData: FormData) {
