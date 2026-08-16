@@ -119,7 +119,11 @@ export const transfers = pgTable(
     index("transfers_archived_idx").on(t.archived),
     check("transfers_price_roundtrip_nonneg", sql`${t.priceRoundTrip} >= 0`),
     check("transfers_price_oneway_nonneg", sql`${t.priceOneWay} >= 0`),
-    check("transfers_category_enum", sql`${t.category} IN ('airport','railway','bus_station','city')`),
+    // Фактические категории приложения: airport | individual (zod transferSaveSchema,
+    // mapTransfer, форма админки, seed). Старый список ('airport','railway',
+    // 'bus_station','city') не совпадал с кодом — вставка «Индивидуального»
+    // трансфера падала бы и на проде (constraint NOT VALID проверяет новые строки).
+    check("transfers_category_enum", sql`${t.category} IN ('airport','individual')`),
   ],
 )
 

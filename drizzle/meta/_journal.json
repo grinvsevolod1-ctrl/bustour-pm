@@ -36,6 +36,13 @@
       "when": 1786851116461,
       "tag": "0004_sturdy_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786853400000,
+      "tag": "0005_transfer_category_enum_fix",
+      "breakpoints": true
     }
   ]
 }
