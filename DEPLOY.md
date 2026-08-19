@@ -12,19 +12,19 @@ PostgreSQL — нативно на VPS (127.0.0.1:5432)
 ## Первый запуск на чистом VPS
 
 ```bash
-# 1. Node.js 20+ (если нет)
+# 1. Node.js 22+ (если нет)
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs git
 
-# 2. Клонировать проект
-git clone git@github.com:grinvsevolod1-ctrl/BUSTOUR.git /opt/bastur
-cd /opt/bastur
+# 2. Клонировать проект (путь /var/www/bustour зашит в ops/auto-deploy/* и ecosystem.config.cjs)
+git clone https://github.com/grinvsevolod1-ctrl/bustour-pm.git /var/www/bustour
+cd /var/www/bustour
 
 # 3. Настроить env
 cp .env.example .env
 nano .env   # заполнить DATABASE_URL, AUTH_SECRET, ADMIN_*, reCAPTCHA и т.д.
 
-# 4. Всё остальное сделает скрипт (pm2, PostgreSQL, nginx, БД, сборка, запуск)
+# 4. Всё остальное сделает скрипт (pm2, PostgreSQL 18 через PGDG, nginx, БД, сборка, запуск)
 chmod +x deploy.sh
 ./deploy.sh --setup
 
@@ -36,7 +36,7 @@ pm2 save
 ## Обычный деплой (одна команда)
 
 ```bash
-cd /opt/bastur && ./deploy.sh
+cd /var/www/bustour && ./deploy.sh
 ```
 
 Скрипт делает: `git pull` → `npm ci` → `next build` → миграции БД → `pm2 reload` → health-check.
@@ -94,8 +94,8 @@ node scripts/migrate.mjs        # миграции вручную (нужен DA
 
 ```bash
 # Добавить в crontab -e (ежедневно в 03:30):
-30 3 * * * pg_dump "$(grep ^DATABASE_URL /opt/bastur/.env | cut -d= -f2-)" | gzip > /var/backups/bastur-$(date +\%F).sql.gz
-40 3 * * * tar czf /var/backups/bastur-uploads-$(date +\%F).tar.gz -C /opt/bastur/public uploads
+30 3 * * * pg_dump "$(grep ^DATABASE_URL /var/www/bustour/.env | cut -d= -f2-)" | gzip > /var/backups/bastur-$(date +\%F).sql.gz
+40 3 * * * tar czf /var/backups/bastur-uploads-$(date +\%F).tar.gz -C /var/www/bustour/public uploads
 # и периодически копировать /var/backups наружу (rclone / scp)
 ```
 

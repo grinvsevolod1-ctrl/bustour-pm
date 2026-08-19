@@ -7,7 +7,7 @@
 #   ./deploy.sh --setup      первый запуск: установит pm2/PostgreSQL/nginx при необходимости
 #   ./deploy.sh --no-pull    задеплоить текущий код без git pull
 #
-# Требования: Node.js 20+, git. Остальное поставит --setup.
+# Требования: Node.js 22+, git. Остальное поставит --setup.
 # =============================================================================
 set -euo pipefail
 
@@ -30,9 +30,9 @@ log()  { printf "\n\033[1;36m[deploy]\033[0m %s\n" "$*"; }
 fail() { printf "\n\033[1;31m[deploy] ОШИБКА:\033[0m %s\n" "$*"; exit 1; }
 
 # --- 0. Проверки окружения --------------------------------------------------
-command -v node >/dev/null 2>&1 || fail "Node.js не найден. Установите Node 20+ (https://nodejs.org)"
+command -v node >/dev/null 2>&1 || fail "Node.js не найден. Установите Node 22+ (https://nodejs.org)"
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
-[ "$NODE_MAJOR" -ge 20 ] || fail "Нужен Node.js 20+, найден $(node -v)"
+[ "$NODE_MAJOR" -ge 22 ] || fail "Нужен Node.js 22+ (см. package.json engines), найден $(node -v)"
 
 [ -f .env ] || fail ".env не найден. Скопируйте .env.example в .env и заполните значения."
 
@@ -50,9 +50,21 @@ if [ "$DO_SETUP" -eq 1 ]; then
   fi
 
   if ! command -v psql >/dev/null 2>&1; then
-    log "Устанавливаю PostgreSQL (apt)"
+    # Нужна именно PostgreSQL 18 (миграции используют CHECK(... IS JSON) — синтаксис
+    # PG16+, а в некоторых схемах — фичи, доступные только в PG18). Дистрибутивный
+    # репозиторий Ubuntu даёт более старую версию (14 на jammy) — ставим через
+    # официальный репозиторий PGDG, а не через голый `apt install postgresql`.
+    log "Устанавливаю PostgreSQL 18 (репозиторий PGDG)"
     sudo apt-get update -qq
-    sudo apt-get install -y -qq postgresql postgresql-contrib
+    sudo apt-get install -y -qq curl ca-certificates gnupg
+    sudo install -d /usr/share/postgresql-common/pgdg
+    sudo curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+      -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    . /etc/os-release
+    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+      | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+    sudo apt-get update -qq
+    sudo apt-get install -y -qq postgresql-18 postgresql-contrib-18
     sudo systemctl enable --now postgresql
   fi
 
