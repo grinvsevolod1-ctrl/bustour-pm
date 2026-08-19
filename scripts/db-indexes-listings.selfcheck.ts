@@ -1,11 +1,9 @@
 /**
- * Selfcheck: P0 indexes exist + hot query plans use them (no bare SCAN on indexed filters).
+ * Selfcheck: P0 indexes exist + hot query plans use them (no bare Seq Scan on indexed filters).
+ * Postgres version — the project migrated off SQLite/libsql (see AGENTS.md).
  * Run: npx tsx scripts/db-indexes-listings.selfcheck.ts
  */
 import assert from "node:assert/strict"
-import path from "node:path"
-import fs from "node:fs"
-import { createClient } from "@libsql/client"
 import { readQueriesSource } from "./lib/read-queries-source"
 
 const REQUIRED = [
@@ -28,76 +26,77 @@ async function main() {
   // Apply migrations via app ensureDb
   const { ensureDb } = await import("../lib/db/init")
   await ensureDb()
+  const { client, closeDbPool } = await import("../lib/db")
 
-  const dbPath = path.join(process.cwd(), "data", "app.db")
-  assert.ok(fs.existsSync(dbPath), `missing ${dbPath}`)
-  const c = createClient({ url: `file:${dbPath}` })
+  try {
+    const idx = await client.execute(
+      "SELECT indexname FROM pg_indexes WHERE schemaname = 'public'",
+    )
+    const names = new Set(idx.rows.map((r) => String(r.indexname)))
+    for (const name of REQUIRED) {
+      assert.ok(names.has(name), `missing index ${name}`)
+    }
 
-  const idx = await c.execute(
-    "SELECT name FROM sqlite_master WHERE type='index' AND sql IS NOT NULL",
-  )
-  const names = new Set(idx.rows.map((r) => String(r.name)))
-  for (const name of REQUIRED) {
-    assert.ok(names.has(name), `missing index ${name}`)
+    async function planDetail(sql: string): Promise<string> {
+      const r = await client.execute(`EXPLAIN ${sql}`)
+      return r.rows.map((row) => Object.values(row).join(" ")).join(" | ")
+    }
+
+    const catPlan = await planDetail(
+      "SELECT id FROM tours WHERE archived = false AND category = 'bus'",
+    )
+    assert.match(
+      catPlan,
+      /tours_archived_category_idx|Index Scan|Bitmap/i,
+      `category filter should use composite index, got: ${catPlan}`,
+    )
+    assert.doesNotMatch(catPlan, /Seq Scan on tours\b/i, `unexpected full Seq Scan tours: ${catPlan}`)
+
+    const featPlan = await planDetail(
+      "SELECT id FROM tours WHERE archived = false AND featured = true",
+    )
+    assert.match(
+      featPlan,
+      /tours_archived_featured_idx|Index Scan|Bitmap/i,
+      `featured filter should use composite index, got: ${featPlan}`,
+    )
+
+    const blocksPlan = await planDetail(
+      "SELECT id FROM content_blocks WHERE collection = 'faq' AND page = 'hot'",
+    )
+    assert.match(
+      blocksPlan,
+      /content_blocks_collection_page_idx|Index Scan|Bitmap/i,
+      `content_blocks should use collection+page index, got: ${blocksPlan}`,
+    )
+
+    const datesPlan = await planDetail('SELECT id FROM tour_dates WHERE "tourId" = 1')
+    assert.match(
+      datesPlan,
+      /tour_dates_tour_id_idx|Index Scan|Bitmap/i,
+      `tour_dates should use tourId index, got: ${datesPlan}`,
+    )
+
+    // Listing helpers must not full-load then filter in JS for home/bus
+    const queriesSrc = readQueriesSource(process.cwd())
+    assert.match(queriesSrc, /async function listTours/, "listTours helper present")
+    assert.match(queriesSrc, /excludeHidden/, "SQL path supports hidden exclusion")
+    assert.doesNotMatch(
+      queriesSrc.slice(queriesSrc.indexOf("getHomeTourOffers"), queriesSrc.indexOf("getBusToursWithDates") + 200),
+      /const all = await getTours\(\)/,
+      "getHomeTourOffers must not load all tours then filter in JS",
+    )
+
+    console.log(
+      JSON.stringify({
+        ok: true,
+        indexes: REQUIRED.length,
+        plans: { catPlan, featPlan, blocksPlan, datesPlan },
+      }),
+    )
+  } finally {
+    await closeDbPool()
   }
-
-  async function planDetail(sql: string): Promise<string> {
-    const r = await c.execute(`EXPLAIN QUERY PLAN ${sql}`)
-    return r.rows.map((row) => Object.values(row).join(" ")).join(" | ")
-  }
-
-  const catPlan = await planDetail(
-    "SELECT id FROM tours WHERE archived = 0 AND category = 'bus'",
-  )
-  assert.match(
-    catPlan,
-    /tours_archived_category_idx|SEARCH|USING INDEX/i,
-    `category filter should use composite index, got: ${catPlan}`,
-  )
-  assert.doesNotMatch(catPlan, /SCAN tours\b/i, `unexpected full SCAN tours: ${catPlan}`)
-
-  const featPlan = await planDetail(
-    "SELECT id FROM tours WHERE archived = 0 AND featured = 1",
-  )
-  assert.match(
-    featPlan,
-    /tours_archived_featured_idx|SEARCH|USING INDEX/i,
-    `featured filter should use composite index, got: ${featPlan}`,
-  )
-
-  const blocksPlan = await planDetail(
-    "SELECT id FROM content_blocks WHERE collection = 'faq' AND page = 'hot'",
-  )
-  assert.match(
-    blocksPlan,
-    /content_blocks_collection_page_idx|SEARCH|USING INDEX/i,
-    `content_blocks should use collection+page index, got: ${blocksPlan}`,
-  )
-
-  const datesPlan = await planDetail("SELECT id FROM tour_dates WHERE tourId = 1")
-  assert.match(
-    datesPlan,
-    /tour_dates_tour_id_idx|SEARCH|USING INDEX/i,
-    `tour_dates should use tourId index, got: ${datesPlan}`,
-  )
-
-  // Listing helpers must not full-load then filter in JS for home/bus
-  const queriesSrc = readQueriesSource(process.cwd())
-  assert.match(queriesSrc, /async function listTours/, "listTours helper present")
-  assert.match(queriesSrc, /excludeHidden/, "SQL path supports hidden exclusion")
-  assert.doesNotMatch(
-    queriesSrc.slice(queriesSrc.indexOf("getHomeTourOffers"), queriesSrc.indexOf("getBusToursWithDates") + 200),
-    /const all = await getTours\(\)/,
-    "getHomeTourOffers must not load all tours then filter in JS",
-  )
-
-  console.log(
-    JSON.stringify({
-      ok: true,
-      indexes: REQUIRED.length,
-      plans: { catPlan, featPlan, blocksPlan, datesPlan },
-    }),
-  )
 }
 
 main().catch((e) => {

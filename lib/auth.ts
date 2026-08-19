@@ -15,6 +15,7 @@ import {
 import {
   parseAdminRole,
   roleHasCapability,
+  roleTier,
   type AdminCapability,
   type AdminRole,
 } from "@/lib/admin-roles"
@@ -123,9 +124,10 @@ export async function requireAdmin(): Promise<SessionAdmin> {
   return admin
 }
 
+/** Требует роль `role` или выше по иерархии (superadmin > admin > manager). */
 export async function requireRole(role: AdminRole): Promise<SessionAdmin> {
   const admin = await requireAdmin()
-  if (admin.role !== role) throw new Error("Forbidden")
+  if (roleTier(admin.role) < roleTier(role)) throw new Error("Forbidden")
   return admin
 }
 

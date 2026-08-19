@@ -61,6 +61,18 @@ export async function getLeads(): Promise<Lead[]> {
   return rows as Lead[]
 }
 
+/** Для дашборда — последние N заявок без загрузки всей таблицы в память. */
+export async function getRecentLeads(limit: number): Promise<Lead[]> {
+  await ensureDb()
+  const rows = await db
+    .select()
+    .from(leads)
+    .where(eq(leads.archived, false))
+    .orderBy(desc(leads.createdAt))
+    .limit(limit)
+  return rows as Lead[]
+}
+
 export async function getArchivedLeads(): Promise<Lead[]> {
   await ensureDb()
   const rows = await db

@@ -1,4 +1,4 @@
-import { and, asc, count as countRows, desc, eq, inArray, like, ne, notInArray } from "drizzle-orm"
+import { and, asc, count as countRows, desc, eq, inArray, like, ne, notInArray, sql } from "drizzle-orm"
 import { db, type DbExecutor } from "@/lib/db"
 import { tours, buses, transfers, transferSchedules, reviews, articles, leads, countries, cityDestinations, staff, certSections, certificates, contentBlocks, tourDates, tourDateTags, tourDateRooms, settings } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
@@ -79,8 +79,9 @@ export type TransferInput = {
 
 export async function createTransfer(input: TransferInput, executor: DbExecutor = db): Promise<number> {
   if (executor === db) await ensureDb()
-  const existing = await executor.select({ sortOrder: transfers.sortOrder }).from(transfers)
-  const nextOrder = existing.reduce((max, row) => Math.max(max, row.sortOrder), -1) + 1
+  const [{ nextOrder }] = await executor
+    .select({ nextOrder: sql<number>`coalesce(max(${transfers.sortOrder}), -1) + 1` })
+    .from(transfers)
   const [row] = await executor.insert(transfers).values({
     ...input,
     sortOrder: nextOrder,

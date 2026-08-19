@@ -1,4 +1,4 @@
-import { and, asc, count as countRows, desc, eq, inArray, like, ne, notInArray } from "drizzle-orm"
+import { and, asc, count as countRows, desc, eq, inArray, like, ne, notInArray, sql } from "drizzle-orm"
 import { db, type DbExecutor } from "@/lib/db"
 import { tours, buses, transfers, transferSchedules, reviews, articles, leads, countries, cityDestinations, staff, certSections, certificates, contentBlocks, tourDates, tourDateTags, tourDateRooms, settings } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
@@ -220,8 +220,11 @@ function serializeTour(input: TourInput) {
 
 export async function createTour(input: TourInput): Promise<number> {
   await ensureDb()
-  const existing = await db.select({ sortOrder: tours.sortOrder }).from(tours)
-  const nextOrder = existing.reduce((max, row) => Math.max(max, row.sortOrder), -1) + 1
+  // COALESCE(MAX(...), -1) + 1 в одном SQL-запросе вместо загрузки всей
+  // таблицы туров в JS только чтобы посчитать максимум sortOrder.
+  const [{ nextOrder }] = await db
+    .select({ nextOrder: sql<number>`coalesce(max(${tours.sortOrder}), -1) + 1` })
+    .from(tours)
   const [row] = await db
     .insert(tours)
     .values({ ...serializeTour(input), sortOrder: nextOrder, createdAt: Date.now() })

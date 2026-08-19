@@ -48,18 +48,21 @@ export async function getSlugMaps(): Promise<{
 
 export async function getStats() {
   await ensureDb()
-  const [tourCount, reviewCount, articleCount, leadRows] = await Promise.all([
+  // Считаем всё через $count в SQL, а не загружаем строки заявок в память
+  // только чтобы посчитать их количество/фильтр по статусу в JS — на большой
+  // таблице заявок (живая CRM) это линейно растущая и ненужная нагрузка.
+  const [tourCount, reviewCount, articleCount, leadCount, newLeadCount] = await Promise.all([
     db.$count(tours),
     db.$count(reviews),
     db.$count(articles),
-    db.select().from(leads).where(eq(leads.archived, false)),
+    db.$count(leads, eq(leads.archived, false)),
+    db.$count(leads, and(eq(leads.archived, false), eq(leads.status, "new"))),
   ])
-  const newLeads = (leadRows as Lead[]).filter((l) => l.status === "new").length
   return {
     tours: tourCount,
     reviews: reviewCount,
     articles: articleCount,
-    leads: leadRows.length,
-    newLeads,
+    leads: leadCount,
+    newLeads: newLeadCount,
   }
 }

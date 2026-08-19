@@ -1,5 +1,5 @@
 import { Map, Inbox, Star, Newspaper, ArrowUpRight, Plus } from "lucide-react"
-import { getStats, getLeads } from "@/lib/queries"
+import { getStats, getRecentLeads } from "@/lib/queries"
 import { Card, CardHeader, CardTitle, CardBody, Badge, ButtonLink, PageHeader, EmptyState } from "@/components/admin/ui"
 
 const statusTone: Record<string, "blue" | "amber" | "green"> = {
@@ -14,8 +14,7 @@ const statusLabels: Record<string, string> = {
 }
 
 export default async function AdminDashboard() {
-  const [stats, leads] = await Promise.all([getStats(), getLeads()])
-  const recentLeads = leads.slice(0, 6)
+  const [stats, recentLeads] = await Promise.all([getStats(), getRecentLeads(6)])
 
   const cards = [
     { label: "Туры", value: stats.tours, icon: Map, href: "/admin/tours" },
