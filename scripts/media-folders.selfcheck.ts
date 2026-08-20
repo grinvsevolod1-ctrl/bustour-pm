@@ -8,7 +8,14 @@ import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { ensureDb } from "@/lib/db/init"
 import { mediaFiles } from "@/lib/db/schema"
-import { folderFilterSql, normalizeFolderName } from "@/lib/media/folders"
+import {
+  folderFilterSql,
+  normalizeFolderName,
+  buildFolderTree,
+  flattenFolderTree,
+  folderPath,
+  collectDescendantIds,
+} from "@/lib/media/folders"
 import {
   createMediaFolder,
   deleteMediaFolder,
@@ -30,6 +37,27 @@ assert.equal(uploadFolderId("all"), null)
 assert.equal(uploadFolderId("root"), null)
 assert.equal(uploadFolderId("folder-1"), "folder-1")
 
+// Вложенные папки: дерево, плоский обход, путь, потомки.
+{
+  const flat = [
+    { id: "a", name: "A", parentId: null, createdAt: 1 },
+    { id: "b", name: "B", parentId: "a", createdAt: 2 },
+    { id: "c", name: "C", parentId: "b", createdAt: 3 },
+    { id: "d", name: "D", parentId: null, createdAt: 4 },
+  ]
+  const tree = buildFolderTree(flat)
+  assert.equal(tree.length, 2) // A, D в корне
+  const walked = flattenFolderTree(tree).map((n) => `${n.id}:${n.depth}`)
+  assert.deepEqual(walked, ["a:0", "b:1", "c:2", "d:0"])
+  assert.deepEqual(folderPath(flat, "c").map((f) => f.id), ["a", "b", "c"])
+  assert.deepEqual(collectDescendantIds(flat, "a").sort(), ["b", "c"])
+  assert.deepEqual(collectDescendantIds(flat, "d"), [])
+  // Сирота (родитель отсутствует) поднимается в корень.
+  const orphanTree = buildFolderTree([{ id: "x", name: "X", parentId: "missing", createdAt: 1 }])
+  assert.equal(orphanTree.length, 1)
+  assert.equal(orphanTree[0].id, "x")
+}
+
 async function main() {
   await ensureDb()
 
@@ -38,19 +66,29 @@ async function main() {
   const folders = await listMediaFolders()
   assert.ok(folders.some((item) => item.id === folder.id))
 
+  // Вложенная папка внутри созданной.
+  const sub = await createMediaFolder(`selfcheck-sub-${stamp}`, folder.id)
+  assert.equal(sub.parentId, folder.id)
+
+  // Одинаковое имя в разных родителях допустимо; в одном — нет.
+  await createMediaFolder(`selfcheck-dup-${stamp}`, folder.id)
+  await createMediaFolder(`selfcheck-dup-${stamp}`, sub.id) // ок: другой родитель
+  await assert.rejects(() => createMediaFolder(`selfcheck-dup-${stamp}`, folder.id))
+
   const fileId = randomUUID()
   await db.insert(mediaFiles).values({
     id: fileId,
     url: `/uploads/selfcheck-folders-${stamp}.jpg`,
     name: `selfcheck-folders-${stamp}.jpg`,
-    size: "1 KB",
+    // size хранится строкой из байтов (CHECK media_files_size_numeric требует цифры).
+    size: "1024",
     type: "image",
     checksum: `selfcheck${stamp}`,
-    folderId: folder.id,
+    folderId: sub.id,
     createdAt: stamp,
   })
 
-  const inFolder = await mediaService.getAllMedia({ folder: folder.id })
+  const inFolder = await mediaService.getAllMedia({ folder: sub.id })
   assert.ok(inFolder.some((item) => item.id === fileId))
 
   const rootOnly = await mediaService.getAllMedia({ folder: "root" })
@@ -59,9 +97,12 @@ async function main() {
   const moved = await mediaService.updateFolder(fileId, null)
   assert.equal(moved?.folderId, null)
 
+  // Рекурсивное удаление: удаляем корневую — подпапки исчезают тоже.
   const deleted = await deleteMediaFolder(folder.id)
   assert.equal(deleted, true)
-  assert.ok(!(await listMediaFolders()).some((item) => item.id === folder.id))
+  const after = await listMediaFolders()
+  assert.ok(!after.some((item) => item.id === folder.id))
+  assert.ok(!after.some((item) => item.id === sub.id))
 
   await db.delete(mediaFiles).where(eq(mediaFiles.id, fileId))
 

@@ -1,19 +1,26 @@
 "use client"
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
-import { Folder, FolderPlus, Images, LoaderCircle, Search, Trash2 } from "lucide-react"
+import { ChevronRight, Folder, FolderPlus, Images, LoaderCircle, Pencil, Search, Trash2 } from "lucide-react"
 import { isImeComposing } from "@/lib/ime"
 import {
   createMediaFolder,
   deleteMediaFolder,
   fetchMediaFolders,
   fetchMediaItems,
+  renameMediaFolder,
   updateMediaFolder,
   uploadFolderId,
   type MediaFolderScope,
   type MediaSort,
 } from "@/lib/media"
-import type { MediaFolder } from "@/lib/media/folders"
+import {
+  buildFolderTree,
+  collectDescendantIds,
+  flattenFolderTree,
+  folderPath,
+  type MediaFolder,
+} from "@/lib/media/folders"
 import type { MediaItem, MediaType, UploadedFile } from "@/components/admin/media-uploader"
 import { MediaUploader, startUploadFileApi } from "@/components/admin/media-uploader"
 import { MediaThumbnail } from "@/components/admin/media-thumbnail"
@@ -239,12 +246,17 @@ export function MediaExplorer({
     upsertItems([item])
   }
 
+  // Родитель для новой папки = текущая выбранная папка (если это конкретная
+  // папка, а не «Все файлы»/«Без папки»).
+  const currentFolderId =
+    folderScope === "all" || folderScope === "root" ? null : folderScope
+
   async function handleCreateFolder() {
     const name = newFolderName.trim()
     if (!name || creatingFolder) return
     setCreatingFolder(true)
     try {
-      const folder = await createMediaFolder(name)
+      const folder = await createMediaFolder(name, currentFolderId)
       setFolders((current) =>
         [...current, folder].sort((a, b) => a.name.localeCompare(b.name, "ru")),
       )
@@ -258,11 +270,33 @@ export function MediaExplorer({
     }
   }
 
+  async function handleRenameFolder(folder: MediaFolder) {
+    const next = window.prompt("Новое название папки", folder.name)
+    if (next == null) return
+    const name = next.trim()
+    if (!name || name === folder.name) return
+    try {
+      const updated = await renameMediaFolder(folder.id, name)
+      setFolders((current) =>
+        current
+          .map((f) => (f.id === updated.id ? updated : f))
+          .sort((a, b) => a.name.localeCompare(b.name, "ru")),
+      )
+      toast.success("Папка переименована")
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Не удалось переименовать папку.")
+    }
+  }
+
   async function handleDeleteFolder(folder: MediaFolder) {
     try {
       await deleteMediaFolder(folder.id)
-      setFolders((current) => current.filter((item) => item.id !== folder.id))
-      if (folderScope === folder.id) setFolderScope("all")
+      // Сервер удаляет папку вместе с потомками — убираем их и из локального состояния.
+      const removed = new Set([folder.id, ...collectDescendantIds(folders, folder.id)])
+      setFolders((current) => current.filter((item) => !removed.has(item.id)))
+      if (folderScope !== "all" && folderScope !== "root" && removed.has(folderScope)) {
+        setFolderScope("all")
+      }
       toast.success(`Папка «${folder.name}» удалена`)
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Не удалось удалить папку.")
@@ -344,6 +378,17 @@ export function MediaExplorer({
 
   const uploadTarget = uploadFolderId(folderScope)
 
+  // Плоский список папок в порядке дерева (с глубиной) — для сайдбара и select'а перемещения.
+  const flatFolders = useMemo(
+    () => flattenFolderTree(buildFolderTree(folders)),
+    [folders],
+  )
+  // Хлебные крошки текущей папки.
+  const breadcrumbs = useMemo(
+    () => folderPath(folders, currentFolderId),
+    [folders, currentFolderId],
+  )
+
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
       <aside className="w-full shrink-0 space-y-3 lg:w-56">
@@ -365,14 +410,23 @@ export function MediaExplorer({
               Загрузка…
             </p>
           ) : (
-            folders.map((folder) => (
+            flatFolders.map((folder) => (
               <div key={folder.id} className="group flex items-center gap-1">
                 <FolderNavButton
                   active={folderScope === folder.id}
                   onClick={() => setFolderScope(folder.id)}
                   label={folder.name}
+                  depth={folder.depth}
                   className="min-w-0 flex-1"
                 />
+                <IconButton
+                  type="button"
+                  className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                  aria-label={`Переименовать папку ${folder.name}`}
+                  onClick={() => void handleRenameFolder(folder)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </IconButton>
                 <IconButton
                   type="button"
                   tone="danger"
@@ -386,31 +440,38 @@ export function MediaExplorer({
             ))
           )}
         </nav>
-        <div className="flex gap-2">
-          <Input
-            value={newFolderName}
-            onChange={(event) => setNewFolderName(event.target.value)}
-            placeholder="Новая папка"
-            aria-label="Название новой папки"
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !isImeComposing(event)) {
-                event.preventDefault()
-                void handleCreateFolder()
-              }
-            }}
-          />
-          <IconButton
-            type="button"
-            onClick={() => void handleCreateFolder()}
-            disabled={creatingFolder || !newFolderName.trim()}
-            aria-label="Создать папку"
-          >
-            {creatingFolder ? (
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-            ) : (
-              <FolderPlus className="h-4 w-4" />
-            )}
-          </IconButton>
+        <div className="space-y-1.5">
+          <p className="text-xs text-admin-fg-subtle">
+            {currentFolderId
+              ? `Новая папка внутри: «${folders.find((f) => f.id === currentFolderId)?.name ?? "…"}»`
+              : "Новая папка в корне"}
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={newFolderName}
+              onChange={(event) => setNewFolderName(event.target.value)}
+              placeholder="Новая папка"
+              aria-label="Название новой папки"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !isImeComposing(event)) {
+                  event.preventDefault()
+                  void handleCreateFolder()
+                }
+              }}
+            />
+            <IconButton
+              type="button"
+              onClick={() => void handleCreateFolder()}
+              disabled={creatingFolder || !newFolderName.trim()}
+              aria-label="Создать папку"
+            >
+              {creatingFolder ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <FolderPlus className="h-4 w-4" />
+              )}
+            </IconButton>
+          </div>
         </div>
       </aside>
 
@@ -433,6 +494,44 @@ export function MediaExplorer({
           <p className="sr-only" aria-live="assertive">
             Идёт загрузка файлов. Не закрывайте вкладку.
           </p>
+        ) : null}
+
+        {folderScope !== "all" ? (
+          <nav
+            className="flex flex-wrap items-center gap-1 text-sm text-admin-fg-muted"
+            aria-label="Хлебные крошки папок"
+          >
+            <button
+              type="button"
+              onClick={() => setFolderScope("all")}
+              className="rounded px-1.5 py-0.5 hover:bg-admin-muted/60 hover:text-admin-fg"
+            >
+              Все файлы
+            </button>
+            {folderScope === "root" ? (
+              <>
+                <ChevronRight className="h-3.5 w-3.5 text-admin-fg-subtle" />
+                <span className="px-1.5 py-0.5 font-medium text-admin-fg">Без папки</span>
+              </>
+            ) : (
+              breadcrumbs.map((crumb, index) => (
+                <span key={crumb.id} className="flex items-center gap-1">
+                  <ChevronRight className="h-3.5 w-3.5 text-admin-fg-subtle" />
+                  {index === breadcrumbs.length - 1 ? (
+                    <span className="px-1.5 py-0.5 font-medium text-admin-fg">{crumb.name}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setFolderScope(crumb.id)}
+                      className="rounded px-1.5 py-0.5 hover:bg-admin-muted/60 hover:text-admin-fg"
+                    >
+                      {crumb.name}
+                    </button>
+                  )}
+                </span>
+              ))
+            )}
+          </nav>
         ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -583,9 +682,9 @@ export function MediaExplorer({
                     }}
                   >
                     <option value="root">Без папки</option>
-                    {folders.map((folder) => (
+                    {flatFolders.map((folder) => (
                       <option key={folder.id} value={folder.id}>
-                        {folder.name}
+                        {`${"\u00A0\u00A0".repeat(folder.depth)}${folder.name}`}
                       </option>
                     ))}
                   </Select>
@@ -631,7 +730,7 @@ export function MediaExplorer({
         title="Удалить папку?"
         message={
           pendingFolderDelete
-            ? `«${pendingFolderDelete.name}» будет удалена. Файлы останутся в «Без папки».`
+            ? `«${pendingFolderDelete.name}» и все вложенные в неё папки будут удалены. Файлы из них останутся в «Без папки».`
             : ""
         }
         confirmLabel="Удалить"
@@ -652,17 +751,20 @@ function FolderNavButton({
   active,
   onClick,
   label,
+  depth = 0,
   className,
 }: {
   active: boolean
   onClick: () => void
   label: string
+  depth?: number
   className?: string
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      style={depth ? { paddingLeft: `${0.5 + depth * 0.85}rem` } : undefined}
       className={cn(
         "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
         active

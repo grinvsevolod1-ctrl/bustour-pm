@@ -9,6 +9,7 @@ import {
   serial,
   text,
   uniqueIndex,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
@@ -383,11 +384,25 @@ export const settings = pgTable("settings", {
   value: text("value").notNull().default(""),
 })
 
-export const mediaFolders = pgTable("media_folders", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull().unique(),
-  createdAt: createdAt("created_at"),
-})
+export const mediaFolders = pgTable(
+  "media_folders",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    // Вложенные папки: NULL = папка в корне. Удаление родителя каскадно удаляет
+    // подпапки (файлы при этом «отвязываются» в коде folder-service).
+    // Уникальность имени теперь не глобальная, а в пределах одного родителя —
+    // проверяется в приложении (createMediaFolder), т.к. в Postgres NULL-значения
+    // в UNIQUE считаются различными и не защитили бы корневой уровень.
+    parentId: text("parent_id").references((): AnyPgColumn => mediaFolders.id, {
+      onDelete: "cascade",
+    }),
+    createdAt: createdAt("created_at"),
+  },
+  (table) => ({
+    parentIdx: index("media_folders_parent_id_idx").on(table.parentId),
+  }),
+)
 
 export const mediaFiles = pgTable("media_files", {
   id: text("id").primaryKey(),

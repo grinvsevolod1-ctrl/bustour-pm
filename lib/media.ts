@@ -50,16 +50,33 @@ export async function fetchMediaFolders(): Promise<MediaFolder[]> {
   return (await response.json()) as MediaFolder[]
 }
 
-export async function createMediaFolder(name: string): Promise<MediaFolder> {
+export async function createMediaFolder(
+  name: string,
+  parentId: string | null = null,
+): Promise<MediaFolder> {
   const response = await fetch("/api/media/folders", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, parentId }),
+    credentials: "same-origin",
+  })
+  const payload = (await response.json().catch(() => null)) as MediaFolder | { error?: string } | null
+  if (!response.ok || !payload || !("id" in payload)) {
+    throw new Error(payload && "error" in payload ? payload.error : "Не удалось создать папку.")
+  }
+  return payload
+}
+
+export async function renameMediaFolder(id: string, name: string): Promise<MediaFolder> {
+  const response = await fetch(`/api/media/folders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
     credentials: "same-origin",
   })
   const payload = (await response.json().catch(() => null)) as MediaFolder | { error?: string } | null
   if (!response.ok || !payload || !("id" in payload)) {
-    throw new Error(payload && "error" in payload ? payload.error : "Не удалось создать папку.")
+    throw new Error(payload && "error" in payload ? payload.error : "Не удалось переименовать папку.")
   }
   return payload
 }
