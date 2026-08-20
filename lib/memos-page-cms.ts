@@ -141,6 +141,22 @@ export function memosDefaultSettings(): Record<string, string> {
   return out
 }
 
+/** Дефолтная вкладка по shortKey — страховка, когда в БД пусты поля контента. */
+function defaultMemoTab(shortKey: string): MemoTabData | null {
+  const slot = memoSlotNumber(shortKey)
+  const def = MEMOS_DEFAULT_TABS[slot - 1]
+  if (!def) return null
+  const heading = buildDefaultMemoHeading(def.countryAccusative)
+  return {
+    id: shortKey,
+    label: def.label,
+    heading,
+    bodyHtml: buildDefaultMemoBody(def.countryAccusative),
+    fileTitle: heading,
+    fileHref: `/files/memos/${def.file}`,
+  }
+}
+
 export function resolveMemoTabsFromSettings(
   settings: Record<string, string>,
   order: string[] = resolveMemosTabsOrder(settings),
@@ -170,6 +186,20 @@ export function resolveMemoTabsFromSettings(
       fileTitle: fileTitle || heading || label,
       fileHref,
     })
+  }
+
+  // Страховка от «пустого» раздела: если порядок задан (например memos.tabs.order
+  // сохранён как "[]" и упал на дефолтный порядок), но у слотов нет контента в БД,
+  // цикл выше отфильтрует всё и вкладки исчезнут. Подставляем дефолтный контент
+  // по тем слотам порядка, что не скрыты явно. Это и был баг «памятки по странам
+  // не отображаются» на старых БД без seed-полей.
+  if (tabs.length === 0) {
+    for (const shortKey of order) {
+      if (!isMemoSectionKey(shortKey)) continue
+      if (settings[`${pageKey}.section.${shortKey}`] === "0") continue
+      const fallback = defaultMemoTab(shortKey)
+      if (fallback) tabs.push(fallback)
+    }
   }
 
   return tabs

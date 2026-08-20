@@ -205,6 +205,10 @@ export function SeoLivePreview({
   const autoDescription = buildAutoDescription(valueOf(sourceDescriptionName))
   const effectiveTitle = manualTitle || autoTitle
   const effectiveDescription = manualDescription || autoDescription
+  // Счётчик Description меряет поле «Описание для поиска» (descriptionName),
+  // а не «Превью описание» — см. пояснение в SeoPanel.
+  const searchDescription = valueOf(descriptionName) || autoDescription
+  const searchDescriptionIsAuto = !valueOf(descriptionName)
 
   return (
     <div className="space-y-3">
@@ -225,9 +229,9 @@ export function SeoLivePreview({
         />
         <MetaLengthCounter
           label="Description"
-          length={stripHtmlToText(effectiveDescription).length}
+          length={stripHtmlToText(searchDescription).length}
           max={SEO_DESCRIPTION_MAX}
-          isAuto={!manualDescription}
+          isAuto={searchDescriptionIsAuto}
         />
       </div>
     </div>
@@ -342,6 +346,14 @@ export function SeoPanel({
   const effectiveTitle = manualTitle || autoTitle
   const effectiveDescription = manualDescription || autoDescription
 
+  // Счётчик длины Description считается по полю «Описание для поиска»
+  // (metaDescription) — именно к нему относится лимит SEO_DESCRIPTION_MAX и
+  // подпись поля. Раньше счётчик брал значение «Превью описания» (metaShortDesc),
+  // если оно заполнено, из-за чего в разделе «Контакты» символы считались не из
+  // того поля. Превью-описание — короткий OG-текст, у него другой смысл длины.
+  const searchDescription = valueOf(metaDescriptionKey) || autoDescription
+  const searchDescriptionIsAuto = !valueOf(metaDescriptionKey)
+
   const canAutofill = Boolean(autoTitle || autoDescription)
 
   function autofillFromContent() {
@@ -383,9 +395,9 @@ export function SeoPanel({
         />
         <MetaLengthCounter
           label="Description"
-          length={stripHtmlToText(effectiveDescription).length}
+          length={stripHtmlToText(searchDescription).length}
           max={SEO_DESCRIPTION_MAX}
-          isAuto={descriptionIsAuto}
+          isAuto={searchDescriptionIsAuto}
         />
         <div className="ml-auto flex flex-wrap gap-2">
           <button
