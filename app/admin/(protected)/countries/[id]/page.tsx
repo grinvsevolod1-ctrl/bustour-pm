@@ -34,7 +34,10 @@ export default async function EditCountryPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const country = await getCountryById(Number(id))
+  const countryId = Number(id)
+  if (!Number.isInteger(countryId) || countryId <= 0) notFound()
+
+  const country = await getCountryById(countryId)
   if (!country) notFound()
 
   const category = country.category
