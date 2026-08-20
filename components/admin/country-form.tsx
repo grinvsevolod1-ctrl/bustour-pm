@@ -153,7 +153,7 @@ export function CountryForm({
                 <div><SettingMediaField name="metaImage" label="Превью изображение" required /></div>
                 <p className="text-xs text-admin-fg-muted">FAQ, таблица и другие необязательные секции доступны после первого создания.</p>
               </div>
-            ) : null}            {headerGroup ? (
+            ) : null}            {country && headerGroup ? (
               <div className="space-y-3 border-t border-admin-border pt-4">
                 <p className="text-sm font-medium text-admin-fg">Шапка страницы</p>
                 <FieldsInForm fields={headerGroup.fields} settings={pageSettings} />
