@@ -14,6 +14,20 @@ function clampSlug(slug: string): string {
   return lastHyphen > 0 ? truncated.slice(0, lastHyphen) : truncated
 }
 
+function fallbackId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID().replaceAll("-", "").slice(0, 12)
+  }
+
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(6)
+    crypto.getRandomValues(bytes)
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")
+  }
+
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+}
+
 export function slugify(name: string): string {
   const slug = name
     .toLowerCase()
@@ -22,5 +36,5 @@ export function slugify(name: string): string {
     .join("")
     .replace(/[^a-z0-9_]+/g, "-")
     .replace(/^[-_]+|[-_]+$/g, "")
-  return clampSlug(slug) || `item_${crypto.randomUUID().replaceAll("-", "").slice(0, 12)}`
+  return clampSlug(slug) || `item_${fallbackId()}`
 }
