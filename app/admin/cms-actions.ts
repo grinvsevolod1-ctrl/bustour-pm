@@ -32,6 +32,7 @@ import {
   MEMOS_TABS_ORDER_KEY,
   isMemoSectionKey,
   listMemoSlotsFromOrder,
+  memoSettingKeys,
   moveMemoInOrder,
   nextMemoSlotKey,
   resolveMemosTabsOrder,
@@ -478,9 +479,17 @@ export async function createMemoTabAction() {
   const order = resolveMemosTabsOrder(settings)
   const shortKey = nextMemoSlotKey(order)
   const nextOrder = [...order.filter((k) => k !== shortKey), shortKey]
+  // Заполняем новый слот заголовком-заглушкой, чтобы вкладка сразу была видна на
+  // публичной странице (пустые слоты фильтруются в resolveMemoTabsFromSettings)
+  // и админ понимал, что вкладка добавилась. Контент правится на /memos/[slot].
+  const num = listMemoSlotsFromOrder(nextOrder).length
+  const keys = memoSettingKeys(MEMOS_PAGE_CMS_KEY, shortKey)
+  const placeholderLabel = `Новая вкладка ${num}`
   await saveSettings({
     [`${MEMOS_PAGE_CMS_KEY}.section.${shortKey}`]: "1",
     [MEMOS_TABS_ORDER_KEY]: JSON.stringify(nextOrder),
+    [keys.label]: placeholderLabel,
+    [keys.heading]: placeholderLabel,
   })
   await writeAudit({
     admin,
