@@ -2,7 +2,13 @@ import { redirect } from "next/navigation"
 import { requireCapability } from "@/lib/auth"
 import { listAdminRoleCatalog } from "@/lib/admin-role-catalog"
 import { listInactiveAdmins } from "@/lib/admins"
-import { roleLabel } from "@/lib/admin-roles"
+import {
+  roleLabel,
+  roleHasCapability,
+  CAPABILITY_META,
+  SYSTEM_ADMIN_ROLES,
+} from "@/lib/admin-roles"
+import { Check, Minus } from "lucide-react"
 import {
   createRoleAction,
   hideRoleAction,
@@ -66,6 +72,47 @@ export default async function AdminRolesPage({
           {notices[sp.notice]}
         </p>
       ) : null}
+
+      <FormSection id="roles-matrix" title="Права системных ролей">
+        <p className="mb-3 text-sm text-admin-fg-muted">
+          Что может каждая роль. Права фиксированы кодом и не редактируются вручную. Роль
+          пользователю назначается на странице «Пользователи».
+        </p>
+        <TableWrap>
+          <Thead>
+            <Tr>
+              <Th>Право</Th>
+              {SYSTEM_ADMIN_ROLES.map((r) => (
+                <Th key={r}>{roleLabel(r)}</Th>
+              ))}
+            </Tr>
+          </Thead>
+          <Tbody>
+            {CAPABILITY_META.map((c) => (
+              <Tr key={c.cap}>
+                <Td>
+                  <span className="font-medium text-admin-fg">{c.label}</span>
+                  <span className="block text-xs text-admin-fg-muted">{c.description}</span>
+                </Td>
+                {SYSTEM_ADMIN_ROLES.map((r) => (
+                  <Td key={r}>
+                    {roleHasCapability(r, c.cap) ? (
+                      <Check className="h-4 w-4 text-emerald-600" aria-label="Да" />
+                    ) : (
+                      <Minus className="h-4 w-4 text-admin-fg-subtle" aria-label="Нет" />
+                    )}
+                  </Td>
+                ))}
+              </Tr>
+            ))}
+          </Tbody>
+        </TableWrap>
+        <p className="mt-3 text-xs text-admin-fg-muted">
+          Итого: <strong>Менеджер</strong> редактирует весь контент сайта, но не имеет доступа к
+          настройкам, валютам, пользователям и аудиту. <strong>Админ</strong> может всё, кроме
+          управления каталогом ролей. <strong>Суперадмин</strong> — полный доступ.
+        </p>
+      </FormSection>
 
       <FormSection id="roles-active" title={`Активные роли (${visible.length})`}>
         {visible.length === 0 ? (

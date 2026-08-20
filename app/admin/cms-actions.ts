@@ -102,11 +102,19 @@ export async function saveSettingsAction(_prev: unknown, formData: FormData) {
     entries[`${rawPageKey}.sections.order`] = rawSectionOrder
   }
   const rawSectionVisibility = formData.get("__sectionVisibility")
+  // Ключи, чью видимость задал JSON __sectionVisibility. Их НЕЛЬЗЯ повторно
+  // трогать в fallback-цикле toggle'ов ниже: страница главной (и другие
+  // страницы с PageSectionsManager) шлёт видимость секций одним JSON-полем,
+  // а НЕ отдельными чекбоксами section.*. Без этой защиты fallback-цикл видел
+  // отсутствие поля section.featured в форме и перезаписывал "1" → "0",
+  // из-за чего включённый глазком блок после «Сохранить» снова скрывался.
+  const visibilityKeysFromJson = new Set<string>()
   if (typeof rawSectionVisibility === "string" && rawSectionVisibility) {
     try {
       const parsed = JSON.parse(rawSectionVisibility) as Record<string, boolean>
       for (const [key, on] of Object.entries(parsed)) {
         entries[key] = on ? "1" : "0"
+        visibilityKeysFromJson.add(key)
       }
     } catch {
       // ignore malformed visibility JSON
@@ -133,6 +141,9 @@ export async function saveSettingsAction(_prev: unknown, formData: FormData) {
   )
   const toggleKeys = Array.from(new Set([...__togglesFromForm, ...toggleKeysFromCurrent]))
   for (const key of toggleKeys) {
+    // Видимость секций уже разобрана из __sectionVisibility — не перезаписываем
+    // её отсутствием одноимённого чекбокса в форме.
+    if (visibilityKeysFromJson.has(key)) continue
     entries[key] = formData.get(key) ? "1" : "0"
   }
   // Unchanged RichEditor / hidden-tab fields can submit "". Keep an intentional

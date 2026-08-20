@@ -274,7 +274,7 @@ export function searchSectionFields(
     //   placeholder:
     //     opts?.descriptionPlaceholder ??
     //     (opts?.category === "bus"
-    //       ? "Подберите автобусный тур по направлению, дате выезда и стоимости. Сортировка по умолчанию — по ближайшей дате выезда."
+    //       ? "Подберите автобу��ный тур по направлению, дате выезда и стоимости. Сортировка по умолчанию — по ближайшей дате выезда."
     //       : opts?.category === "hot"
     //         ? "Горящие предложения — подберите тур по направлению, вылету и бюджету. Цены указаны за человека с перелётом."
     //         : "Подберите авиатур по стране, городу, периоду и стоимости. Цена указана за человека с перелётом из Минска."),
@@ -306,7 +306,7 @@ export function searchSectionFields(
     },
     {
       key: `${prefix}.search.hideHeading`,
-      label: "Скрыть заголовок «Результаты поиска» над карточками",
+      label: "Скрыть заголовок «��езультаты поиска» над карточками",
       type: "select",
       defaultValue: "0",
       options: [
@@ -718,6 +718,13 @@ export const contactsSettingsGroup: SettingsGroup = {
   description: "Отображаются в шапке, футере и на странице контактов.",
   fields: [
     { key: "site.brand", label: "Название компании", type: "shortcode-input" },
+    {
+      key: "site.brandNote",
+      label: "Приписка под названием (в футере)",
+      type: "shortcode-input",
+      placeholder: "Туристическая компания",
+      hint: "Мелкий текст под названием компании в футере.",
+    },
     { key: "site.phone", label: "Телефон в шапке (как показывать)" },
     {
       key: "site.phones",
@@ -750,7 +757,12 @@ export const contactsSettingsGroup: SettingsGroup = {
       mediaAccept: ["image"],
       hint: "Миниатюра до нажатия Play.",
     },
-    { key: "site.copyright", label: "Строка копирайта в футере", type: "shortcode-input" },
+    {
+      key: "site.copyright",
+      label: "Строка копирайта в футере",
+      type: "shortcode-input",
+      hint: "Текст и годы в нижней строке футера. Например: © БасТур, 2013–2025. Копирование материалов запрещено.",
+    },
   ],
 }
 

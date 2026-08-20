@@ -51,7 +51,7 @@ export function SiteFooter({
                 {settings["site.brand"]}
               </span>
               <span className="text-[8px] uppercase leading-3 text-ink md:text-[13px] md:leading-4">
-                {settings["site.brandNote"]}
+                {settings["site.brandNote"] || "Туристическая компания"}
               </span>
             </span>
           </Link>
@@ -129,6 +129,7 @@ export function SiteFooter({
               `© ${settings["site.brand"]}, 2013 - ${new Date().getFullYear()} Копирование материалов с сайта запрещено.`}
           </p>
           <SiteCookieSettingsLink className="w-fit text-ink underline underline-offset-2 hover:text-brand-dark" />
+          <p className="text-ink-muted">dev netnext</p>
         </div>
       </div>
     </footer>

@@ -43,6 +43,12 @@ export default async function AdminUsersPage({
         title="Пользователи"
         description="Админы и менеджеры панели управления"
       />
+      <div className="rounded-md border border-admin-border bg-admin-muted/40 px-3 py-2 text-sm text-admin-fg-muted">
+        <strong className="text-admin-fg">Менеджер</strong> — редактирует контент сайта (страницы,
+        туры, отзывы, медиа), но не имеет доступа к настройкам, валютам, пользователям и аудиту.{" "}
+        <strong className="text-admin-fg">Админ</strong> — полный доступ, кроме управления каталогом
+        ролей. Полная таблица прав — на странице «Роли».
+      </div>
       {sp.error ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
           {decodeURIComponent(sp.error)}

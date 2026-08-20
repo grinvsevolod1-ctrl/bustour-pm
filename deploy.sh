@@ -84,6 +84,14 @@ if [ "$DO_SETUP" -eq 1 ]; then
     log "Устанавливаю nginx"
     sudo apt-get install -y -qq nginx
   fi
+
+  # ffmpeg — нужен для конвертации загружаемых видео в WebM (VP9) в
+  # lib/media/ffmpeg.ts. Без бинарника isFfmpegAvailable() возвращает false и
+  # видео молча сохраняется в исходном формате (MP4) вместо WebM.
+  if ! command -v ffmpeg >/dev/null 2>&1; then
+    log "Устанавливаю ffmpeg (конвертация видео в WebM)"
+    sudo apt-get install -y -qq ffmpeg
+  fi
   if [ ! -f /etc/nginx/sites-available/bastur.conf ]; then
     log "Ставлю nginx-конфиг (ops/nginx/bastur.conf)"
     sudo cp ops/nginx/bastur.conf /etc/nginx/sites-available/bastur.conf
@@ -134,6 +142,16 @@ if ! node -e "require('sharp')" >/dev/null 2>&1; then
   log "sharp: prebuilt-бинарник не загрузился — пересборка из исходников"
   npm rebuild sharp --build-from-source
   node -e "const s=require('sharp'); console.log('sharp OK:', JSON.stringify(s.versions))"
+fi
+
+# --- 3c. ffmpeg: гарантируем наличие на КАЖДОМ деплое --------------------------
+# Блок установки в --setup срабатывает только при первичной установке. Серверы,
+# развёрнутые до появления конвертации в WebM, иначе останутся без ffmpeg и
+# продолжат молча сохранять видео в исходном формате. Ставим идемпотентно.
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  log "ffmpeg не найден — устанавливаю (нужен для конвертации видео в WebM)"
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq ffmpeg || log "ВНИМАНИЕ: не удалось поставить ffmpeg — видео не будет конвертироваться в WebM"
 fi
 
 # --- 4. Сборка ----------------------------------------------------------------
