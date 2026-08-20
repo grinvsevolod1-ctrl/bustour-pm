@@ -163,7 +163,7 @@ export function CountryForm({
         </FormSection>
 
         {/* ── Page template sections (only for existing countries) ── */}
-        {otherPageGroups.map((group) => {
+        {country ? otherPageGroups.map((group) => {
           const sectionId =
             group.heading === "SEO и мета"
               ? "s-page-meta"
@@ -175,7 +175,7 @@ export function CountryForm({
               <FieldsInForm fields={group.fields} settings={pageSettings} />
             </FormSection>
           )
-        })}
+        }) : null}
 
         {/* ── FAQ — только при редактировании ─────────────── */}
         {country ? (
