@@ -417,7 +417,7 @@ export async function savePageSectionsOrderAction(formData: FormData) {
       action: "settings_update",
       entityType: "page",
       entityId: pageKey,
-      summary: `��бновлён порядок секций «${pageKey}»`,
+      summary: `Обновлён порядок секций «${pageKey}»`,
       before: diff.before,
       after: diff.after,
     })

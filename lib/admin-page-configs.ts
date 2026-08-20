@@ -99,10 +99,10 @@ export function aviaCityPageConfig(
     heading: isBus ? `Автобусные туры > Город: ${name}` : `Авиатуры > Город: ${name}`,
     url: isBus ? `/avtobusnye-tury/_/${slug}/` : `/aviatury/_/${slug}/`,
     sections: [
-      { key: `${p}.section.search`, label: "Фильтр и резул��таты поиска" },
+      { key: `${p}.section.search`, label: "Фильтр и результаты поиска" },
       { key: `${p}.section.cities`, label: "Карточки курортов" },
       { key: `${p}.section.resorts`, label: "Таблица" },
-      { key: `${p}.section.seo`, label: "SEO-��екст (расширенный)" },
+      { key: `${p}.section.seo`, label: "SEO-текст (расширенный)" },
       { key: `${p}.section.faq`, label: "Частые вопросы" },
       { key: `${p}.section.callus`, label: "«Есть вопросы?»" },
     ],

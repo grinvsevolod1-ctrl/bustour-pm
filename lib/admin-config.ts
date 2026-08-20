@@ -395,10 +395,10 @@ export const pageSettingsGroups: Record<string, {
           { key: "title.featured", label: "Лучшие предложения — заголовок", type: "shortcode-input" },
           {
             key: "description.featured",
-            label: "Лучшие предложения ��� описание под заголовком",
+            label: "Лучшие предложения — описание под заголовком",
             type: "shortcode-textarea-multiline",
             rows: 2,
-            hint: "Короткий текст-интро над карточками «Луч��ие предл��жения».",
+            hint: "Короткий текст-интро над карточками «Лучшие предложения».",
           },
           { key: "title.advantages", label: "Преимущества — заголовок", type: "shortcode-input" },
           {

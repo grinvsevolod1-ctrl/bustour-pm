@@ -374,7 +374,7 @@ export function TourForm({
                 }}
                 allowCreate={false}
                 required
-                placeholder={countryHasNoCities ? "В выбранной стране нет городо��" : "Выберите город"}
+                placeholder={countryHasNoCities ? "В выбранной стране нет городов" : "Выберите город"}
                 hint={
                   selectedCountry.trim()
                     ? `Выберите город из списка страны «${selectedCountry}» (только автобусные).`
@@ -551,7 +551,7 @@ export function TourForm({
                         setProgram((p) => p.filter((_, idx) => idx !== i))
                         markDirty()
                       }}
-                      aria-label="Удалить блок ��рограммы"
+                      aria-label="Удалить блок программы"
                       className="shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />

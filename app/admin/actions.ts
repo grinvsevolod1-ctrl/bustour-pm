@@ -324,7 +324,7 @@ export async function purgeBusAction(formData: FormData) {
         action: "bus_purge",
         entityType: "bus",
         entityId: id,
-        summary: `Удалё�� автобус #${id}`,
+        summary: `Удалён автобус #${id}`,
       })
       revalidatePath("/admin/buses")
       revalidatePath("/admin/archive")
