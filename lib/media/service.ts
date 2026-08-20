@@ -228,7 +228,8 @@ async function createPendingMediaRecord({
     id,
     url: sourceUrl,
     name: file.name,
-    size: formatBytes(bytes.length),
+    // В БД размер хранится строкой из байтов: check constraint запрещает "26.5 KB".
+    size: String(bytes.length),
     type: validation.type,
     checksum,
     altText: null,
@@ -572,7 +573,7 @@ async function processMediaJob(job: MediaWorkerJob): Promise<MediaItem> {
     const ready = await completeMediaProcessing(job.id, {
       url: finalUrl,
       name: next.name,
-      size: formatBytes(next.bytes.length),
+      size: String(next.bytes.length),
       mimeType: next.contentType,
     })
     if (!ready) throw new Error("Не удалось обновить запись медиатеки.")
