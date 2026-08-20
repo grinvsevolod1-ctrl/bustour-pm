@@ -139,13 +139,23 @@ function normalizeStage(stage: string | null | undefined, status: MediaItem["sta
   return "ready"
 }
 
+/**
+ * Размер в БД хранится строкой из байтов ("27819342") — check constraint
+ * запрещает "26.5 MB". Для показа в UI (media-thumbnail и т.п.) переводим в
+ * человекочитаемый вид. Легаси-строки, уже отформатированные, пропускаем как есть.
+ */
+function displaySize(raw: string): string {
+  const trimmed = String(raw ?? "").trim()
+  return /^\d+$/.test(trimmed) ? formatBytes(Number(trimmed)) : trimmed
+}
+
 function mapMediaItem(row: MediaRecordRow): MediaItem {
   const status = normalizeStatus(row.status)
   return {
     id: row.id,
     url: row.url,
     name: row.name,
-    size: row.size,
+    size: displaySize(row.size),
     type: row.type as UploadedFile["type"],
     alt: row.altText ?? undefined,
     folderId: row.folderId ?? null,

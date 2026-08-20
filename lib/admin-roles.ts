@@ -35,6 +35,20 @@ const MANAGER_CAPS: readonly AdminCapability[] = ["manage_content"] as const
 
 export const SYSTEM_ADMIN_ROLES: readonly AdminRole[] = ["superadmin", "admin", "manager"] as const
 
+/**
+ * Человекочитаемое описание каждого права — для матрицы прав на странице
+ * «Роли». Порядок = порядок строк в таблице.
+ */
+export const CAPABILITY_META: { cap: AdminCapability; label: string; description: string }[] = [
+  { cap: "manage_content", label: "Контент", description: "Страницы, туры, отзывы, расписания, медиа — весь контент сайта" },
+  { cap: "manage_settings", label: "Настройки сайта", description: "Глобальные настройки: контакты, соцсети, аналитика, объявления" },
+  { cap: "manage_currencies", label: "Валюты", description: "Курсы и справочник валют" },
+  { cap: "manage_users", label: "Пользователи", description: "Создание и редактирование админов и менеджеров" },
+  { cap: "manage_roles", label: "Роли", description: "Управление каталогом ролей (только суперадмин)" },
+  { cap: "view_audit", label: "Журнал аудита", description: "Просмотр истории действий в админке" },
+  { cap: "purge", label: "Полное удаление", description: "Безвозвратная очистка архива и скрытых записей" },
+]
+
 /** Higher number = higher privilege. */
 export function roleTier(role: AdminRole): number {
   if (role === "superadmin") return 3

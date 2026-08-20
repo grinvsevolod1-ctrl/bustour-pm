@@ -51,7 +51,7 @@ export function SiteFooter({
                 {settings["site.brand"]}
               </span>
               <span className="text-[8px] uppercase leading-3 text-ink md:text-[13px] md:leading-4">
-                {settings["site.brandNote"]}
+                {settings["site.brandNote"] || "Туристическая компания"}
               </span>
             </span>
           </Link>

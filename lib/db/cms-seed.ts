@@ -15,6 +15,7 @@ export const defaultSettings: Record<string, string> = {
   ...dictionaryDefaultSettings(),
   // Contacts
   "site.brand": "БасТур",
+  "site.brandNote": "Туристическая компания",
   "site.phone": "+375 29 621-44-77",
   // Footer phones — one per line, shown as-is; tel: link derived automatically.
   "site.phones": "+375 (29) 621-44-77\n+375 (33) 621-44-77\n+375 (25) 621-44-77",
