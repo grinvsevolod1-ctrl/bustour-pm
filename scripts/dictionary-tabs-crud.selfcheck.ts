@@ -6,8 +6,8 @@ import assert from "node:assert/strict"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
-import {import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
-
+import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
+import {
   DICTIONARY_PAGE_CMS_KEY,
   DICTIONARY_TABS_ORDER_KEY,
   dictionaryAdminRows,

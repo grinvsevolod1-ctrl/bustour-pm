@@ -7,12 +7,10 @@ import assert from "node:assert/strict"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
-import {import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
-
-  DEFAULT_REVIEW_LIST_FILTERS,
-  filterAndSortReviews,
-} from "../lib/review-admin"
-
+// Битый merge: строка импорта selfcheck-db была вставлена ВНУТРЬ другого
+// import-блока — файл не компилировался и selfcheck молча не работал.
+import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
+import { DEFAULT_REVIEW_LIST_FILTERS, filterAndSortReviews } from "../lib/review-admin"
 const formSrc = fs.readFileSync(path.join(process.cwd(), "components/admin/review-form.tsx"), "utf8")
 assert.match(formSrc, /useActionToast/)
 assert.match(formSrc, /reviews-list/)

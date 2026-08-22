@@ -7,8 +7,8 @@ import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import {import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
-
+import { hasSelfcheckPostgres, skipRuntimeMessage } from "./lib/selfcheck-db"
+import {
   parseReviewPhotoUrls,
   reviewHasLinkedTour,
   serializeReviewPhotoUrls,
@@ -41,8 +41,10 @@ assert.doesNotMatch(listPage, /getTours\(\)/)
 const editPage = read("app/admin/(protected)/reviews/[id]/page.tsx")
 assert.match(editPage, /getBusTours/)
 
-const publicSec = read("components/site/reviews-section.tsx")
-assert.match(publicSec, /parseReviewPhotoUrls/)
+// Рендер фото отзыва переехал из reviews-section в review-card-public —
+// selfcheck проверял старый файл и падал на живом коде.
+const publicCard = read("components/site/review-card-public.tsx")
+assert.match(publicCard, /parseReviewPhotoUrls/)
 
 assert.equal(reviewHasLinkedTour({ tour: "Карелия" }), true)
 assert.equal(serializeReviewPhotoUrls(["/1.jpg", "/2.jpg"]), '["/1.jpg","/2.jpg"]')

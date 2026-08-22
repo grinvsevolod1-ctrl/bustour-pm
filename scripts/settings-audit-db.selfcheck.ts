@@ -3,7 +3,7 @@
  * Run: npx tsx scripts/settings-audit-db.selfcheck.ts
  */
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import {
   writeAudit,
   listAuditLogs,
@@ -14,7 +14,11 @@ import {
 import { getSettings, saveSettings } from "@/lib/cms"
 
 function loadEnv() {
-  for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
+  // Файл опционален: на сервере DATABASE_URL уже в окружении, в песочнице —
+  // .env.development.local. Жёсткий readFileSync валил selfcheck без .env.local.
+  const envFile = [".env.local", ".env.development.local", ".env"].find((f) => existsSync(f))
+  if (!envFile) return
+  for (const line of readFileSync(envFile, "utf8").split(/\r?\n/)) {
     const t = line.trim()
     if (!t || t.startsWith("#")) continue
     const i = t.indexOf("=")
@@ -33,6 +37,12 @@ function loadEnv() {
 
 async function main() {
   loadEnv()
+  // Без PostgreSQL этот DB-smoke пропускается (тот же контракт, что и в
+  // других runtime-selfcheck'ах через scripts/lib/selfcheck-db).
+  if (!/^postgres(ql)?:\/\//i.test(process.env.DATABASE_URL || "")) {
+    console.log("settings-audit-db.selfcheck: skipped — requires a PostgreSQL DATABASE_URL")
+    return
+  }
   const key = "hot.h1"
   const current = await getSettings()
   const original = current[key] ?? ""

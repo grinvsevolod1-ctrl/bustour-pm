@@ -45,7 +45,9 @@ mustHave("app/admin/(protected)/tours/page.tsx", ["TourCountryGroupTable", "move
 mustHave("lib/queries.ts", ["moveTour", "reorderTours", "sortOrder"])
 mustHave("components/admin/tour-country-group-table.tsx", ["SortableTableBody", "DragHandle", "SortOrderButtons"])
 mustHave("app/admin/(protected)/content/[collection]/page.tsx", ["SortableList", "reorderBlocksAction"])
-mustHave("lib/db/init.ts", ["datesFootnotes TEXT", "datesNoteType, datesCurrency, datesFootnotes, documents"])
+// Схема переехала из raw-SQL в init.ts на drizzle (lib/db/schema.ts + миграции):
+// старый ассерт искал литерал «datesFootnotes TEXT» в init.ts и падал на живом коде.
+mustHave("lib/db/schema.ts", ['datesFootnotes: text("datesFootnotes")'])
 
 // Public catalogs already orderBy sortOrder — lock that contract
 mustHave("lib/countries.ts", ["orderBy(asc(countries.sortOrder)"])
