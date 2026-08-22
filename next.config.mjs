@@ -65,9 +65,20 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     // Оптимизированные версии кешируются на диске (.next/cache/images) на 31 день.
     minimumCacheTTL: 2678400,
+    // Раньше стоял hostname: "**" — это открытый image-proxy: любой мог гонять
+    // чужой трафик и CPU оптимизатора через /_next/image?url=... Сужаем до
+    // хостов, которые реально встречаются в контенте. Новый внешний источник
+    // картинок в админке = добавить хост сюда.
     remotePatterns: [
-      // Контент из админки может ссылаться на внешние https-изображения.
-      { protocol: "https", hostname: "**" },
+      { protocol: "https", hostname: "img.youtube.com" },       // постеры YouTube-видео (lib/video-url.ts)
+      { protocol: "https", hostname: "i.ytimg.com" },           // альтернативный CDN постеров YouTube
+      { protocol: "https", hostname: "images.unsplash.com" },   // seed-контент (lib/db/init.ts)
+      { protocol: "https", hostname: "**.holiday.by" },         // импорт отзывов holiday.by
+      { protocol: "https", hostname: "bastur.by" },
+      { protocol: "https", hostname: "**.bastur.by" },
+      { protocol: "https", hostname: "bus-tour.by" },           // будущий боевой домен
+      { protocol: "https", hostname: "**.bus-tour.by" },
+      { protocol: "https", hostname: "testnetnext.top" },       // текущий прод-домен
     ],
   },
   async redirects() {

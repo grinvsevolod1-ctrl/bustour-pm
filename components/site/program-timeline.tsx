@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
+import { sanitizeCmsHtml } from "@/lib/sanitize-html"
 
 /**
  * Extracts a short numeric day label (and a noun word) from a stored `day` string.
@@ -35,7 +36,9 @@ function renderProgramText(text: string) {
     return (
       <div
         className="prose prose-sm max-w-none prose-a:text-brand prose-strong:text-ink prose-headings:text-ink prose-ul:list-disc prose-ol:list-decimal prose-li:marker:text-brand"
-        dangerouslySetInnerHTML={{ __html: t }}
+        // Программа тура набирается в админке, но рендер обязан проходить санитайз:
+        // угнанная сессия редактора не должна давать stored XSS у посетителей.
+        dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(t) }}
       />
     )
   }

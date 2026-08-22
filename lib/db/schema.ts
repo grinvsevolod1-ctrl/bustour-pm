@@ -280,7 +280,19 @@ export const admins = pgTable("admins", {
   passwordHash: text("passwordHash").notNull(),
   role: text("role").notNull().default("admin"),
   active: boolean("active").notNull().default(true),
+  // Версия сессии — входит в payload cookie-токена. Инкремент при смене
+  // пароля/роли/деактивации мгновенно отзывает ВСЕ выданные сессии админа:
+  // раньше украденная кука жила 7 дней и её нельзя было инвалидировать.
+  sessionVersion: integer("sessionVersion").notNull().default(1),
   createdAt: createdAt("createdAt"),
+})
+
+// Rate-limit логина, переживающий рестарты pm2: автодеплой перезапускает
+// процесс на каждый пуш в main, и in-memory счётчики брутфорса обнулялись.
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(), // "<bucket>:<ip|username>"
+  count: integer("count").notNull().default(0),
+  resetAt: bigint("resetAt", { mode: "number" }).notNull(),
 })
 
 export const adminRoles = pgTable("admin_roles", {

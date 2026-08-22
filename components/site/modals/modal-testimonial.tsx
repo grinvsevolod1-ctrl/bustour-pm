@@ -6,7 +6,7 @@ import { formatPhoneIfComplete, isSupportedPhone, sanitizePhoneTyping, validateL
 import { submitPublicReview } from "@/lib/public-review"
 import { stripReviewLinks } from "@/lib/review-utils"
 import { captchaRequiredClientError } from "@/lib/recaptcha-public"
-import { MAX_MEDIA_SIZE_BYTES, validateMediaMeta } from "@/lib/media/utils"
+import { formatBytes, PUBLIC_IMAGE_MAX_BYTES, PUBLIC_VIDEO_MAX_BYTES, validateMediaMeta } from "@/lib/media/utils"
 import {
   ModalCaptchaRow,
   ModalDivider,
@@ -88,9 +88,17 @@ export function ModalTestimonial({
 
   function onPickFile(next: File | null) {
     if (next) {
-      const validation = validateMediaMeta(next.name, next.type, next.size, MAX_MEDIA_SIZE_BYTES)
+      // Публичные лимиты (общие с /api/review): фото до 10 МБ, видео до 50 МБ.
+      const validation = validateMediaMeta(next.name, next.type, next.size, PUBLIC_VIDEO_MAX_BYTES)
       if (!validation.type || !["image", "video"].includes(validation.type)) {
         setErrors((current) => ({ ...current, media: validation.error ?? "Можно прикрепить только фото или видео." }))
+        return
+      }
+      if (validation.type === "image" && next.size > PUBLIC_IMAGE_MAX_BYTES) {
+        setErrors((current) => ({
+          ...current,
+          media: `Размер фото не должен превышать ${formatBytes(PUBLIC_IMAGE_MAX_BYTES)}.`,
+        }))
         return
       }
     }

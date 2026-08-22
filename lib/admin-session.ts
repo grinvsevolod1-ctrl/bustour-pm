@@ -24,19 +24,32 @@ function sign(value: string): string {
   return createHmac("sha256", authHmacSecret()).update(value).digest("hex")
 }
 
-/** token = adminId.expiresAt.signature */
-export function createAdminSessionToken(adminId: number, ttlSec = ADMIN_SESSION_TTL_SEC): string {
+/**
+ * token = adminId.sessionVersion.expiresAt.signature
+ *
+ * sessionVersion — версия сессии из БД (admins.sessionVersion). Смена пароля,
+ * роли или деактивация инкрементирует её, и все ранее выданные токены
+ * мгновенно становятся невалидными (сверка в getAdmin). Токены старого
+ * 3-частного формата отвергаются — после деплоя все перелогинятся один раз.
+ */
+export function createAdminSessionToken(
+  adminId: number,
+  sessionVersion: number,
+  ttlSec = ADMIN_SESSION_TTL_SEC,
+): string {
   const expiresAt = Math.floor(Date.now() / 1000) + ttlSec
-  const payload = `${adminId}.${expiresAt}`
+  const payload = `${adminId}.${sessionVersion}.${expiresAt}`
   return `${payload}.${sign(payload)}`
 }
 
-export function verifyAdminSessionToken(token: string | null | undefined): { adminId: number } | null {
+export function verifyAdminSessionToken(
+  token: string | null | undefined,
+): { adminId: number; sessionVersion: number } | null {
   if (!token) return null
   const parts = token.split(".")
-  if (parts.length !== 3) return null
-  const [adminIdRaw, expiresAt, signature] = parts
-  const payload = `${adminIdRaw}.${expiresAt}`
+  if (parts.length !== 4) return null
+  const [adminIdRaw, sessionVersionRaw, expiresAt, signature] = parts
+  const payload = `${adminIdRaw}.${sessionVersionRaw}.${expiresAt}`
   let expected: string
   try {
     expected = sign(payload)
@@ -50,7 +63,9 @@ export function verifyAdminSessionToken(token: string | null | undefined): { adm
   if (Number(expiresAt) * 1000 < Date.now()) return null
   const adminId = Number(adminIdRaw)
   if (!Number.isFinite(adminId) || adminId <= 0) return null
-  return { adminId }
+  const sessionVersion = Number(sessionVersionRaw)
+  if (!Number.isFinite(sessionVersion) || sessionVersion <= 0) return null
+  return { adminId, sessionVersion }
 }
 
 export function hasValidAdminSessionToken(token: string | null | undefined): boolean {

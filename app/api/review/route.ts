@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createReview } from "@/lib/queries"
-import { mediaService, validateMediaFile } from "@/lib/media/service"
+import { mediaService } from "@/lib/media/service"
+import { formatBytes, PUBLIC_IMAGE_MAX_BYTES, PUBLIC_VIDEO_MAX_BYTES, validateMediaMeta } from "@/lib/media/utils"
 import { notifyLead, phoneCorrelationTag } from "@/lib/notify"
 import { encodeReviewPhoneSourceId } from "@/lib/review-contact"
 import { formatPhoneIfComplete, isSupportedPhone, PHONE_RE } from "@/lib/lead"
@@ -14,6 +15,9 @@ export const maxDuration = 180
 
 const RATE_WINDOW = 5 * 60_000 // 5 minutes
 const RATE_MAX = 3 // 3 reviews per IP in window
+
+// Публичный канал НЕ наследует админский лимит 200 МБ: лимиты фото/видео
+// объявлены в lib/media/utils.ts и общие с клиентской формой отзыва.
 
 function str(v: FormDataEntryValue | null): string {
   return typeof v === "string" ? v.trim() : ""
@@ -60,9 +64,13 @@ export async function POST(request: Request) {
 
   let mediaType: "image" | "video" | null = null
   if (file) {
-    const validation = validateMediaFile(file)
+    // Сначала определяем тип по мягкому лимиту (видео), затем сверяем
+    // с лимитом конкретного типа — у фото он строже.
+    const validation = validateMediaMeta(file.name, file.type, file.size, PUBLIC_VIDEO_MAX_BYTES)
     if (!validation.type || (validation.type !== "image" && validation.type !== "video")) {
       errors.media = validation.error || "Можно прикрепить только фото или видео"
+    } else if (validation.type === "image" && file.size > PUBLIC_IMAGE_MAX_BYTES) {
+      errors.media = `Размер фото не должен превышать ${formatBytes(PUBLIC_IMAGE_MAX_BYTES)}.`
     } else {
       mediaType = validation.type
     }

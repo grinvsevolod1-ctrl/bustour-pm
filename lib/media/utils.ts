@@ -1,8 +1,14 @@
 export type MediaType = "image" | "video" | "document"
 
-/** Public upload ceiling (bytes / MB). Keep in sync with server validateMediaFile. */
+/** Admin upload ceiling (bytes / MB). Keep in sync with server validateMediaFile. */
 export const MAX_MEDIA_SIZE_MB = 200
 export const MAX_MEDIA_SIZE_BYTES = MAX_MEDIA_SIZE_MB * 1024 * 1024
+
+// Лимиты ПУБЛИЧНОЙ загрузки (форма отзыва): используются и на клиенте
+// (modal-testimonial), и на сервере (/api/review) — держим в одном месте,
+// чтобы не разъезжались. Админский лимит 200 МБ сюда не относится.
+export const PUBLIC_IMAGE_MAX_BYTES = 10 * 1024 * 1024
+export const PUBLIC_VIDEO_MAX_BYTES = 50 * 1024 * 1024
 
 /** Max output height for image/video normalize (no upscale). */
 export const MEDIA_MAX_HEIGHT_PX = 1080

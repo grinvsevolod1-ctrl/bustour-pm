@@ -15,6 +15,7 @@ import {
   tourMatchesPeriod,
   type DepartureRange,
 } from "@/lib/dates-table"
+import { sanitizeCmsHtml } from "@/lib/sanitize-html"
 import { scrollToId } from "@/lib/scroll-to-id"
 import { tourUrl } from "@/lib/tour-url"
 import { Dropdown } from "./dropdown"
@@ -396,7 +397,8 @@ export function ToursListing({
         {sectionDescription ? (
           <div
             className="whitespace-pre-wrap text-base leading-relaxed text-ink-muted"
-            dangerouslySetInnerHTML={{ __html: sectionDescription }}
+            // sectionDescription приходит из CMS (site_settings) — санитайзим при рендере.
+            dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(sectionDescription) }}
           />
         ) : null}
         {header != null ? <Fragment key="tours-header">{header}</Fragment> : null}
