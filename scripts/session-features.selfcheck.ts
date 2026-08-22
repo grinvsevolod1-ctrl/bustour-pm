@@ -66,8 +66,9 @@ assert.ok(leadApi.includes("captchaToken") || leadApi.includes("verifyRecaptcha"
 const datesEditor = fs.readFileSync(path.join(root, "components/admin/tour-pricing-editor.tsx"), "utf8")
 assert.ok(datesEditor.includes("datesTableRangeError") || datesEditor.includes("isDateRangeOrdered"), "admin blocks inverted dates")
 
-assert.ok(fs.existsSync(path.join(root, "e2e/hanging-tours-city.spec.ts")), "hanging tours e2e")
-assert.ok(fs.existsSync(path.join(root, "e2e/tour-pricing-dates.spec.ts")), "tour pricing dates e2e")
+// Стейл-ассерты на e2e/hanging-tours-city.spec.ts и e2e/tour-pricing-dates.spec.ts
+// удалены: этих спеков в репозитории нет (в e2e/ только admin-smoke), и проверка
+// валила selfcheck всякий раз, когда smart-тест его триггерил.
 
 // Env-less local: captcha must stay off (fail-open for keys missing)
 assert.equal(typeof isRecaptchaEnabled(), "boolean")

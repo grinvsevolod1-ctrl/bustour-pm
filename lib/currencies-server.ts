@@ -24,13 +24,13 @@ function defaultCurrencySymbol(code: string): string {
 }
 
 async function getCurrencyDbContext() {
-  const [{ asc, eq }, { db }, { currencies }, { ensureDb }] = await Promise.all([
+  const [{ asc, eq, sql }, { db }, { currencies }, { ensureDb }] = await Promise.all([
     import("drizzle-orm"),
     import("@/lib/db"),
     import("@/lib/db/schema"),
     import("@/lib/db/init"),
   ])
-  return { asc, eq, db, currencies, ensureDb }
+  return { asc, eq, sql, db, currencies, ensureDb }
 }
 
 function mapCurrency(row: CurrencyRow): Currency {
@@ -65,7 +65,7 @@ export async function refreshCurrenciesFromNbrb(markupPercent = 0): Promise<{
   markupPercent: number
   commercialRates: Record<string, number>
 }> {
-  const { asc, eq, db, currencies, ensureDb } = await getCurrencyDbContext()
+  const { asc, sql, db, currencies, ensureDb } = await getCurrencyDbContext()
   await ensureDb()
   const rows = await db.select().from(currencies).orderBy(asc(currencies.sortOrder), asc(currencies.id))
   const byCode = new Map(rows.map((row) => [row.code.toUpperCase(), row]))
@@ -96,8 +96,15 @@ export async function refreshCurrenciesFromNbrb(markupPercent = 0): Promise<{
     updates.push({ id: row.id, code, rate: commercialRate })
   }
 
-  for (const update of updates) {
-    await db.update(currencies).set({ rate: update.rate }).where(eq(currencies.id, update.id))
+  // Один UPDATE ... FROM (VALUES ...) вместо запроса на каждую валюту.
+  if (updates.length) {
+    const values = sql.join(
+      updates.map((u) => sql`(${u.id}::int, ${u.rate}::double precision)`),
+      sql`, `,
+    )
+    await db.execute(
+      sql`UPDATE ${currencies} SET rate = v.rate FROM (VALUES ${values}) AS v(id, rate) WHERE ${currencies.id} = v.id`,
+    )
   }
 
   return {

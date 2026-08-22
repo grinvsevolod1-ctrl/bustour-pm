@@ -61,7 +61,7 @@ scripts/           # preflight, миграции, seed, десятки selfcheck
 tests/             # vitest-тесты (move, avia-slug, proxy-origin)
 ops/auto-deploy/   # systemd-таймер автодеплоя на сервере
 deploy.sh          # главный скрипт деплоя на VPS (см. «Деплой»)
-ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-cron
+ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker
 ```
 
 ## Ключевые соглашения
@@ -92,7 +92,7 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-cron
 - `deploy.sh` (на сервере, в `/var/www/bustour`): git pull → npm ci →
   preflight → build → миграции (`db:migrate:prod`) → pm2 startOrReload →
   health-check. Флаги: `--setup` (первичная установка), `--no-pull`.
-- pm2-процессы: `bastur-app` (web) и `bastur-cron`. Логи:
+- pm2-процессы: `bastur-app` (web) и `bastur-media-worker`. Логи:
   `pm2 logs bastur-app --lines 50 --nostream`. Ротация — pm2-logrotate
   (ставится deploy.sh автоматически).
 - HTTPS: nginx + certbot с автопродлением.
@@ -143,8 +143,9 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-cron
 - `npm run test:smart` — умный прогон selfcheck-скриптов по затронутым файлам.
 - `npm run test:e2e` — Playwright (нужен `npm run playwright:install`).
 - Selfcheck `test:security` включает rate-limit, пароли, avia-slug.
-- Предупреждение «recaptcha selfcheck failed» в preflight на проде —
-  ожидаемое (тест dev-байпаса капчи), деплой не блокирует.
+- recaptcha selfcheck приведён в соответствие с фактическим поведением
+  lib/recaptcha.ts (dev-стенд fail-closed, байпас только явным
+  BYPASS_RECAPTCHA=1) и в preflight должен проходить без предупреждений.
 
 ## Что просил владелец проекта (стиль работы)
 

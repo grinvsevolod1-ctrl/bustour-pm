@@ -3,7 +3,7 @@
  * Shared by e2e helpers and smoke scripts — keeps live Turso clean.
  * Relative imports only (Playwright workers do not resolve `@/`).
  */
-import { eq } from "drizzle-orm"
+import { eq, inArray } from "drizzle-orm"
 import { ensureDb } from "./db/init"
 import { db } from "./db"
 import { settings } from "./db/schema"
@@ -16,10 +16,12 @@ export async function withSettingsSnapshot<T>(
   }) => Promise<T>,
 ): Promise<T> {
   await ensureDb()
+  // Один батч-SELECT вместo запроса на каждый ключ (N+1).
   const snap = new Map<string, string | null>()
+  const rows = keys.length ? await db.select().from(settings).where(inArray(settings.key, keys)) : []
+  const byKey = new Map(rows.map((r) => [r.key, r.value]))
   for (const key of keys) {
-    const [row] = await db.select().from(settings).where(eq(settings.key, key)).limit(1)
-    snap.set(key, row?.value ?? null)
+    snap.set(key, byKey.get(key) ?? null)
   }
 
   async function set(key: string, value: string) {

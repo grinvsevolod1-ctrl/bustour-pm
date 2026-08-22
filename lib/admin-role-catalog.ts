@@ -1,4 +1,4 @@
-import { asc, eq, and } from "drizzle-orm"
+import { asc, eq, and, sql } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { adminRoles, admins } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
@@ -27,22 +27,37 @@ const SYSTEM_SEED: { slug: AdminRole; label: string }[] = [
 export async function ensureAdminRoleCatalog(): Promise<void> {
   await ensureDb()
   const now = Date.now()
-  for (const row of SYSTEM_SEED) {
-    const existing = await db.select({ slug: adminRoles.slug }).from(adminRoles).where(eq(adminRoles.slug, row.slug)).limit(1)
-    if (existing.length) continue
-    await db.insert(adminRoles).values({
-      slug: row.slug,
-      label: row.label,
-      isSystem: true,
-      hidden: false,
-      createdAt: now,
-    })
-  }
+  // Один INSERT ... ON CONFLICT DO NOTHING вместо SELECT+INSERT на роль:
+  // функция вызывается при каждом листинге каталога.
+  await db
+    .insert(adminRoles)
+    .values(
+      SYSTEM_SEED.map((row) => ({
+        slug: row.slug,
+        label: row.label,
+        isSystem: true,
+        hidden: false,
+        createdAt: now,
+      })),
+    )
+    .onConflictDoNothing({ target: adminRoles.slug })
 }
 
 async function countUsersWithRole(slug: string): Promise<number> {
-  const rows = await db.select({ id: admins.id }).from(admins).where(eq(admins.role, slug))
-  return rows.length
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(admins)
+    .where(eq(admins.role, slug))
+  return row?.count ?? 0
+}
+
+/** Все счётчики одним GROUP BY вместо запроса на каждую роль (N+1). */
+async function countUsersByRole(): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ role: admins.role, count: sql<number>`count(*)::int` })
+    .from(admins)
+    .groupBy(admins.role)
+  return new Map(rows.map((r) => [r.role, r.count]))
 }
 
 function mapRow(
@@ -67,11 +82,8 @@ export async function listAdminRoleCatalog(opts?: {
     ? await db.select().from(adminRoles).orderBy(asc(adminRoles.createdAt))
     : await db.select().from(adminRoles).where(eq(adminRoles.hidden, false)).orderBy(asc(adminRoles.createdAt))
 
-  const out: AdminRoleCatalogRow[] = []
-  for (const row of rows) {
-    out.push(mapRow(row, await countUsersWithRole(row.slug)))
-  }
-  return out
+  const counts = await countUsersByRole()
+  return rows.map((row) => mapRow(row, counts.get(row.slug) ?? 0))
 }
 
 export async function listAssignableRoleSlugs(): Promise<AdminRole[]> {

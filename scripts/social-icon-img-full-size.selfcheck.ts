@@ -5,9 +5,12 @@ import assert from "node:assert/strict"
 const social = readFileSync("components/site/social-icon.tsx", "utf8")
 
 // T1: Viber + Telegram используют нативный <img> (не Next Image) чтобы не было sizing конфликтов width/height props vs className.
-const noNextImageForViberTlg = !/Image src=["']\/figma\/(viber|telegram)\.svg/.test(social)
-  && /<img[^>]*src=["']\/figma\/(viber|telegram)\.svg/.test(social)
-assert.ok(noNextImageForViberTlg,
+// Код отрефакторен: пути глифов лежат в карте SOCIAL_ICON_SRC, а <img> рендерит src
+// из переменной — старый regex искал литеральный src="/figma/viber.svg" прямо в <img>
+// и падал на живом коде.
+const hasFigmaGlyphPaths = /["']\/figma\/viber\.svg["']/.test(social) && /["']\/figma\/telegram\.svg["']/.test(social)
+const usesNativeImg = /<img[^>]*src=\{/.test(social) && !/from ["']next\/image["']/.test(social)
+assert.ok(hasFigmaGlyphPaths && usesNativeImg,
   "FAIL S1a: Viber/Telegram glyphs использовать нативный <img> вместо Next Image (чтобы sizing className = h-full w-full не конфликтовал с width/height props)")
 
 // T2: Все <img> viber/telegram обязательно имеют в className h-full + w-full (строго размеры контейнера).
