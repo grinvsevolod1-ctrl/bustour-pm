@@ -34,15 +34,36 @@ async function isStale(): Promise<boolean> {
   }
 }
 
+// Advisory-lock id: произвольная константа, уникальная для этой задачи.
+const REFRESH_LOCK_ID = 0x6261_7374 // "bast"
+
 async function refreshOnce(reason: string): Promise<void> {
   try {
     if (!(await isStale())) return
-    const markup = await getMarkupPercent()
-    const result = await refreshCurrenciesFromNbrb(markup)
-    await saveSettings({ [LAST_REFRESH_KEY]: new Date().toISOString() })
-    console.log(
-      `[currency-auto-refresh] ${reason}: updated=${result.updated} markup=${markup}% asOf=${JSON.stringify(result.asOfDates)}`,
+    // Лидер-лок через Postgres advisory lock: при pm2 instances > 1 (или во
+    // время zero-downtime reload, когда старый и новый процессы живут
+    // одновременно) обновление НБРБ выполняет только один процесс.
+    const { db } = await import("@/lib/db")
+    const { sql } = await import("drizzle-orm")
+    const lockRows = await db.execute<{ locked: boolean }>(
+      sql`SELECT pg_try_advisory_lock(${REFRESH_LOCK_ID}) AS locked`,
     )
+    if (!lockRows.rows[0]?.locked) {
+      console.log(`[currency-auto-refresh] ${reason}: другой процесс уже обновляет — пропуск`)
+      return
+    }
+    try {
+      // Повторная проверка под локом: пока ждали, лидер мог уже обновить.
+      if (!(await isStale())) return
+      const markup = await getMarkupPercent()
+      const result = await refreshCurrenciesFromNbrb(markup)
+      await saveSettings({ [LAST_REFRESH_KEY]: new Date().toISOString() })
+      console.log(
+        `[currency-auto-refresh] ${reason}: updated=${result.updated} markup=${markup}% asOf=${JSON.stringify(result.asOfDates)}`,
+      )
+    } finally {
+      await db.execute(sql`SELECT pg_advisory_unlock(${REFRESH_LOCK_ID})`).catch(() => {})
+    }
   } catch (err) {
     // НБРБ недоступен — не валим сервер, попробуем в следующем цикле
     console.error(`[currency-auto-refresh] ${reason} failed:`, err instanceof Error ? err.message : err)

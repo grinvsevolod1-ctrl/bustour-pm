@@ -1,4 +1,4 @@
-import { eq, desc, and, ne } from "drizzle-orm"
+import { eq, desc, and, ne, sql } from "drizzle-orm"
 import { db } from "./db"
 import { admins } from "./db/schema"
 import { ensureDb } from "./db/init"
@@ -76,6 +76,9 @@ export async function updateAdminUser(
     next.passwordHash = hashPassword(patch.password)
   }
   if (!Object.keys(next).length) return existing
+  // Любое security-значимое изменение (пароль/роль/активность) отзывает
+  // все выданные сессии: версия входит в подпись cookie-токена.
+  next.sessionVersion = sql`${admins.sessionVersion} + 1` as unknown as number
   await db.update(admins).set(next).where(eq(admins.id, id))
   const updated = await getAdminById(id)
   if (!updated) throw new Error("Пользователь не найден")

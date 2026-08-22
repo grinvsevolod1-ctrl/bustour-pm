@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
-import { clientIpFromHeaders, consumeRateLimit, resetRateLimit } from "@/lib/rate-limit"
+import { clientIpFromHeaders, consumePersistentRateLimit, resetPersistentRateLimit } from "@/lib/rate-limit"
 import { login, logout, requireAdmin, requireCapability } from "@/lib/auth"
 import { writeAudit, auditTourSnapshot } from "@/lib/admin-audit"
 import { safeInternalNext } from "@/lib/safe-next"
@@ -103,15 +103,17 @@ export async function loginAction(_prev: unknown, formData: FormData) {
   }
 
   // Brute-force protection: limit attempts per IP; counter resets on success.
+  // Лимит стойкий (таблица rate_limits): автодеплой рестартует pm2 на каждый
+  // пуш в main, и in-memory счётчики брутфорса обнулялись за минуты.
   const ip = clientIpFromHeaders(await headers())
-  const rate = consumeRateLimit("login", ip, LOGIN_RATE_MAX, LOGIN_RATE_WINDOW)
+  const rate = await consumePersistentRateLimit("login", ip, LOGIN_RATE_MAX, LOGIN_RATE_WINDOW)
   if (!rate.ok) {
     return { error: `Слишком много попыток входа. Повторите через ${Math.ceil(rate.retryAfterSec / 60)} мин.` }
   }
   // Второй bucket по логину: распределённый перебор одного аккаунта
   // со многих IP не обойдёт лимит по IP, поэтому считаем и по username.
   const userKey = username.toLowerCase()
-  const userRate = consumeRateLimit("login-user", userKey, LOGIN_RATE_MAX, LOGIN_RATE_WINDOW)
+  const userRate = await consumePersistentRateLimit("login-user", userKey, LOGIN_RATE_MAX, LOGIN_RATE_WINDOW)
   if (!userRate.ok) {
     return { error: `Слишком много попыток входа. Повторите через ${Math.ceil(userRate.retryAfterSec / 60)} мин.` }
   }
@@ -121,8 +123,8 @@ export async function loginAction(_prev: unknown, formData: FormData) {
     if (!ok) {
       return { error: "Неверный логин или пароль" }
     }
-    resetRateLimit("login", ip)
-    resetRateLimit("login-user", userKey)
+    await resetPersistentRateLimit("login", ip)
+    await resetPersistentRateLimit("login-user", userKey)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes("AUTH_SECRET")) {

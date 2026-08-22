@@ -1,8 +1,10 @@
+import { createHmac } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { ADMIN_COOKIE_NAME, hasValidAdminSessionToken } from "@/lib/admin-session"
 import { PREVIEW_QUERY, verifyPreviewToken } from "@/lib/preview-token"
 import { DEFAULT_AVIA_SLUG } from "@/lib/avia-slug"
 import { INTERNAL_ORIGIN, publicOrigin } from "@/lib/proxy-origin"
+import { authHmacSecret } from "@/lib/auth-secret"
 
 export const runtime = "nodejs"
 
@@ -71,8 +73,20 @@ function gatePreviewQuery(request: NextRequest): NextResponse | null {
  * (Next standalone proxies the rewrite as a real HTTP request behind
  * nginx) serves /aviatory directly instead of 301-ing back — otherwise
  * /aviatury → /aviatury loops forever.
+ *
+ * Значение — HMAC от AUTH_SECRET, а не константа "1": раньше клиент мог
+ * прислать заголовок сам и миновать 301 /aviatory → /{slug}, получая
+ * дубль контента в индексе. Подделать подписанное значение извне нельзя
+ * (loopback-запрос rewrite'а nginx не проходит и заголовок сохраняет).
  */
 const AVIA_REWRITE_HEADER = "x-bastur-avia-rewrite"
+
+let cachedRewriteMark: string | null = null
+function aviaRewriteMark(): string {
+  if (cachedRewriteMark) return cachedRewriteMark
+  cachedRewriteMark = createHmac("sha256", authHmacSecret()).update("avia-rewrite").digest("hex").slice(0, 32)
+  return cachedRewriteMark
+}
 
 export async function middleware(request: NextRequest) {
   const previewGate = gatePreviewQuery(request)
@@ -81,7 +95,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Second pass of a self-proxied avia rewrite: serve /aviatory as-is.
-  if (request.headers.get(AVIA_REWRITE_HEADER) === "1") {
+  if (request.headers.get(AVIA_REWRITE_HEADER) === aviaRewriteMark()) {
     return NextResponse.next()
   }
 
@@ -97,7 +111,7 @@ export async function middleware(request: NextRequest) {
     const url = new URL(rewritten || "/aviatory/", INTERNAL_ORIGIN)
     url.search = request.nextUrl.search
     const headers = new Headers(request.headers)
-    headers.set(AVIA_REWRITE_HEADER, "1")
+    headers.set(AVIA_REWRITE_HEADER, aviaRewriteMark())
     return NextResponse.rewrite(url, { request: { headers } })
   }
 

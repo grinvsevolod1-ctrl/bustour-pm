@@ -69,7 +69,7 @@ export async function login(username: string, password: string): Promise<boolean
   }
 
   const store = await cookies()
-  store.set(ADMIN_COOKIE_NAME, createAdminSessionToken(admin.id), {
+  store.set(ADMIN_COOKIE_NAME, createAdminSessionToken(admin.id, admin.sessionVersion), {
     httpOnly: true,
     sameSite: "lax",
     // HTTP VPS (http://IP:3000) cannot use Secure cookies — browser drops them.
@@ -111,6 +111,9 @@ export async function getAdmin(): Promise<SessionAdmin | null> {
   await ensureDb()
   const [admin] = await db.select().from(admins).where(eq(admins.id, verified.adminId)).limit(1)
   if (!admin || !admin.active) return null
+  // Отзыв сессий: токен с устаревшей версией (пароль/роль сменились,
+  // bumpAdminSessionVersion) больше не действует.
+  if (admin.sessionVersion !== verified.sessionVersion) return null
   return {
     id: admin.id,
     username: admin.username,

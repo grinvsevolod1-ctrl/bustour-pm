@@ -23,6 +23,13 @@ const mimeByExt: Record<string, string> = {
   ".txt": "text/plain",
 }
 
+// Документы скачиваются, а не открываются same-origin в браузере:
+// инлайновый рендер загруженного документа (особенно PDF со скриптами
+// в вьювере) — лишняя поверхность атаки. Картинки и видео остаются inline —
+// они встраиваются в страницы сайта. PDF тоже inline: программы туров
+// открываются посетителями для чтения, а не скачивания.
+const attachmentExts = new Set([".xlsx", ".xls", ".docx", ".doc", ".txt"])
+
 /** Parses a single `bytes=start-end` range. Multi-range requests fall back to full body. */
 function parseRange(header: string | null, size: number): { start: number; end: number } | null {
   if (!header) return null
@@ -95,6 +102,12 @@ export async function GET(
     // файлы (в т.ч. text/plain и octet-stream) — MIME-sniffing здесь опаснее
     // всего, и защита не должна зависеть от конфигурации next.config.
     "X-Content-Type-Options": "nosniff",
+  }
+
+  if (attachmentExts.has(ext) || type === "application/octet-stream") {
+    const filename = path.basename(diskPath)
+    // RFC 5987: имя может быть кириллическим — кодируем в filename*.
+    baseHeaders["Content-Disposition"] = `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`
   }
 
   // Conditional GET — let browsers reuse their cache.

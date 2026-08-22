@@ -80,11 +80,19 @@ async function loadNotifyConfig(): Promise<NotifyChannelConfig> {
   }
 }
 
-async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelConfig) {
+/** Возвращает true при подтверждённой доставке в API канала. */
+async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelConfig): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey || !config.emailEnabled || config.emailTo.length === 0) return
+  if (!apiKey || !config.emailEnabled || config.emailTo.length === 0) {
+    if (!apiKey && config.emailEnabled) {
+      // Канал включён, но не сконфигурирован — заявка уйдёт «в никуда»,
+      // это должно быть видно в логах, а не выглядеть успехом.
+      console.warn("[notify] email channel enabled but RESEND_API_KEY is not set — lead email skipped")
+    }
+    return false
+  }
   try {
-    await fetch("https://api.resend.com/emails", {
+    const resp = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -95,17 +103,24 @@ async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelC
       }),
       signal: AbortSignal.timeout(NOTIFY_TIMEOUT_MS),
     })
+    if (!resp.ok) {
+      // Раньше не-2xx от Resend молча считался успехом.
+      console.error("[notify] lead email notify failed: HTTP %d %s", resp.status, await resp.text().catch(() => ""))
+      return false
+    }
+    return true
   } catch (err) {
     console.error("[notify] lead email notify failed:", (err as Error).message)
+    return false
   }
 }
 
-async function sendTelegram(lines: string[], config: NotifyChannelConfig) {
+async function sendTelegram(lines: string[], config: NotifyChannelConfig): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN
   const chatId = config.telegramChatId
-  if (!token || !chatId || !config.telegramEnabled) return
+  if (!token || !chatId || !config.telegramEnabled) return false
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -114,8 +129,14 @@ async function sendTelegram(lines: string[], config: NotifyChannelConfig) {
       }),
       signal: AbortSignal.timeout(NOTIFY_TIMEOUT_MS),
     })
+    if (!resp.ok) {
+      console.error("[notify] lead telegram notify failed: HTTP %d", resp.status)
+      return false
+    }
+    return true
   } catch (err) {
     console.error("[notify] lead telegram notify failed:", (err as Error).message)
+    return false
   }
 }
 
@@ -145,5 +166,13 @@ export async function notifyLead(data: LeadData) {
   )
   const lines = buildLines(data)
   const config = await loadNotifyConfig()
-  await Promise.allSettled([sendEmail(data, lines, config), sendTelegram(lines, config)])
+  const [emailRes, tgRes] = await Promise.allSettled([sendEmail(data, lines, config), sendTelegram(lines, config)])
+  const emailOk = emailRes.status === "fulfilled" && emailRes.value
+  const tgOk = tgRes.status === "fulfilled" && tgRes.value
+  // Итоговая строка по cid: по логам видно, ушла ли заявка хоть куда-то.
+  // Заявка при этом всегда сохранена в БД (lead создаётся до notifyLead).
+  console.info("[notify] lead cid=%s email=%s telegram=%s", meta.correlationId, emailOk, tgOk)
+  if (!emailOk && !tgOk) {
+    console.error("[notify] lead cid=%s delivered to NO channels — проверьте настройки уведомлений", meta.correlationId)
+  }
 }

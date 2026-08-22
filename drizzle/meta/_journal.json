@@ -50,6 +50,13 @@
       "when": 1787261119843,
       "tag": "0006_puzzling_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787429083282,
+      "tag": "0007_amusing_the_professor",
+      "breakpoints": true
     }
   ]
 }

@@ -140,11 +140,20 @@ async function main() {
   const autoBypassLocal = await verifyRecaptchaToken("", { required: true })
   assert.equal(autoBypassLocal.ok, true, "local (NODE_ENV=dev) bypasses captcha EVEN with keys")
 
-  // ---- CAPTCHA BYPASS AUDIT #2: AUTO-BYPASS on BASTUR_DEPLOY_ENV=dev (VPS NODE_ENV=production) ----
+  // ---- CAPTCHA BYPASS AUDIT #2: dev-стенд (публичный VPS) НЕ байпасит автоматически ----
+  // Раньше тест утверждал обратное и падал на каждом деплое (warning в preflight):
+  // lib/recaptcha.ts намеренно требует явный BYPASS_RECAPTCHA=1 даже на dev,
+  // потому что dev-стенд — публичный VPS и формы должны быть защищены.
   process.env.NODE_ENV = "production"
   process.env.BASTUR_DEPLOY_ENV = "dev"
-  const autoBypassDev = await verifyRecaptchaToken("", { required: true })
-  assert.equal(autoBypassDev.ok, true, "dev-stand (BASTUR_DEPLOY_ENV=dev, NODE_ENV=prod) auto-bypasses captcha")
+  delete process.env.BYPASS_RECAPTCHA
+  const devNoBypass = await verifyRecaptchaToken("", { required: true })
+  assert.equal(devNoBypass.ok, false, "dev-stand WITHOUT explicit bypass is fail-closed (captcha verified)")
+
+  // dev + явный BYPASS_RECAPTCHA=1 — единственный разрешённый байпас на стенде (CI/E2E)
+  process.env.BYPASS_RECAPTCHA = "1"
+  const devExplicitBypass = await verifyRecaptchaToken("", { required: true })
+  assert.equal(devExplicitBypass.ok, true, "dev-stand with explicit BYPASS_RECAPTCHA=1 bypasses (CI/E2E)")
 
   // ---- CAPTCHA BYPASS AUDIT #3: EXPLICIT BYPASS_RECAPTCHA=1 works ONLY on local/dev (fail-closed everywhere else) ----
   process.env.NODE_ENV = "production"
@@ -153,28 +162,26 @@ async function main() {
   const envBypassOnProd = await verifyRecaptchaToken("", { required: true })
   assert.equal(envBypassOnProd.ok, false, "BYPASS_RECAPTCHA=1 is IGNORED on production deploy target (fail-closed)")
 
-  // Same bypass on NODE_ENV=development (local env) — works fine
+  // Local (NODE_ENV=development) — авто-байпас независимо от флага
   process.env.NODE_ENV = "development"
   delete process.env.BASTUR_DEPLOY_ENV
   process.env.BYPASS_RECAPTCHA = "1"
   const envBypass1 = await verifyRecaptchaToken("", { required: true })
-  assert.equal(envBypass1.ok, true, "BYPASS_RECAPTCHA=1 bypasses on local/development env")
+  assert.equal(envBypass1.ok, true, "local/development env bypasses automatically")
 
-  // BYPASS_RECAPTCHA=true (alias value)
-  process.env.BYPASS_RECAPTCHA = "true"
-  const envBypass2 = await verifyRecaptchaToken("", { required: true })
-  assert.equal(envBypass2.ok, true, "BYPASS_RECAPTCHA=true alias also bypasses on local")
-
-  // Alt env RECAPTCHA_BYPASS=yes (synonym) — also ignored on prod
-  delete process.env.BYPASS_RECAPTCHA
+  // Единственное принимаемое значение — строго "1": на dev-стенде "true" НЕ байпасит
   process.env.NODE_ENV = "production"
-  delete process.env.BASTUR_DEPLOY_ENV
-  process.env.RECAPTCHA_BYPASS = "yes"
-  const envBypassSynProd = await verifyRecaptchaToken("", { required: true })
-  assert.equal(envBypassSynProd.ok, false, "RECAPTCHA_BYPASS=yes also IGNORED on production (fail-closed)")
-  process.env.NODE_ENV = "development"
-  const envBypass3 = await verifyRecaptchaToken("", { required: true })
-  assert.equal(envBypass3.ok, true, "RECAPTCHA_BYPASS=yes synonym bypasses captcha on local")
+  process.env.BASTUR_DEPLOY_ENV = "dev"
+  process.env.BYPASS_RECAPTCHA = "true"
+  const aliasOnDev = await verifyRecaptchaToken("", { required: true })
+  assert.equal(aliasOnDev.ok, false, 'BYPASS_RECAPTCHA="true" (не "1") НЕ байпасит на dev-стенде')
+
+  // Несуществующий "синоним" RECAPTCHA_BYPASS не реализован и игнорируется везде
+  delete process.env.BYPASS_RECAPTCHA
+  process.env.RECAPTCHA_BYPASS = "1"
+  const synonymIgnored = await verifyRecaptchaToken("", { required: true })
+  assert.equal(synonymIgnored.ok, false, "RECAPTCHA_BYPASS is NOT a supported env var (ignored, fail-closed)")
+  delete process.env.RECAPTCHA_BYPASS
 
   // ---- CAPTCHA BYPASS AUDIT #4: production fail-closed when keys missing / token absent ----
   delete process.env.BYPASS_RECAPTCHA

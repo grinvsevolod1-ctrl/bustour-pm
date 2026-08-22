@@ -1,15 +1,22 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto"
 import type { Review } from "@/lib/types"
 import { extractLegacyReviewPhone } from "@/lib/review-utils"
+import { getBustourDeployEnv } from "@/lib/deploy-env"
 
 const SOURCE_PREFIX = "encphone:"
 
 function contactKey(): Buffer {
-  const secret =
-    process.env.REVIEW_CONTACT_SECRET ||
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    "bustour-dev-review-contact"
+  // Раньше был мёртвый фолбэк на NEXTAUTH_SECRET (NextAuth в проекте нет)
+  // и молчаливый дефолт-секрет: в production телефоны шифровались бы
+  // известной константой. Теперь ведём себя как lib/auth-secret.ts —
+  // на проде без секрета бросаем, dev-константа только для local/dev.
+  const secret = process.env.REVIEW_CONTACT_SECRET || process.env.AUTH_SECRET
+  if (!secret) {
+    if (getBustourDeployEnv() === "production") {
+      throw new Error("REVIEW_CONTACT_SECRET/AUTH_SECRET не задан — шифрование контактов в отзывах не настроено")
+    }
+    return createHash("sha256").update("bustour-dev-review-contact").digest()
+  }
   return createHash("sha256").update(secret).digest()
 }
 

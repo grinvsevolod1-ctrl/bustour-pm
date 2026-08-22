@@ -76,6 +76,75 @@ export function resetRateLimit(bucket: string, key: string): void {
 }
 
 /**
+ * Стойкий (переживающий рестарты) rate-limit на таблице rate_limits.
+ *
+ * In-memory вариант выше обнуляется при каждом рестарте pm2 — а автодеплой
+ * рестартует процесс на каждый пуш в main, т.е. счётчики брутфорса логина
+ * жили минуты. Для security-критичных бакетов (login) используем БД:
+ * атомарный UPSERT, окно сбрасывается по resetAt.
+ *
+ * Ошибка БД не должна ронять форму логина — фолбэк на in-memory лимит.
+ */
+export async function consumePersistentRateLimit(
+  bucket: string,
+  key: string,
+  max: number,
+  windowMs: number,
+): Promise<RateLimitResult> {
+  const mapKey = `${bucket}:${key}`
+  const now = Date.now()
+  try {
+    // Ленивая загрузка, чтобы не тянуть drizzle в лёгкие импорты rate-limit.
+    const [{ db }, { rateLimits }, { sql }] = await Promise.all([
+      import("@/lib/db"),
+      import("@/lib/db/schema"),
+      import("drizzle-orm"),
+    ])
+    const rows = await db
+      .insert(rateLimits)
+      .values({ key: mapKey, count: 1, resetAt: now + windowMs })
+      .onConflictDoUpdate({
+        target: rateLimits.key,
+        set: {
+          // Окно истекло — начинаем заново, иначе инкремент.
+          count: sql`CASE WHEN ${rateLimits.resetAt} < ${now} THEN 1 ELSE ${rateLimits.count} + 1 END`,
+          resetAt: sql`CASE WHEN ${rateLimits.resetAt} < ${now} THEN ${now + windowMs} ELSE ${rateLimits.resetAt} END`,
+        },
+      })
+      .returning({ count: rateLimits.count, resetAt: rateLimits.resetAt })
+    const row = rows[0]!
+    // Ленивая уборка: изредка чистим давно истёкшие ключи, чтобы таблица
+    // не росла бесконечно (аналог фонового sweep'а in-memory стора).
+    if (Math.random() < 0.02) {
+      const { lt } = await import("drizzle-orm")
+      void db
+        .delete(rateLimits)
+        .where(lt(rateLimits.resetAt, now - windowMs))
+        .catch(() => {})
+    }
+    const retryAfterSec = Math.max(1, Math.ceil((row.resetAt - now) / 1000))
+    return { ok: row.count <= max, retryAfterSec }
+  } catch {
+    return consumeRateLimit(bucket, key, max, windowMs)
+  }
+}
+
+/** Сброс стойкого лимита (после успешного логина). */
+export async function resetPersistentRateLimit(bucket: string, key: string): Promise<void> {
+  resetRateLimit(bucket, key)
+  try {
+    const [{ db }, { rateLimits }, { eq }] = await Promise.all([
+      import("@/lib/db"),
+      import("@/lib/db/schema"),
+      import("drizzle-orm"),
+    ])
+    await db.delete(rateLimits).where(eq(rateLimits.key, `${bucket}:${key}`))
+  } catch {
+    // БД недоступна — in-memory сброс уже сделан.
+  }
+}
+
+/**
  * Extracts the client IP from request headers.
  * Behind nginx the first X-Forwarded-For hop is set by the trusted proxy.
  */
