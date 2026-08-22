@@ -31,9 +31,16 @@ function main() {
   assert.ok(uploader.includes("props.onChange"), "onChange fills parent form field")
   assert.ok(!uploader.includes("askReuseDuplicate"), "dup must not block form fill")
 
-  const e2e = fs.readFileSync(path.join(root, "e2e/tours-crud.spec.ts"), "utf8")
-  assert.ok(e2e.includes('input[name="image"]'), "e2e asserts cover value")
-  assert.ok(e2e.includes("setInputFiles"), "e2e picks cover file")
+  // e2e-спеки кроме admin-smoke не отслеживаются в git (локальный набор) —
+  // без гарда readFileSync валил selfcheck в каждом свежем клоне.
+  const e2ePath = path.join(root, "e2e/tours-crud.spec.ts")
+  if (fs.existsSync(e2ePath)) {
+    const e2e = fs.readFileSync(e2ePath, "utf8")
+    assert.ok(e2e.includes('input[name="image"]'), "e2e asserts cover value")
+    assert.ok(e2e.includes("setInputFiles"), "e2e picks cover file")
+  } else {
+    console.log("tour-cover-upload.selfcheck: e2e/tours-crud.spec.ts отсутствует — e2e-проверки пропущены")
+  }
 
   console.log("tour-cover-upload.selfcheck: ok")
 }

@@ -5,7 +5,10 @@ import { readQueriesSource } from "./lib/read-queries-source"
 
 const additional = readFileSync("components/admin/tour-additional-block.tsx", "utf8")
 const tourForm = readFileSync("components/admin/tour-form.tsx", "utf8")
-const actions = readFileSync("app/admin/actions.ts", "utf8")
+// tourFromForm с валидацией валют переехал из actions.ts в tour-actions.ts —
+// selfcheck читал только старый файл и падал на живом коде.
+const actions =
+  readFileSync("app/admin/actions.ts", "utf8") + "\n" + readFileSync("app/admin/tour-actions.ts", "utf8")
 const queries = readQueriesSource()
 
 // T2a: TourAdditionalBlock принимает currencies проп

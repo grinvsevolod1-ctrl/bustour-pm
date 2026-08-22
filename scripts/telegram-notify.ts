@@ -97,17 +97,21 @@ async function sendTelegram(token: string, chatId: string, text: string, silent:
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
-  const env = loadEnvFile(ENV_PATH)
+  // В dry-run отправки нет — env-файл с токеном не обязателен. Раньше его
+  // отсутствие валило и dry-run, и selfcheck на любой машине, кроме сервера.
+  const env = args.dryRun && !existsSync(ENV_PATH) ? {} : loadEnvFile(ENV_PATH)
   const token = env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || ""
   const chatId = env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID || ""
 
-  if (!token) throw new Error("TELEGRAM_BOT_TOKEN empty")
-  if (!chatId) throw new Error("TELEGRAM_CHAT_ID empty")
-  if (!/^\d+:[A-Za-z0-9_-]+$/.test(token)) {
-    throw new Error("TELEGRAM_BOT_TOKEN format invalid (expect digits:token)")
-  }
-  if (!/^-?\d+$/.test(chatId)) {
-    throw new Error("TELEGRAM_CHAT_ID must be numeric")
+  if (!args.dryRun) {
+    if (!token) throw new Error("TELEGRAM_BOT_TOKEN empty")
+    if (!chatId) throw new Error("TELEGRAM_CHAT_ID empty")
+    if (!/^\d+:[A-Za-z0-9_-]+$/.test(token)) {
+      throw new Error("TELEGRAM_BOT_TOKEN format invalid (expect digits:token)")
+    }
+    if (!/^-?\d+$/.test(chatId)) {
+      throw new Error("TELEGRAM_CHAT_ID must be numeric")
+    }
   }
 
   if (args.check) {

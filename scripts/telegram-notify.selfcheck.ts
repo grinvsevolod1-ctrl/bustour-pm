@@ -13,17 +13,24 @@ const mcpServer = join(root, "tools", "telegram-notifications-mcp", "server.mjs"
 const mcpPkg = join(root, "tools", "telegram-notifications-mcp", "package.json")
 
 assert.ok(existsSync(script), "scripts/telegram-notify.ts missing")
-assert.ok(existsSync(mcpServer), "tools/telegram-notifications-mcp/server.mjs missing")
-assert.ok(existsSync(mcpPkg), "tools/telegram-notifications-mcp/package.json missing")
 
 const src = readFileSync(script, "utf8")
 assert.match(src, /--message/)
 assert.match(src, /Notification queued/)
 
-const mcp = readFileSync(mcpServer, "utf8")
-assert.match(mcp, /send_notification/)
-assert.match(mcp, /Notification queued/)
-assert.match(mcp, /telegram-notifier\.env/)
+// MCP-сервер (tools/telegram-notifications-mcp) живёт вне репозитория —
+// его никогда не было в git-истории, он устанавливается на сервере отдельно.
+// Жёсткий assert на его наличие валил selfcheck в любом свежем клоне,
+// поэтому контракт MCP проверяем только там, где каталог реально есть.
+if (existsSync(mcpServer)) {
+  assert.ok(existsSync(mcpPkg), "tools/telegram-notifications-mcp/package.json missing")
+  const mcp = readFileSync(mcpServer, "utf8")
+  assert.match(mcp, /send_notification/)
+  assert.match(mcp, /Notification queued/)
+  assert.match(mcp, /telegram-notifier\.env/)
+} else {
+  console.log("telegram-notify.selfcheck: tools/telegram-notifications-mcp отсутствует — MCP-проверки пропущены")
+}
 
 const dry = spawnSync(
   process.execPath,
