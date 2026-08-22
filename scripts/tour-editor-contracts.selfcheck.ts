@@ -16,7 +16,9 @@ assert.deepEqual(resolveBusTourDestinationIds("1", "10", countries, cities), { c
 assert.match(resolveBusTourDestinationIds("1", "", countries, cities).error ?? "", /город/i)
 assert.match(resolveBusTourDestinationIds("1", "999", countries, cities).error ?? "", /город/i)
 const types = readFileSync("lib/types.ts", "utf8")
-const actions = readFileSync("app/admin/actions.ts", "utf8")
+// tourFromForm (парсинг программы тура) переехал из actions.ts в
+// tour-actions.ts — selfcheck читал только старый файл и падал на живом коде.
+const actions = readFileSync("app/admin/actions.ts", "utf8") + "\n" + readFileSync("app/admin/tour-actions.ts", "utf8")
 const form = readFileSync("components/admin/tour-form.tsx", "utf8")
 assert.match(types, /program:\s*\{\s*day:\s*string;\s*text:\s*string;\s*dayStart\?:\s*number;\s*dayEnd\?:\s*number\s*\}\[\]/)
 assert.match(actions, /return \{ day, text, dayStart, dayEnd \}/)

@@ -69,7 +69,11 @@ assert.match(tourForm, /диапазон|range.*day|Добавить.*диапа
 // ============================================================
 // 3. FORM PARSING in actions.ts tourFromForm: uses new multi-field structure
 // ============================================================
-const actions = fs.readFileSync(path.join(root, "app/admin/actions.ts"), "utf8")
+// tourFromForm переехал в tour-actions.ts — читаем оба файла (см. tour-editor-contracts).
+const actions =
+  fs.readFileSync(path.join(root, "app/admin/actions.ts"), "utf8") +
+  "\n" +
+  fs.readFileSync(path.join(root, "app/admin/tour-actions.ts"), "utf8")
 assert.match(
   actions,
   /programDayFrom|dayFrom|programBlockCount|programCustomTitle|programText/,

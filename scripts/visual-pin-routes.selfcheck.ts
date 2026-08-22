@@ -3,10 +3,19 @@
  * Run: npx tsx scripts/visual-pin-routes.selfcheck.ts
  */
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 const root = process.cwd()
+
+// Visual pin suite (e2e/visual/) не отслеживается в git — это локальный
+// набор с baseline-скриншотами. В свежем клоне каталога нет, и жёсткий
+// readFileSync валил selfcheck; проверяем контракт только там, где suite есть.
+if (!existsSync(join(root, "e2e/visual/routes.ts"))) {
+  console.log("visual-pin-routes.selfcheck: e2e/visual отсутствует — проверки пропущены")
+  process.exit(0)
+}
+
 const routes = readFileSync(join(root, "e2e/visual/routes.ts"), "utf8")
 const helpers = readFileSync(join(root, "e2e/visual/helpers.ts"), "utf8")
 const config = readFileSync(join(root, "playwright.config.ts"), "utf8")
