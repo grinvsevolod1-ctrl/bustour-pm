@@ -58,3 +58,8 @@ public/uploads/
 # Git hooks
 .githooks/
 .git/
+
+# GitHub Actions: v0 GitHub App не имеет права `workflows` и не может пушить
+# файлы в .github/workflows/. Держим workflow в корне как ci-workflow.yml;
+# перенос в .github/workflows/ci.yml делает владелец руками (см. шапку файла).
+.github/
