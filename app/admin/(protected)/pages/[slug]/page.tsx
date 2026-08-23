@@ -48,17 +48,27 @@ export default async function AdminPageSlug({ params }: Props) {
     ])
     if (slug === "transfers") {
       const sections: PageSection[] = [
+        { key: `${slug}.section.intro`, label: "Вводный текст" },
+        { key: `${slug}.section.airports`, label: "Аэропорты Москвы" },
+        { key: `${slug}.section.individual`, label: "Индивидуальные трансферы" },
+        { key: `${slug}.section.outro`, label: "Нижний текстовый блок" },
+        { key: `${slug}.section.seo`, label: "Расширенный текст" },
         { key: `${slug}.section.faq`, label: "Частые вопросы" },
         { key: `${slug}.section.callus`, label: "Перезвоните нам" },
       ]
-      const defaultOrder = ["faq", "callus"]
+      const defaultOrder = ["intro", "airports", "individual", "outro", "faq", "callus"]
       const sectionKeys = sections.map((section) => section.key.split(".section.")[1]!)
-      const initialOrder = resolveInitialOrder(
+      const resolvedOrder = resolveInitialOrder(
         settings[`${slug}.sections.order`],
         defaultOrder,
         sectionKeys,
-        ["faq", "callus"],
       )
+      // Контентные секции добавлены позже faq/callus: у сохранённых ранее
+      // порядков их нет — поднимаем недостающие в начало (естественный макет).
+      const legacyMissing = ["intro", "airports", "individual", "outro"].filter(
+        (key) => !resolvedOrder.includes(key),
+      )
+      const initialOrder = [...legacyMissing, ...resolvedOrder]
       const sectionTitles = buildSectionTitles(slug, settings, [], initialOrder, pageFaqs)
       const faqSlots = buildFaqSlots(slug, initialOrder, pageFaqs)
       const faqFormIds = buildFaqFormIds(slug, initialOrder)
@@ -69,8 +79,95 @@ export default async function AdminPageSlug({ params }: Props) {
         pagePath: staticPage.url,
         fallbackTitle: staticPage.heading,
       })
-      const mainGroups = seoWorkspace?.groupsWithoutSeo ?? staticPage.groups
+      // Поля контентных блоков живут в карточках своих секций («Контент»),
+      // в «Основном» остаются SEO-мета и заголовок H1.
+      const sectionFieldKeys = new Set([
+        `${slug}.intro`,
+        `${slug}.airportsTitle`,
+        `${slug}.individualTitle`,
+        `${slug}.outro`,
+      ])
+      const mainGroups = (seoWorkspace?.groupsWithoutSeo ?? staticPage.groups).map((group) => ({
+        ...group,
+        fields: group.fields.filter((field) => !sectionFieldKeys.has(field.key)),
+      })).filter((group) => group.fields.length > 0)
       const fields = mainGroups.flatMap((group) => group.fields)
+      // Мультипликуемые блоки «Расширенный текст» (rich-редактор) — как на статьях.
+      const seoSlots: Record<string, React.ReactNode> = {}
+      const seoKeysInOrder = initialOrder.filter((key) => key === "seo" || /^seo\d+$/.test(key))
+      const maxSeoN = seoKeysInOrder.reduce((max, key) => {
+        const n = key === "seo" ? 1 : parseInt(key.replace("seo", ""), 10)
+        return Math.max(max, n)
+      }, 1)
+      for (let n = 1; n <= maxSeoN + 3; n++) {
+        const shortKey = n === 1 ? "seo" : `seo${n}`
+        const suffix = n === 1 ? "" : `${n}`
+        seoSlots[shortKey] = (
+          <SectionFieldsForm
+            fields={[
+              { key: `${slug}.seoTitle${suffix}`, label: "Заголовок", placeholder: "Заголовок текстового блока" },
+              {
+                key: `${slug}.seoHtml${suffix}`,
+                label: "Текст блока",
+                type: "richtext",
+                hint: "Форматирование, заголовки, списки, ссылки.",
+              },
+            ]}
+            settings={settings}
+            hideSubmit
+          />
+        )
+      }
+      const contentSlots: Record<string, React.ReactNode> = {
+        intro: (
+          <SectionFieldsForm
+            fields={[{
+              key: `${slug}.intro`,
+              label: "Вводный текст (абзацы разделяются переводом строки)",
+              type: "shortcode-textarea-multiline",
+              rows: 4,
+            }]}
+            settings={settings}
+            hideSubmit
+          />
+        ),
+        airports: (
+          <SectionFieldsForm
+            fields={[{
+              key: `${slug}.airportsTitle`,
+              label: "Заголовок блока аэропортов (H2)",
+              type: "shortcode-input",
+              hint: "Карточки трансферов в блоке добавляются в разделе «Трансферы».",
+            }]}
+            settings={settings}
+            hideSubmit
+          />
+        ),
+        individual: (
+          <SectionFieldsForm
+            fields={[{
+              key: `${slug}.individualTitle`,
+              label: "Заголовок блока индивидуальных трансферов (H2)",
+              type: "shortcode-input",
+              hint: "Карточки трансферов в блоке добавляются в разделе «Трансферы».",
+            }]}
+            settings={settings}
+            hideSubmit
+          />
+        ),
+        outro: (
+          <SectionFieldsForm
+            fields={[{
+              key: `${slug}.outro`,
+              label: "Нижний текстовый блок (абзацы разделяются переводом строки)",
+              type: "shortcode-textarea-multiline",
+              rows: 4,
+            }]}
+            settings={settings}
+            hideSubmit
+          />
+        ),
+      }
       const workspaceGroups: EditorWorkspaceGroup[] = [
         {
           id: "main",
