@@ -10,10 +10,10 @@ describe("INTERNAL_ORIGIN", () => {
 describe("publicOrigin", () => {
   it("собирает origin из форвард-заголовков nginx", () => {
     const headers = new Headers({
-      host: "testnetnext.top",
+      host: "bus-tour.by",
       "x-forwarded-proto": "https",
     })
-    expect(publicOrigin(headers, "fallback:3000")).toBe("https://testnetnext.top")
+    expect(publicOrigin(headers, "fallback:3000")).toBe("https://bus-tour.by")
   })
 
   it("без заголовков — fallback-хост и https", () => {

@@ -47,7 +47,7 @@ cd /var/www/bustour && ./deploy.sh
 Домен объявлен глобально в `.env`:
 
 ```bash
-NEXT_PUBLIC_SITE_URL=https://testnetnext.top   # сейчас
+NEXT_PUBLIC_SITE_URL=https://bus-tour.by   # сейчас
 # NEXT_PUBLIC_SITE_URL=https://bus-tour.by     # после переезда — просто поменять и ./deploy.sh --no-pull
 ```
 
@@ -59,7 +59,7 @@ NEXT_PUBLIC_SITE_URL=https://testnetnext.top   # сейчас
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d testnetnext.top -d www.testnetnext.top
+sudo certbot --nginx -d bus-tour.by -d www.bus-tour.by
 # после переезда:
 sudo certbot --nginx -d bus-tour.by -d www.bus-tour.by
 ```
@@ -78,7 +78,7 @@ sudo certbot --nginx -d bus-tour.by -d www.bus-tour.by
   в админке — максимум 5 секунд;
 - заголовок `X-Cache-Status` (HIT/MISS/BYPASS) для диагностики.
 
-Проверка: `curl -sI https://testnetnext.top/ | grep -i x-cache-status`
+Проверка: `curl -sI https://bus-tour.by/ | grep -i x-cache-status`
 
 ## Полезные команды
 

@@ -78,7 +78,7 @@ const nextConfig = {
       { protocol: "https", hostname: "**.bastur.by" },
       { protocol: "https", hostname: "bus-tour.by" },           // будущий боевой домен
       { protocol: "https", hostname: "**.bus-tour.by" },
-      { protocol: "https", hostname: "testnetnext.top" },       // текущий прод-домен
+      { protocol: "https", hostname: "bus-tour.by" },       // текущий прод-домен
     ],
   },
   async redirects() {
