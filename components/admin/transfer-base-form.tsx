@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useContext, useState } from "react"
+import { useActionState, useContext, useEffect, useRef, useState } from "react"
 import { Check } from "lucide-react"
 import { saveTransferAction } from "@/app/admin/transfer-actions"
 import type { Transfer } from "@/lib/types"
@@ -29,8 +29,51 @@ export function TransferBaseForm({
   const titleId = transfer ? "transfer-title" : "new-transfer-title"
   useActionToast(state, { successMessage: transfer ? "Трансфер сохранён" : "Трансфер создан" })
 
+  // Внутри PageSettingsForm собственная кнопка формы скрыта — без регистрации
+  // draft-контрибьютора sticky-Save молча терял цены/описание/поля трансфера.
+  const formRef = useRef<HTMLFormElement>(null)
+  const baselineRef = useRef<string | null>(null)
+  const serializeForm = () => {
+    const form = formRef.current
+    if (!form) return ""
+    const parts: string[] = []
+    for (const [key, value] of new FormData(form).entries()) {
+      if (typeof value === "string") parts.push(`${key}=${value}`)
+    }
+    return parts.join("&")
+  }
+  const serializeRef = useRef(serializeForm)
+  serializeRef.current = serializeForm
+  useEffect(() => {
+    if (baselineRef.current === null) baselineRef.current = serializeRef.current()
+  }, [])
+  useEffect(() => {
+    if (!pageSettingsFormContext) return
+    return pageSettingsFormContext.registerDraft({
+      id: transfer ? `transfer-base:${transfer.id}` : "transfer-base:new",
+      label: "Основные данные трансфера",
+      isDirty: () =>
+        baselineRef.current !== null && serializeRef.current() !== baselineRef.current,
+      async save() {
+        const form = formRef.current
+        if (!form) return { ok: true }
+        const result = await saveTransferAction(null, new FormData(form))
+        if (result && "error" in result && result.error) {
+          return { ok: false, error: String(result.error) }
+        }
+        return { ok: true }
+      },
+      commitBaseline() {
+        baselineRef.current = serializeRef.current()
+      },
+      reset() {
+        formRef.current?.reset()
+      },
+    })
+  }, [transfer, pageSettingsFormContext])
+
   return (
-    <form id="transfer-base-form" action={action} className="space-y-4">
+    <form id="transfer-base-form" ref={formRef} action={action} className="space-y-4">
       {transfer ? <input type="hidden" name="id" value={transfer.id} /> : null}
       {state && "error" in state ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-admin-danger" role="alert">

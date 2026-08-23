@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useContext } from "react"
+import { useActionState, useContext, useEffect, useRef } from "react"
 import { Check } from "lucide-react"
 import { saveArticleAction } from "@/app/admin/actions"
 import {
@@ -29,8 +29,51 @@ export function ArticleForm({ article }: { article?: Article }) {
   const titleId = article ? "article-title" : "new-article-title"
   useActionToast(state, { successMessage: article ? "Статья сохранена" : "Статья создана" })
 
+  // Внутри PageSettingsForm собственная кнопка формы скрыта — без регистрации
+  // draft-контрибьютора sticky-Save молча терял категорию/картинку/поля статьи.
+  const formRef = useRef<HTMLFormElement>(null)
+  const baselineRef = useRef<string | null>(null)
+  const serializeForm = () => {
+    const form = formRef.current
+    if (!form) return ""
+    const parts: string[] = []
+    for (const [key, value] of new FormData(form).entries()) {
+      if (typeof value === "string") parts.push(`${key}=${value}`)
+    }
+    return parts.join("&")
+  }
+  const serializeRef = useRef(serializeForm)
+  serializeRef.current = serializeForm
+  useEffect(() => {
+    if (baselineRef.current === null) baselineRef.current = serializeRef.current()
+  }, [])
+  useEffect(() => {
+    if (!pageSettingsFormContext) return
+    return pageSettingsFormContext.registerDraft({
+      id: article ? `article-base:${article.id}` : "article-base:new",
+      label: "Основные данные статьи",
+      isDirty: () =>
+        baselineRef.current !== null && serializeRef.current() !== baselineRef.current,
+      async save() {
+        const form = formRef.current
+        if (!form) return { ok: true }
+        const result = await saveArticleAction(null, new FormData(form))
+        if (result && "error" in result && result.error) {
+          return { ok: false, error: String(result.error) }
+        }
+        return { ok: true }
+      },
+      commitBaseline() {
+        baselineRef.current = serializeRef.current()
+      },
+      reset() {
+        formRef.current?.reset()
+      },
+    })
+  }, [article, pageSettingsFormContext])
+
   return (
-    <form id="article-base-form" action={action} className="space-y-4">
+    <form id="article-base-form" ref={formRef} action={action} className="space-y-4">
       {article ? <input type="hidden" name="id" value={article.id} /> : null}
       {state?.error ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-admin-danger" role="alert">
