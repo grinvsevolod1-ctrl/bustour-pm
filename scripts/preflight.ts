@@ -215,8 +215,9 @@ function stageTsc(): void {
   }
   // Paths with spaces need quoting on Windows shell.
   const tscCmd = IS_WIN ? `"${tscBin}"` : tscBin
+  // shell нужен только на Windows (.cmd); на Linux shell:true с массивом args даёт DEP0190
   const res = spawnSync(tscCmd, ["--noEmit", "-p", "tsconfig.json"], {
-    cwd: ROOT, encoding: "utf8", shell: true,
+    cwd: ROOT, encoding: "utf8", shell: IS_WIN,
     stdio: ["ignore", "pipe", "pipe"],
     windowsVerbatimArguments: IS_WIN,
   })
@@ -330,8 +331,9 @@ export function stageNextBuild(argv: string[]): void {
   if (existsSync(typesDir)) {
     try { rmSync(typesDir, { recursive: true, force: true }) } catch { /* ignore */ }
   }
+  // shell нужен только на Windows (.cmd); на Linux shell:true с массивом args даёт DEP0190
   const res = spawnSync(IS_WIN ? `"${nextBin}"` : nextBin, ["build", ...argv], {
-    cwd: ROOT, encoding: "utf8", shell: true,
+    cwd: ROOT, encoding: "utf8", shell: IS_WIN,
     stdio: ["ignore", "pipe", "pipe"],
     windowsVerbatimArguments: IS_WIN,
   })

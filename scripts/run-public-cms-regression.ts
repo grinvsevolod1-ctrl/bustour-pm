@@ -27,10 +27,11 @@ let failed = 0
 
 for (const script of CHECKS) {
   const started = Date.now()
-  const r = spawnSync("npx", ["tsx", script], {
+  // shell нужен только на Windows (npx.cmd); на Linux shell:true с массивом args даёт DEP0190
+  const r = spawnSync(process.platform === "win32" ? "npx.cmd" : "npx", ["tsx", script], {
     cwd: root,
     encoding: "utf8",
-    shell: true,
+    shell: process.platform === "win32",
   })
   const ms = Date.now() - started
   const output = `${r.stdout ?? ""}${r.stderr ?? ""}`.trim()
