@@ -218,6 +218,8 @@ export default async function AdminPageSlug({ params }: Props) {
             toggleKeys={toggleKeys}
             hideSidebar
             sectionSlots={{
+              ...seoSlots,
+              ...contentSlots,
               ...faqSlots,
               callus: (
                 <p className="text-sm text-admin-fg-muted">

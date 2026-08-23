@@ -1,13 +1,16 @@
 import type { Metadata } from "next"
+import type { ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { PageExtras } from "@/components/site/page-extras"
-import { getPublicSettings } from "@/lib/cms"
+import { getPublicSettings, isOn } from "@/lib/cms"
 import { getTransfers } from "@/lib/queries"
 import { metadataFromSettings } from "@/lib/seo-metadata"
 import { ParsedText } from "@/components/site/parsed-text"
+import { RichContent } from "@/components/site/rich-content"
+import { isCallusSectionKey } from "@/lib/multipliable-sections"
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings()
@@ -59,11 +62,158 @@ function DestCard({
   )
 }
 
+function TextBlock({ text }: { text: string }) {
+  return (
+    <section className="space-y-4 text-base leading-relaxed text-ink">
+      {text.split("\n").map((line: string, i: number) => (
+        <p key={i}>
+          <ParsedText text={line} />
+        </p>
+      ))}
+    </section>
+  )
+}
+
 export default async function TransfersPage() {
   const [settings, transfers] = await Promise.all([getPublicSettings(), getTransfers()])
   const visibleTransfers = transfers.filter((transfer) => settings[`transfer:${transfer.slug}.visible`] !== "0")
   const airportTransfers = visibleTransfers.filter((transfer) => transfer.category === "airport")
   const individualTransfers = visibleTransfers.filter((transfer) => transfer.category === "individual")
+
+  const pageKey = "transfers"
+  // Порядок секций из админки; сохранённые до появления контентных секций
+  // порядки дополняем недостающими блоками в естественном месте (в начале).
+  const sectionOrder = (() => {
+    const fallback = ["intro", "airports", "individual", "outro", "faq", "callus"]
+    try {
+      const raw = settings[`${pageKey}.sections.order`]
+      if (raw) {
+        const parsed = JSON.parse(raw) as string[]
+        const missing = ["intro", "airports", "individual", "outro"].filter((k) => !parsed.includes(k))
+        return [...missing, ...parsed]
+      }
+    } catch {}
+    return fallback
+  })()
+
+  const sectionVisible = (key: string) => isOn(settings, `${pageKey}.section.${key}`)
+
+  // Единый поток секций: текстовые блоки и faq/callus чередуются в порядке из админки.
+  type FlowItem =
+    | { type: "block"; key: string; node: ReactNode }
+    | { type: "extras"; keys: string[]; hasFaq: boolean }
+  const flow: FlowItem[] = []
+  let faqTaken = false
+  const pushExtras = (key: string, isFaq: boolean) => {
+    const last = flow[flow.length - 1]
+    if (last?.type === "extras") {
+      last.keys.push(key)
+      if (isFaq) last.hasFaq = true
+    } else {
+      flow.push({ type: "extras", keys: [key], hasFaq: isFaq })
+    }
+  }
+  for (const key of sectionOrder) {
+    if (!sectionVisible(key)) continue
+    if (key === "intro") {
+      flow.push({
+        type: "block",
+        key,
+        node: (
+          <TextBlock
+            text={
+              settings["transfers.intro"] ||
+              "Если вы хотя бы раз в жизни летали на самолете из другого города, а то и страны, то вы, наверняка, столкнулись с проблемой трансфера в аэропорт и обратно."
+            }
+          />
+        ),
+      })
+    } else if (key === "airports" && airportTransfers.length) {
+      flow.push({
+        type: "block",
+        key,
+        node: (
+          <section className="space-y-5">
+            <TitleUnderline as="h2">
+              <ParsedText
+                text={settings["transfers.airportsTitle"] || "Трансфер в аэропорты Москвы из Минска"}
+              />
+            </TitleUnderline>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {airportTransfers.map((transfer) => (
+                <DestCard
+                  key={transfer.id}
+                  title={transfer.title}
+                  image={transfer.image || "/images/transfers/sheremetyevo.png"}
+                  href={`/helpful/transfers/${transfer.slug}`}
+                />
+              ))}
+            </div>
+          </section>
+        ),
+      })
+    } else if (key === "individual" && individualTransfers.length) {
+      flow.push({
+        type: "block",
+        key,
+        node: (
+          <section className="space-y-5">
+            <TitleUnderline as="h2">
+              <ParsedText
+                text={
+                  settings["transfers.individualTitle"] ||
+                  "Индивидуальный трансфер в аэропорты Беларуси, России, Украины"
+                }
+              />
+            </TitleUnderline>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {individualTransfers.map((transfer) => (
+                <DestCard
+                  key={transfer.id}
+                  title={transfer.title}
+                  image={transfer.image || "/images/transfers/individual.png"}
+                  href={`/helpful/transfers/${transfer.slug}`}
+                />
+              ))}
+            </div>
+          </section>
+        ),
+      })
+    } else if (key === "outro") {
+      flow.push({
+        type: "block",
+        key,
+        node: (
+          <TextBlock
+            text={
+              settings["transfers.outro"] ||
+              "Мы предлагаем удобный и надежный трансфер в аэропорт.\nОт назначенного места вас забирает комфортабельный автобус."
+            }
+          />
+        ),
+      })
+    } else if (/^seo\d*$/.test(key)) {
+      const suffix = key === "seo" ? "" : key.replace("seo", "")
+      const html = settings[`${pageKey}.seoHtml${suffix}`] ?? ""
+      if (!html) continue
+      const title = settings[`${pageKey}.seoTitle${suffix}`] ?? ""
+      flow.push({
+        type: "block",
+        key,
+        node: (
+          <section className="space-y-4 text-base leading-relaxed text-ink">
+            {title ? <TitleUnderline as="h2">{title}</TitleUnderline> : null}
+            <RichContent html={html} />
+          </section>
+        ),
+      })
+    } else if ((key === "faq" || /^faq\d+$/.test(key)) && !faqTaken) {
+      faqTaken = true
+      pushExtras(key, true)
+    } else if (isCallusSectionKey(key)) {
+      pushExtras(key, false)
+    }
+  }
 
   return (
     <>
@@ -78,68 +228,27 @@ export default async function TransfersPage() {
         />
 
         <div className="space-y-10">
-        {/* Intro section */}
-        <section className="space-y-6">
           <TitleUnderline as="h1">
             <ParsedText text={settings["transfers.title"] || "Трансферы в аэропорт"} />
           </TitleUnderline>
 
-          <div className="space-y-4 text-base leading-relaxed text-ink">
-            {(settings["transfers.intro"] || "Если вы хотя бы раз в жизни летали на самолете из другого города, а то и страны, то вы, наверняка, столкнулись с проблемой трансфера в аэропорт и обратно.")
-              .split("\n")
-              .map((line: string, i: number) => (
-                <p key={i}>
-                  <ParsedText text={line} />
-                </p>
-              ))}
-          </div>
-
-        </section>
-
-        {/* Moscow airports grid */}
-        {airportTransfers.length ? <section className="space-y-5">
-          <TitleUnderline as="h2">
-            <ParsedText
-              text={settings["transfers.airportsTitle"] || "Трансфер в аэропорты Москвы из Минска"}
-            />
-          </TitleUnderline>
-          {airportTransfers.length ? <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {airportTransfers.map((transfer) => (
-              <DestCard key={transfer.id} title={transfer.title} image={transfer.image || "/images/transfers/sheremetyevo.png"} href={`/helpful/transfers/${transfer.slug}`} />
-            ))}
-          </div> : null}
-        </section> : null}
-        {/* Individual transfers */}
-        {individualTransfers.length ? <section className="space-y-5">
-          <TitleUnderline as="h2">
-            <ParsedText
-              text={
-                settings["transfers.individualTitle"] ||
-                "Индивидуальный трансфер в аэропорты Беларуси, России, Украины"
-              }
-            />
-          </TitleUnderline>
-          {individualTransfers.length ? <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {individualTransfers.map((transfer) => (
-              <DestCard key={transfer.id} title={transfer.title} image={transfer.image || "/images/transfers/individual.png"} href={`/helpful/transfers/${transfer.slug}`} />
-            ))}
-          </div> : null}
-        </section> : null}
-
-        {/* Bottom text block */}
-        <section className="space-y-4 text-base leading-relaxed text-ink">
-          {(settings["transfers.outro"] || "Мы предлагаем удобный и надежный трансфер в аэропорт.\nОт назначенного места вас забирает комфортабельный автобус.")
-            .split("\n")
-            .map((line: string, i: number) => (
-              <p key={i}>
-                <ParsedText text={line} />
-              </p>
-            ))}
-        </section>
+          {flow.map((item) =>
+            item.type === "block" ? (
+              <div key={item.key}>{item.node}</div>
+            ) : (
+              <PageExtras
+                key={`extras-${item.keys.join("-")}`}
+                pageKey={pageKey}
+                faqScope={pageKey}
+                sectionPrefix={pageKey}
+                callusSlots={item.keys.filter(isCallusSectionKey)}
+                showFaq={item.hasFaq}
+                bare
+              />
+            ),
+          )}
         </div>
       </main>
-
-      <PageExtras pageKey="transfers" faqScope="transfers" sectionPrefix="transfers" />
     </>
   )
 }
