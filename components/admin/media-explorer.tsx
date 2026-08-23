@@ -1,8 +1,6 @@
 "use client"
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
-import { ChevronRight, Folder, FolderPlus, Images, LoaderCircle, Pencil, Search, Trash2 } from "lucide-react"
-import { isImeComposing } from "@/lib/ime"
 import {
   createMediaFolder,
   deleteMediaFolder,
@@ -23,79 +21,20 @@ import {
 } from "@/lib/media/folders"
 import type { MediaItem, MediaType, UploadedFile } from "@/components/admin/media-uploader"
 import { MediaUploader, startUploadFileApi } from "@/components/admin/media-uploader"
-import { MediaThumbnail } from "@/components/admin/media-thumbnail"
-import { MediaAltField } from "@/components/admin/media-alt-field"
 import { ConfirmDialog } from "@/components/admin/confirm-dialog"
-import {
-  EmptyState,
-  IconButton,
-  Input,
-  Select,
-} from "@/components/admin/ui"
-import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { isMediaReady, toUploadedFile } from "@/lib/media/types"
+import { FoldersSidebar } from "@/components/admin/media-explorer/folders-sidebar"
+import { MediaBreadcrumbs, MediaToolbar } from "@/components/admin/media-explorer/toolbar"
+import { MediaGrid } from "@/components/admin/media-explorer/media-grid"
+import { readyMediaItem, type FilterType } from "@/components/admin/media-explorer/status"
 
-type FilterType = "all" | MediaType
-
-const filterOptions: { value: FilterType; label: string }[] = [
-  { value: "all", label: "Все" },
-  { value: "image", label: "Изображения" },
-  { value: "video", label: "Видео" },
-  { value: "document", label: "Документы" },
-]
-
-const sortOptions: { value: MediaSort; label: string }[] = [
-  { value: "createdAt:desc", label: "Сначала новые" },
-  { value: "createdAt:asc", label: "Сначала старые" },
-]
-
-function readyMediaItem(file: UploadedFile): MediaItem {
-  return {
-    ...file,
-    status: "ready",
-    processingStage: "ready",
-    errorMessage: null,
-    mimeType: "",
-  }
-}
-
-function mediaStatusLabel(file: MediaItem): string {
-  if (file.status === "ready") return "Готов"
-  if (file.status === "failed") return "Ошибка обработки"
-
-  switch (file.processingStage) {
-    case "queued":
-      return "В очереди"
-    case "processing":
-      return "Обрабатывается"
-    case "converting":
-      return "Конвертация"
-    case "finalizing":
-      return "Завершение"
-    default:
-      return "В обработке"
-  }
-}
-
-function mediaStatusHint(file: MediaItem): string {
-  if (file.status === "failed") {
-    return file.errorMessage || "Обработка завершилась ошибкой."
-  }
-
-  switch (file.processingStage) {
-    case "queued":
-      return "Файл уже загружен и ждёт своей очереди на сервере."
-    case "processing":
-      return "Сервер принял файл и сейчас подготавливает его к обработке."
-    case "converting":
-      return "Сервер конвертирует и оптимизирует файл. Это может занять несколько минут."
-    case "finalizing":
-      return "Сервер завершает обработку и сохраняет итоговый вариант."
-    default:
-      return "Сервер ещё обрабатывает файл. После статуса «Готов» его можно будет выбрать и отредактировать."
-  }
-}
+/**
+ * Медиатека админки — контейнер состояния и работы с API.
+ * После разбиения разметка живёт в media-explorer/: сайдбар папок
+ * (folders-sidebar), тулбар и крошки (toolbar), сетка карточек (media-grid),
+ * статусы и опции (status). Здесь — загрузка, поллинг обработки, CRUD папок
+ * и файлов, копирование URL.
+ */
 
 export function MediaExplorer({
   onPick,
@@ -391,89 +330,20 @@ export function MediaExplorer({
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
-      <aside className="w-full shrink-0 space-y-3 lg:w-56">
-        <p className="text-xs font-semibold uppercase tracking-wide text-admin-fg-subtle">Папки</p>
-        <nav className="space-y-1" aria-label="Папки медиатеки">
-          <FolderNavButton
-            active={folderScope === "all"}
-            onClick={() => setFolderScope("all")}
-            label="Все файлы"
-          />
-          <FolderNavButton
-            active={folderScope === "root"}
-            onClick={() => setFolderScope("root")}
-            label="Без папки"
-          />
-          {foldersLoading ? (
-            <p className="flex items-center gap-2 px-2 py-1.5 text-sm text-admin-fg-muted">
-              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-              Загрузка…
-            </p>
-          ) : (
-            flatFolders.map((folder) => (
-              <div key={folder.id} className="group flex items-center gap-1">
-                <FolderNavButton
-                  active={folderScope === folder.id}
-                  onClick={() => setFolderScope(folder.id)}
-                  label={folder.name}
-                  depth={folder.depth}
-                  className="min-w-0 flex-1"
-                />
-                <IconButton
-                  type="button"
-                  className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                  aria-label={`Переименовать папку ${folder.name}`}
-                  onClick={() => void handleRenameFolder(folder)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </IconButton>
-                <IconButton
-                  type="button"
-                  tone="danger"
-                  className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                  aria-label={`Удалить папку ${folder.name}`}
-                  onClick={() => setPendingFolderDelete(folder)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </IconButton>
-              </div>
-            ))
-          )}
-        </nav>
-        <div className="space-y-1.5">
-          <p className="text-xs text-admin-fg-subtle">
-            {currentFolderId
-              ? `Новая папка внутри: «${folders.find((f) => f.id === currentFolderId)?.name ?? "…"}»`
-              : "Новая папка в корне"}
-          </p>
-          <div className="flex gap-2">
-            <Input
-              value={newFolderName}
-              onChange={(event) => setNewFolderName(event.target.value)}
-              placeholder="Новая папка"
-              aria-label="Название новой папки"
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !isImeComposing(event)) {
-                  event.preventDefault()
-                  void handleCreateFolder()
-                }
-              }}
-            />
-            <IconButton
-              type="button"
-              onClick={() => void handleCreateFolder()}
-              disabled={creatingFolder || !newFolderName.trim()}
-              aria-label="Создать папку"
-            >
-              {creatingFolder ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
-              ) : (
-                <FolderPlus className="h-4 w-4" />
-              )}
-            </IconButton>
-          </div>
-        </div>
-      </aside>
+      <FoldersSidebar
+        folderScope={folderScope}
+        onScopeChange={setFolderScope}
+        foldersLoading={foldersLoading}
+        flatFolders={flatFolders}
+        folders={folders}
+        currentFolderId={currentFolderId}
+        newFolderName={newFolderName}
+        onNewFolderNameChange={setNewFolderName}
+        creatingFolder={creatingFolder}
+        onCreateFolder={() => void handleCreateFolder()}
+        onRenameFolder={(folder) => void handleRenameFolder(folder)}
+        onRequestDeleteFolder={setPendingFolderDelete}
+      />
 
       <div className="min-w-0 flex-1 space-y-6">
         <MediaUploader
@@ -496,88 +366,21 @@ export function MediaExplorer({
           </p>
         ) : null}
 
-        {folderScope !== "all" ? (
-          <nav
-            className="flex flex-wrap items-center gap-1 text-sm text-admin-fg-muted"
-            aria-label="Хлебные крошки папок"
-          >
-            <button
-              type="button"
-              onClick={() => setFolderScope("all")}
-              className="rounded px-1.5 py-0.5 hover:bg-admin-muted/60 hover:text-admin-fg"
-            >
-              Все файлы
-            </button>
-            {folderScope === "root" ? (
-              <>
-                <ChevronRight className="h-3.5 w-3.5 text-admin-fg-subtle" />
-                <span className="px-1.5 py-0.5 font-medium text-admin-fg">Без папки</span>
-              </>
-            ) : (
-              breadcrumbs.map((crumb, index) => (
-                <span key={crumb.id} className="flex items-center gap-1">
-                  <ChevronRight className="h-3.5 w-3.5 text-admin-fg-subtle" />
-                  {index === breadcrumbs.length - 1 ? (
-                    <span className="px-1.5 py-0.5 font-medium text-admin-fg">{crumb.name}</span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setFolderScope(crumb.id)}
-                      className="rounded px-1.5 py-0.5 hover:bg-admin-muted/60 hover:text-admin-fg"
-                    >
-                      {crumb.name}
-                    </button>
-                  )}
-                </span>
-              ))
-            )}
-          </nav>
-        ) : null}
+        <MediaBreadcrumbs
+          folderScope={folderScope}
+          breadcrumbs={breadcrumbs}
+          onScopeChange={setFolderScope}
+        />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-admin-fg-subtle" />
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Поиск по имени файла"
-              className="pl-9"
-              aria-label="Поиск по имени файла"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {lockType ? (
-              <p className="self-center text-sm text-admin-fg-muted">
-                Фильтр: {filterOptions.find((option) => option.value === lockType)?.label}
-              </p>
-            ) : (
-              <Select
-                value={filter}
-                onChange={(event) => setFilter(event.target.value as FilterType)}
-                className="sm:w-44"
-                aria-label="Фильтр по типу"
-              >
-                {filterOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            )}
-            <Select
-              value={sort}
-              onChange={(event) => setSort(event.target.value as MediaSort)}
-              className="sm:w-44"
-              aria-label="Сортировка"
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
+        <MediaToolbar
+          query={query}
+          onQueryChange={setQuery}
+          lockType={lockType}
+          filter={filter}
+          onFilterChange={setFilter}
+          sort={sort}
+          onSortChange={setSort}
+        />
 
         {loadError ? (
           <p className="text-sm text-admin-danger" role="alert">
@@ -595,114 +398,21 @@ export function MediaExplorer({
           </p>
         ) : null}
 
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-12 text-sm text-admin-fg-muted">
-            <LoaderCircle className="h-4 w-4 animate-spin" />
-            Загружаем медиатеку…
-          </div>
-        ) : filteredItems.length === 0 ? (
-          <EmptyState
-            title="Медиафайлы не найдены"
-            description={items.length ? "Измените поиск или фильтр." : "Загрузите первый файл, чтобы он появился здесь."}
-          >
-            <Images className="mx-auto mt-3 h-8 w-8 text-admin-fg-subtle" />
-          </EmptyState>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredItems.map((file) => (
-              <div
-                key={file.id}
-                role="button"
-                tabIndex={0}
-                className={cn(
-                  "relative overflow-hidden rounded-lg border border-admin-border bg-white text-left transition-colors",
-                  onPick && !isMediaReady(file)
-                    ? "cursor-not-allowed opacity-80"
-                    : "cursor-pointer hover:border-admin-fg-muted hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin-ring",
-                )}
-                onClick={() => {
-                  if (onPick) {
-                    if (!isMediaReady(file)) {
-                      toast.message(
-                        file.status === "failed"
-                          ? "Этот файл не готов: обработка завершилась ошибкой."
-                          : "Файл ещё обрабатывается и пока недоступен для выбора.",
-                      )
-                      return
-                    }
-                    onPick(toUploadedFile(file))
-                    return
-                  }
-                  void copyUrl(file)
-                }}
-                onKeyDown={(event) => {
-                  if (event.target !== event.currentTarget) return
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    if (onPick) {
-                      if (!isMediaReady(file)) {
-                        toast.message(
-                          file.status === "failed"
-                            ? "Этот файл не готов: обработка завершилась ошибкой."
-                            : "Файл ещё обрабатывается и пока недоступен для выбора.",
-                        )
-                        return
-                      }
-                      onPick(toUploadedFile(file))
-                    } else void copyUrl(file)
-                  }
-                }}
-                title={onPick ? "Выбрать файл" : "Нажмите, чтобы скопировать URL"}
-              >
-                <div className="absolute left-2 top-2 z-10 rounded bg-white/90 px-2 py-1 text-[11px] font-medium text-admin-fg">
-                  {mediaStatusLabel(file)}
-                </div>
-                <IconButton
-                  type="button"
-                  tone="danger"
-                  className="absolute right-2 top-2 z-10 bg-white/90"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    setPendingDelete(file)
-                  }}
-                  aria-label={`Удалить ${file.name}`}
-                  disabled={deletingId === file.id || Boolean(pendingDelete) || file.status === "processing"}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </IconButton>
-                <MediaThumbnail file={file} />
-                <div className="space-y-2 border-t border-admin-border px-3 py-2" onClick={(e) => e.stopPropagation()}>
-                  <Select
-                    value={file.folderId ?? "root"}
-                    disabled={movingId === file.id}
-                    aria-label={`Папка для ${file.name}`}
-                    onChange={(event) => {
-                      const value = event.target.value
-                      void handleMove(file, value === "root" ? null : value)
-                    }}
-                  >
-                    <option value="root">Без папки</option>
-                    {flatFolders.map((folder) => (
-                      <option key={folder.id} value={folder.id}>
-                        {`${"\u00A0\u00A0".repeat(folder.depth)}${folder.name}`}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                {isMediaReady(file) ? <MediaAltField file={file} onSaved={(next) => patchItem(next)} /> : (
-                  <div className="border-t border-admin-border px-3 py-2 text-xs text-admin-fg-subtle">
-                    {mediaStatusHint(file)}
-                  </div>
-                )}
-                {copiedId === file.id ? (
-                  <div className="absolute inset-x-0 bottom-0 bg-admin-fg/85 px-3 py-2 text-center text-xs font-medium text-white">
-                    Скопировано
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        )}
+        <MediaGrid
+          loading={loading}
+          items={items}
+          filteredItems={filteredItems}
+          flatFolders={flatFolders}
+          onPick={onPick}
+          copiedId={copiedId}
+          deletingId={deletingId}
+          pendingDelete={pendingDelete}
+          movingId={movingId}
+          onCopyUrl={(file) => void copyUrl(file)}
+          onMove={(file, nextFolderId) => void handleMove(file, nextFolderId)}
+          onRequestDelete={setPendingDelete}
+          onItemPatched={patchItem}
+        />
       </div>
 
       <ConfirmDialog
@@ -744,37 +454,5 @@ export function MediaExplorer({
         }}
       />
     </div>
-  )
-}
-
-function FolderNavButton({
-  active,
-  onClick,
-  label,
-  depth = 0,
-  className,
-}: {
-  active: boolean
-  onClick: () => void
-  label: string
-  depth?: number
-  className?: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={depth ? { paddingLeft: `${0.5 + depth * 0.85}rem` } : undefined}
-      className={cn(
-        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-        active
-          ? "bg-admin-muted font-medium text-admin-fg"
-          : "text-admin-fg-muted hover:bg-admin-muted/60 hover:text-admin-fg",
-        className,
-      )}
-    >
-      <Folder className="h-4 w-4 shrink-0" />
-      <span className="truncate">{label}</span>
-    </button>
   )
 }

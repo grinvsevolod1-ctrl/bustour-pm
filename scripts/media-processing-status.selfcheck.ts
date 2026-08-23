@@ -9,10 +9,15 @@ assert.match(explorer, /onUploadAccepted=\{handleUploadAccepted\}/, "explorer up
 assert.match(explorer, /search:\s*deferredQuery \|\| undefined/, "explorer sends deferred search to API")
 assert.match(explorer, /loadItems\(\{ silent: true \}\)/, "explorer polls silently while processing exists")
 assert.match(explorer, /item\.status === "processing"/, "explorer tracks processing items")
-assert.match(explorer, /disabled=\{deletingId === file\.id \|\| Boolean\(pendingDelete\) \|\| file\.status === "processing"\}/, "processing delete stays blocked")
-assert.match(explorer, /"В очереди"/, "queued label shown")
-assert.match(explorer, /"Конвертация"/, "converting label shown")
-assert.match(explorer, /"Ошибка обработки"/, "failed label shown")
+
+// Карточки и статусы вынесены из media-explorer.tsx в media-explorer/ (рефакторинг).
+const grid = readFileSync(join(root, "components/admin/media-explorer/media-grid.tsx"), "utf8")
+assert.match(grid, /disabled=\{deletingId === file\.id \|\| Boolean\(pendingDelete\) \|\| file\.status === "processing"\}/, "processing delete stays blocked")
+
+const status = readFileSync(join(root, "components/admin/media-explorer/status.ts"), "utf8")
+assert.match(status, /"В очереди"/, "queued label shown")
+assert.match(status, /"Конвертация"/, "converting label shown")
+assert.match(status, /"Ошибка обработки"/, "failed label shown")
 
 const uploader = readFileSync(join(root, "components/admin/media-uploader.tsx"), "utf8")
 assert.match(uploader, /onUploadAccepted\?\.\(existing\)/, "uploader reports deduped pending item immediately")

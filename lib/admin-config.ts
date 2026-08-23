@@ -1,365 +1,19 @@
-import type { BlockCollection } from "@/lib/types"
 import { ALERT_KIND_OPTIONS } from "@/lib/alert-kind"
-
-export type BlockField =
-  | "title"
-  | "subtitle"
-  | "body"
-  | "image"
-  | "icon"
-  | "href"
-  | "buttonText"
-  | "defaultOpen"
-  | "features"
-
-export type CollectionMeta = {
-  key: BlockCollection
-  label: string // plural, e.g. "Слайды героя"
-  singular: string // e.g. "слайд"
-  description: string
-  fields: BlockField[]
-  labels: Partial<Record<BlockField, string>>
-  reorderable: boolean
-  /** Admin list page; defaults to /admin/content/{key} */
-  listPath?: string
-}
-
-export const collections: CollectionMeta[] = [
-  {
-    key: "hero",
-    label: "Слайды героя",
-    singular: "слайд",
-    description: "Баннеры-слайды в верхней части главной страницы.",
-    fields: ["title", "subtitle", "image", "href", "buttonText"],
-    labels: {
-      title: "Заголовок",
-      subtitle: "Подзаголовок",
-      image: "Фоновое изображение",
-      href: "Ссылка кнопки",
-      buttonText: "Текст кнопки",
-    },
-    reorderable: true,
-    listPath: "/admin/pages/home",
-  },
-  {
-    key: "advantage",
-    label: "Преимущества",
-    singular: "преимущество",
-    description: "Блок «Почему выбирают нас» на главной.",
-    fields: ["title", "body", "icon"],
-    labels: { title: "Заголовок", body: "Описание", icon: "Иконка" },
-    reorderable: true,
-  },
-  {
-    key: "direction",
-    label: "Направления (футер)",
-    singular: "направление",
-    description: "Список направлений в футере сайта.",
-    fields: ["title", "href"],
-    labels: { title: "Название", href: "Ссылка" },
-    reorderable: true,
-  },
-  {
-    key: "resort",
-    label: "Курорты (таблица сравнения)",
-    singular: "курорт",
-    description: "Строки таблицы сравнения курортов на страницах авиатуров.",
-    fields: ["title", "subtitle", "body", "icon"],
-    labels: {
-      title: "Название курорта",
-      subtitle: "Кому подходит",
-      body: "Сильные стороны",
-      icon: "Возможные нюансы",
-    },
-    reorderable: true,
-  },
-]
-
-export function collectionListPath(meta: CollectionMeta): string {
-  return meta.listPath ?? `/admin/content/${meta.key}`
-}
-
-/** Collections shown on /admin/content hub */
-export const contentHubCollections = collections.filter((c) => !c.listPath)
-
-export function getCollection(key: string): CollectionMeta | undefined {
-  return collections.find((c) => c.key === key)
-}
-
-/* ---------------- Settings groups ---------------- */
-
-export type SettingFieldOption = {
-  value: string
-  label: string
-  /** Visual tone for select options (colored dot). */
-  tone?: "info" | "warning" | "error" | "neutral"
-}
-
-export type SettingField = {
-  key: string
-  label: string
-  type?: "text" | "textarea" | "shortcode-input" | "shortcode-textarea" | "shortcode-textarea-multiline" | "richtext" | "media" | "select" | "date"
-  required?: boolean
-  placeholder?: string
-  hint?: string
-  /** Number of rows for textarea (default 3) */
-  rows?: number
-  /** Options for type "select" */
-  options?: SettingFieldOption[]
-  /** Default when setting key is missing (select). */
-  defaultValue?: string
-  /** Allowed library/upload media types for type "media" (default: image). */
-  mediaAccept?: Array<"image" | "video" | "document">
-  /** richtext: start collapsed (~40px) when value is empty. */
-  collapseEmpty?: boolean
-}
-
-export type SettingsGroup = {
-  heading: string
-  description?: string
-  help?: string
-  fields: SettingField[]
-}
-
-export type PageSection = { key: string; label: string }
-
-/** DRY page alert pair: `{prefix}.alertText` + `{prefix}.alertType`. Empty prefix → bare keys. */
-export function pageAlertFields(prefix: string): SettingField[] {
-  const p = prefix ? `${prefix}.` : ""
-  return [
-    {
-      key: `${p}alertText`,
-      label: "Алерт страницы",
-      type: "shortcode-textarea-multiline",
-      rows: 2,
-      hint: "Оставьте пустым, чтобы скрыть.",
-    },
-    {
-      key: `${p}alertType`,
-      label: "Тип алерта",
-      type: "select",
-      defaultValue: "info",
-      options: ALERT_KIND_OPTIONS,
-    },
-  ]
-}
-
-
-/** Shared copy for CMS + tour/article SEO forms (keep in sync with selfcheck). */
-export const SEO_META_DESCRIPTION_LABEL = "Описание для поиска"
-export const SEO_META_DESCRIPTION_HINT =
-  "Текст под заголовком в Google и других поисковиках. Можно чуть длиннее. Если превью пустое — это же описание уйдёт и в карточку при шаринге."
-export const SEO_META_SHORT_DESC_LABEL = "Превью описание"
-export const SEO_META_SHORT_DESC_HINT =
-  "Короткий текст для Telegram, VK, WhatsApp, Facebook. Если заполнено — оно важнее «описания для поиска» в публичном meta/OG."
-
-/** DRY SEO pair: `{prefix}.metaDescription` + `{prefix}.metaShortDesc`. Empty prefix → bare keys. */
-export function seoPreviewDescriptionFields(
-  prefix: string,
-  opts?: { required?: boolean; descriptionPlaceholder?: string },
-): SettingField[] {
-  const p = prefix ? `${prefix}.` : ""
-  return [
-    {
-      key: `${p}metaDescription`,
-      label: SEO_META_DESCRIPTION_LABEL,
-      type: "shortcode-textarea-multiline",
-      rows: 3,
-      hint: SEO_META_DESCRIPTION_HINT,
-      required: opts?.required,
-      placeholder: opts?.descriptionPlaceholder,
-    },
-    {
-      key: `${p}metaShortDesc`,
-      label: SEO_META_SHORT_DESC_LABEL,
-      type: "shortcode-textarea-multiline",
-      rows: 2,
-      hint: SEO_META_SHORT_DESC_HINT,
-      required: opts?.required,
-    },
-  ]
-}
-
-/** Page header block: title + intro only (no photo). */
-export function pageHeaderFields(
-  prefix: string,
-  opts?: { titleKey?: string; introType?: "textarea" | "richtext"; introRows?: number },
-): SettingField[] {
-  const titleKey = opts?.titleKey ?? "h1"
-  return [
-    { key: `${prefix}.${titleKey}`, label: "Заголовок", type: "shortcode-input" },
-    {
-      key: `${prefix}.intro`,
-      label: "Вводный абзац",
-      type: opts?.introType ?? "richtext",
-      rows: opts?.introRows ?? 5,
-    },
-  ]
-}
-
-export function pageHeaderGroup(
-  prefix: string,
-  opts?: { titleKey?: string; introType?: "textarea" | "richtext"; introRows?: number },
-): SettingsGroup {
-  return {
-    heading: "Шапка страницы",
-    fields: pageHeaderFields(prefix, opts),
-  }
-}
-
-/** Title + rows/pagination for «Карточки курортов». */
-export function citiesCardsFields(
-  prefix: string,
-  opts?: { titlePlaceholder?: string; titleHint?: string; titleLabel?: string },
-): SettingField[] {
-  return [
-    {
-      key: `${prefix}.citiesTitle`,
-      label: opts?.titleLabel ?? "Заголовок секции (H2)",
-      type: "shortcode-input",
-      placeholder: opts?.titlePlaceholder,
-      hint: opts?.titleHint,
-    },
-    {
-      key: `${prefix}.cities.rows`,
-      label: "Рядов на странице",
-      type: "select",
-      defaultValue: "2",
-      options: [
-        { value: "1", label: "1 ряд" },
-        { value: "2", label: "2 ряда" },
-      ],
-      hint: "Сколько рядов показывать до перелистывания (при включённой пагинации).",
-    },
-    {
-      key: `${prefix}.cities.paginate`,
-      label: "Пагинация карточек",
-      type: "select",
-      defaultValue: "1",
-      options: [
-        { value: "1", label: "Включена — листать страницы" },
-        { value: "0", label: "Выключена — показать все" },
-      ],
-    },
-  ]
-}
-
-/** Title, description and defaults for the «Filter + search results» listing section
- *  (shared by bustours / aviatory / hot main pages + country / city pages). */
-export function searchSectionFields(
-  prefix: string,
-  opts?: {
-    titlePlaceholder?: string
-    titleHint?: string
-    descriptionPlaceholder?: string
-    descriptionHint?: string
-    category?: "bus" | "avia" | "hot"
-  },
-): SettingField[] {
-  const sortDefaultValue = opts?.category === "bus" ? "nearest" : "default"
-  return [
-    // "ЭТО НЕ НУЖНО!"
-    // {
-    //   key: `${prefix}.searchTitle`,
-    //   label: "Заголовок секции (H2)",
-    //   type: "shortcode-input",
-    //   placeholder: opts?.titlePlaceholder ?? "Фильтр и результаты поиска",
-    //   hint: opts?.titleHint ?? "Над каталогом с карточками туров. Пусто — заголовок по умолчанию.",
-    // },
-    // {
-    //   key: `${prefix}.searchDescription`,
-    //   label: "Описание под заголовком",
-    //   type: "shortcode-textarea-multiline",
-    //   rows: 3,
-    //   placeholder:
-    //     opts?.descriptionPlaceholder ??
-    //     (opts?.category === "bus"
-    //       ? "Подберите автобу��ный тур по направлению, дате выезда и стоимости. Сортировка по умолчанию — по ближайшей дате выезда."
-    //       : opts?.category === "hot"
-    //         ? "Горящие предложения — подберите тур по направлению, вылету и бюджету. Цены указаны за человека с перелётом."
-    //         : "Подберите авиатур по стране, городу, периоду и стоимости. Цена указана за человека с перелётом из Минска."),
-    //   hint:
-    //     opts?.descriptionHint ??
-    //     "Пара предложений, чтобы пользователь понял: что здесь можно найти и как это работает. Пусто — описание не показывается.",
-    // },
-    {
-      key: `${prefix}.search.defaultSort`,
-      label: "Сортировка по умолчанию",
-      type: "select",
-      defaultValue: sortDefaultValue,
-      options:
-        opts?.category === "avia"
-          ? [
-              { value: "default", label: "По популярности" },
-              { value: "priceAsc", label: "Сначала дешёвые" },
-              { value: "priceDesc", label: "Сначала дорогие" },
-              { value: "nights", label: "По длительности" },
-            ]
-          : [
-              { value: "nearest", label: "По ближайшей дате" },
-              { value: "popularity", label: "По популярности" },
-              { value: "priceAsc", label: "Сначала дешёвые" },
-              { value: "priceDesc", label: "Сначала дорогие" },
-              { value: "nights", label: "По длительности" },
-            ],
-      hint: "Какая сортировка будет выбрана, пока посетитель не переключит сам.",
-    },
-    {
-      key: `${prefix}.search.hideHeading`,
-      label: "Скрыть заголовок «��езультаты поиска» над карточками",
-      type: "select",
-      defaultValue: "0",
-      options: [
-        { value: "0", label: "Показывать (рекомендуется)" },
-        { value: "1", label: "Скрыть" },
-      ],
-      hint: "Если уже есть заголовок секции сверху — под карточками с турами можно его убрать, чтобы не дублировать.",
-    },
-  ]
-}
-
-/** Settings group wrapper for «Фильтр и результаты поиска». */
-export function searchSectionGroup(
-  prefix: string,
-  opts?: {
-    titlePlaceholder?: string
-    titleHint?: string
-    descriptionPlaceholder?: string
-    descriptionHint?: string
-    category?: "bus" | "avia" | "hot"
-    heading?: string
-  },
-): SettingsGroup {
-  return {
-    heading: opts?.heading ?? "Секция «Фильтр и результаты поиска»",
-    fields: searchSectionFields(prefix, opts),
-  }
-}
+import type { SettingsGroup, PageSection } from "@/lib/admin-config-types"
+import {
+  pageAlertFields,
+  seoPreviewDescriptionFields,
+  pageHeaderGroup,
+} from "@/lib/admin-config-fields"
 
 /**
- * Description field for a resort-table section (resorts / resorts2 / resorts3 …).
- * Resort-section TITLES are always derived from the block.title itself
- * (ResortTableBuilder) — override was removed as legacy.
- * Pattern: `${prefix}.resortsDescription{suffix}` only.
+ * Фасад конфигурации админки. После разбиения здесь остались только
+ * статические группы настроек (pageSettingsGroups, settingsGroups и пр.);
+ * типы живут в admin-config-types.ts, DRY-хелперы полей —
+ * в admin-config-fields.ts, фабрики динамических страниц —
+ * в admin-page-configs.ts. Реэкспорты внизу сохраняют обратную
+ * совместимость всех существующих импортов из "@/lib/admin-config".
  */
-export function resortsSectionFields(
-  prefix: string,
-  opts?: { suffix?: string; descriptionPlaceholder?: string },
-): SettingField[] {
-  const suffix = opts?.suffix ?? ""
-  return [
-    {
-      key: `${prefix}.resortsDescription${suffix}`,
-      label: `Описание под таблицей${suffix ? ` (${suffix})` : ""}`,
-      type: "shortcode-textarea-multiline",
-      rows: 3,
-      placeholder:
-        opts?.descriptionPlaceholder ??
-        "Сравните цены, даты выездов и длительность в наглядной таблице. Можно отсортировать по колонкам.",
-      hint: "Пара предложений, чтобы пользователь понял: что здесь показано и как пользоваться. Пусто — не показывается. Заголовок секции берётся из самого блока таблицы.",
-    },
-  ]
-}
 
 /* Page-specific settings, each accessible from /admin/pages/[slug] */
 export const pageSettingsGroups: Record<string, {
@@ -940,6 +594,39 @@ export const sectionToggles: { key: string; label: string; hint: string }[] = [
   { key: "section.advantages", label: "Преимущества", hint: "Блок «Почему выбирают нас»" },
   { key: "section.testimonials", label: "Отзывы", hint: "Карусель отзывов" },
 ]
+
+// Типы полей и реестр коллекций вынесены в lib/admin-config-types.ts.
+// Реэкспорт сохраняет обратную совместимость всех существующих импортов.
+export type {
+  BlockField,
+  CollectionMeta,
+  SettingFieldOption,
+  SettingField,
+  SettingsGroup,
+  PageSection,
+} from "@/lib/admin-config-types"
+export {
+  collections,
+  collectionListPath,
+  contentHubCollections,
+  getCollection,
+} from "@/lib/admin-config-types"
+
+// DRY-хелперы построения полей вынесены в lib/admin-config-fields.ts.
+export {
+  pageAlertFields,
+  SEO_META_DESCRIPTION_LABEL,
+  SEO_META_DESCRIPTION_HINT,
+  SEO_META_SHORT_DESC_LABEL,
+  SEO_META_SHORT_DESC_HINT,
+  seoPreviewDescriptionFields,
+  pageHeaderFields,
+  pageHeaderGroup,
+  citiesCardsFields,
+  searchSectionFields,
+  searchSectionGroup,
+  resortsSectionFields,
+} from "@/lib/admin-config-fields"
 
 // Фабрики конфигов динамических страниц вынесены в lib/admin-page-configs.ts.
 // Реэкспорт сохраняет обратную совместимость всех существующих импортов.

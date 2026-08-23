@@ -6,16 +6,15 @@
  * настроек и реестр pageSettingsGroups; здесь — только функции-фабрики.
  * lib/admin-config.ts реэкспортирует всё отсюда, импорты менять не нужно.
  */
+import type { SettingsGroup, PageSection } from "@/lib/admin-config-types"
 import {
-  type SettingsGroup,
-  type PageSection,
   pageAlertFields,
   seoPreviewDescriptionFields,
   pageHeaderGroup,
   searchSectionGroup,
   citiesCardsFields,
   resortsSectionFields,
-} from "@/lib/admin-config"
+} from "@/lib/admin-config-fields"
 
 /**
  * Full page config for the avia home page (/aviatory/).

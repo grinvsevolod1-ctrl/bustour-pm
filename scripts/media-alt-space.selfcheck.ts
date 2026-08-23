@@ -9,7 +9,11 @@ import { fileURLToPath } from "node:url"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 
-const explorer = fs.readFileSync(path.join(root, "components/admin/media-explorer.tsx"), "utf8")
+// Карточки вынесены из media-explorer.tsx в media-explorer/media-grid.tsx (рефакторинг).
+const explorer = fs.readFileSync(
+  path.join(root, "components/admin/media-explorer/media-grid.tsx"),
+  "utf8",
+)
 assert.ok(
   explorer.includes("event.target !== event.currentTarget"),
   "explorer card ignores nested keydown (Alt Space)",
