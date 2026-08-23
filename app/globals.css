@@ -471,6 +471,26 @@ span.flatpickr-weekday {
   line-height: 1.4;
   color: var(--color-ink-muted, #6b7280);
 }
+/* Подпись повторяет выравнивание изображения: без этого блочный span
+   у обтекаемых (float) картинок «уплывает» в начало текстового потока. */
+.prose-content .image-credit--left {
+  float: left;
+  clear: left;
+  margin: -0.25em 1.25rem 1em 0;
+}
+.prose-content .image-credit--right {
+  float: right;
+  clear: right;
+  margin: -0.25em 0 1em 1.25rem;
+}
+.prose-content .image-credit--center {
+  text-align: center;
+  margin-top: -0.75em;
+}
+.prose-content .image-credit--full {
+  width: 100%;
+  margin-top: -0.75em;
+}
 .prose-content,
 .prose-editor {
   min-width: 0;

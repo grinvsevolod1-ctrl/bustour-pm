@@ -25,8 +25,9 @@ export function MediaPickerDialog({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Popup className="fixed inset-4 z-50 m-auto flex max-h-[calc(100vh-2rem)] w-auto max-w-6xl flex-col overflow-hidden rounded-lg border border-admin-border bg-white shadow-xl outline-none">
+        {/* z-[100]: оверлеи админки должны быть выше sticky-шапок (см. AGENTS.md, «Грабли» №2) */}
+        <Dialog.Backdrop className="fixed inset-0 z-[100] bg-black/40" />
+        <Dialog.Popup className="fixed inset-4 z-[100] m-auto flex max-h-[calc(100vh-2rem)] w-auto max-w-6xl flex-col overflow-hidden rounded-lg border border-admin-border bg-white shadow-xl outline-none">
           <div className="flex items-center justify-between border-b border-admin-border px-5 py-4">
             <Dialog.Title className="text-base font-semibold text-admin-fg">Выбрать медиа</Dialog.Title>
             <Dialog.Close

@@ -58,10 +58,11 @@ export function ShortcodePickerDialog({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
+        {/* z-[100]: оверлеи админки должны быть выше sticky-шапок (см. AGENTS.md, «Грабли» №2) */}
+        <Dialog.Backdrop className="fixed inset-0 z-[100] bg-black/40" />
         <Dialog.Popup
           aria-labelledby={titleId}
-          className="fixed inset-x-4 top-[10vh] z-50 mx-auto flex max-h-[min(70vh,560px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-admin-border bg-white shadow-xl outline-none overscroll-contain"
+          className="fixed inset-x-4 top-[10vh] z-[100] mx-auto flex max-h-[min(70vh,560px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-admin-border bg-white shadow-xl outline-none overscroll-contain"
         >
           <div className="flex items-center justify-between gap-3 border-b border-admin-border px-4 py-3">
             <Dialog.Title id={titleId} className="text-base font-semibold text-pretty text-admin-fg">

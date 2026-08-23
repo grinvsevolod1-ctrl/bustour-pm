@@ -44,6 +44,7 @@ import {
   DICTIONARY_TABS_ORDER_KEY,
   isDictionarySectionKey,
   listDictionarySlotsFromOrder,
+  dictionarySettingKeys,
   moveDictionaryInOrder,
   nextDictionarySlotKey,
   resolveDictionaryTabsOrder,
@@ -596,9 +597,17 @@ export async function createDictionaryTabAction() {
   const order = resolveDictionaryTabsOrder(settings)
   const shortKey = nextDictionarySlotKey(order)
   const nextOrder = [...order.filter((k) => k !== shortKey), shortKey]
+  // Как и у памяток: новый слот получает заголовок-заглушку, иначе пустой
+  // раздел фильтруется на публичной странице и админу кажется, что
+  // добавление «не сработало». Контент правится на /dictionary/[slot].
+  const num = listDictionarySlotsFromOrder(nextOrder).length
+  const keys = dictionarySettingKeys(DICTIONARY_PAGE_CMS_KEY, shortKey)
+  const placeholderLabel = `Новый раздел ${num}`
   await saveSettings({
     [`${DICTIONARY_PAGE_CMS_KEY}.section.${shortKey}`]: "1",
     [DICTIONARY_TABS_ORDER_KEY]: JSON.stringify(nextOrder),
+    [keys.label]: placeholderLabel,
+    [keys.heading]: placeholderLabel,
   })
   await writeAudit({
     admin,
