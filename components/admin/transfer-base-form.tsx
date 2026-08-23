@@ -2,7 +2,7 @@
 
 import { useActionState, useContext, useState } from "react"
 import { Check } from "lucide-react"
-import { saveTransferAction } from "@/app/admin/actions"
+import { saveTransferAction } from "@/app/admin/transfer-actions"
 import type { Transfer } from "@/lib/types"
 import { Button, Input, Label, Select } from "@/components/admin/ui"
 import { PageSettingsFormContext } from "@/components/admin/page-settings-form"

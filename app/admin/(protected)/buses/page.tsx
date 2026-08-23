@@ -1,7 +1,7 @@
 import { Plus, Pencil, Archive, ExternalLink, EyeOff } from "lucide-react"
 import { getBuses } from "@/lib/queries"
 import { getSettings } from "@/lib/cms"
-import { deleteBusAction, moveBusAction } from "@/app/admin/actions"
+import { deleteBusAction, moveBusAction } from "@/app/admin/bus-actions"
 import {
   PageHeader,
   ButtonLink,

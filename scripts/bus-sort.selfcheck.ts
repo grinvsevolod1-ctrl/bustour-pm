@@ -26,7 +26,8 @@ function mustHave(rel: string, needles: string[]) {
 }
 
 mustHave("lib/queries.ts", ["export async function moveBus", "orderBy(asc(buses.sortOrder)"])
-mustHave("app/admin/actions.ts", ["moveBusAction", "bus_move"])
+// Автобусные actions вынесены из actions.ts в bus-actions.ts.
+mustHave("app/admin/bus-actions.ts", ["moveBusAction", "bus_move"])
 mustHave("components/admin/sort-order-buttons.tsx", ["SortOrderButtons", "Выше", "Ниже"])
 mustHave("app/admin/(protected)/buses/page.tsx", ["SortOrderButtons", "moveBusAction"])
 mustHave("app/(site)/bus-rental/page.tsx", ["getBuses"])

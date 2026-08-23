@@ -30,19 +30,25 @@ mustHave("app/admin/cms-actions.ts", ["settings_update", "block_create", "block_
 mustHave("app/admin/user-actions.ts", ["user_create", "user_update", "user_delete"])
 
 // --- Gaps that must be closed ---
-mustHave("app/admin/actions.ts", [
+// Автобусы и трансферы вынесены из actions.ts в свои файлы.
+mustHave("app/admin/bus-actions.ts", [
   "bus_create",
   "bus_update",
   "bus_move",
   "bus_archive",
   "bus_restore",
   "bus_purge",
+])
+mustHave("app/admin/transfer-actions.ts", [
   "transfer_create",
   "transfer_update",
+  "transfer_move",
   "transfer_archive",
   "transfer_restore",
   "transfer_purge",
   "transfer_schedules_update",
+])
+mustHave("app/admin/actions.ts", [
   "review_create",
   "review_update",
   "review_archive",

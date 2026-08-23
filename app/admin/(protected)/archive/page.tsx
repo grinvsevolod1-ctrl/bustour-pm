@@ -6,15 +6,13 @@ import { restoreTourAction, purgeTourAction } from "@/app/admin/tour-actions"
 import {
   restoreArticleAction,
   purgeArticleAction,
-  restoreBusAction,
-  purgeBusAction,
   restoreReviewAction,
   purgeReviewAction,
-  restoreTransferAction,
-  purgeTransferAction,
   restoreLeadAction,
   purgeLeadAction,
 } from "@/app/admin/actions"
+import { restoreBusAction, purgeBusAction } from "@/app/admin/bus-actions"
+import { restoreTransferAction, purgeTransferAction } from "@/app/admin/transfer-actions"
 import { restoreCityAction, purgeCityAction } from "@/app/admin/city-actions"
 import { restoreCountryAction, purgeCountryAction } from "@/app/admin/country-actions"
 import { restoreStaffAction, purgeStaffAction } from "@/app/admin/staff-actions"

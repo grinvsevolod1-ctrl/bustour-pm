@@ -2,7 +2,7 @@
 
 import { useActionState, useContext, useEffect, useRef, useState } from "react"
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
-import { saveTransferSchedulesAction } from "@/app/admin/actions"
+import { saveTransferSchedulesAction } from "@/app/admin/transfer-actions"
 import { PageSettingsFormContext } from "@/components/admin/page-settings-form"
 import { PublicTableColHeader } from "@/components/admin/public-table-col-header"
 import { SectionFieldsForm } from "@/components/admin/section-fields-form"

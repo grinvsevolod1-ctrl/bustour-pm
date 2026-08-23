@@ -2,7 +2,7 @@
 
 import { useActionState, useContext } from "react"
 import { Check } from "lucide-react"
-import { saveBusAction } from "@/app/admin/actions"
+import { saveBusAction } from "@/app/admin/bus-actions"
 import type { Bus } from "@/lib/types"
 import { Button, Input, Label } from "@/components/admin/ui"
 import { PageSettingsFormContext } from "@/components/admin/page-settings-form"

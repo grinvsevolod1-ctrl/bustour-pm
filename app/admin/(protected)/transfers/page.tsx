@@ -1,7 +1,7 @@
 import { Plus, Pencil, Archive, ExternalLink, EyeOff } from "lucide-react"
 import { getTransfers } from "@/lib/queries"
 import { getSettings } from "@/lib/cms"
-import { deleteTransferAction, moveTransferAction } from "@/app/admin/actions"
+import { deleteTransferAction, moveTransferAction } from "@/app/admin/transfer-actions"
 import { PageHeader, ButtonLink, TableWrap, Thead, Th, Tbody, Td, Tr, IconButton, IconLink, EmptyState } from "@/components/admin/ui"
 import { VisibilityToggle } from "@/components/admin/visibility-toggle"
 import { ConfirmActionForm } from "@/components/admin/confirm-action-form"

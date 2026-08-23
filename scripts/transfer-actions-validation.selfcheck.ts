@@ -60,7 +60,8 @@ const badDir = transferSchedulesSaveSchema.safeParse({
 assert.equal(badDir.success, false)
 
 const root = path.join(import.meta.dirname, "..")
-const actions = fs.readFileSync(path.join(root, "app/admin/actions.ts"), "utf8")
+// Трансферные actions вынесены из actions.ts в transfer-actions.ts.
+const actions = fs.readFileSync(path.join(root, "app/admin/transfer-actions.ts"), "utf8")
 assert.ok(actions.includes("transferSaveSchema"), "saveTransfer uses Zod")
 assert.ok(actions.includes("transferSchedulesSaveSchema"), "schedules use Zod")
 assert.ok(actions.includes("mapDbError"), "DB errors mapped")

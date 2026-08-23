@@ -23,7 +23,9 @@ assert.doesNotMatch(tryBlock, /\bredirect\s*\(/, "redirect() must not be inside 
 assert.match(afterCatch, /\bredirect\s*\(/, "edit path must redirect after successful save")
 assert.match(afterCatch, /notice=/, "edit redirect should flash success notice")
 
-const bus = src.match(/export async function saveBusAction[\s\S]*?(?=\nexport async function )/)
+// saveBusAction вынесен из actions.ts в bus-actions.ts.
+const busSrc = fs.readFileSync(path.join(process.cwd(), "app/admin/bus-actions.ts"), "utf8")
+const bus = busSrc.match(/export async function saveBusAction[\s\S]*?(?=\nexport async function |$)/)
 assert.ok(bus, "saveBusAction not found")
 const busBody = bus[0]
 const busCatch = busBody.indexOf("} catch")
