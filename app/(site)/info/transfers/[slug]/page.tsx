@@ -13,6 +13,7 @@ import { metadataFromSettings } from "@/lib/seo-metadata"
 import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { previewAllows, readAuthorizedPreview } from "@/lib/preview-access"
 import {
+  ensureSchedulesInOrder,
   resolveTransferScheduleTitle,
   transferPageHeading,
   transferScheduleCmsKeys,
@@ -62,7 +63,14 @@ export default async function TransferDetailPage({
   const sectionOrder = (() => {
     try {
       const raw = settings[`${pageKey}.sections.order`]
-      if (raw) return JSON.parse(raw) as string[]
+      if (raw) {
+        const parsed = (JSON.parse(raw) as unknown[]).filter(
+          (key): key is string => typeof key === "string",
+        )
+        // Легаси-порядки без "schedules" чинит ensureSchedulesInOrder —
+        // иначе расписания пропадали с публичной страницы (см. transfer-display).
+        if (parsed.length) return ensureSchedulesInOrder(parsed)
+      }
     } catch {}
     return ["seo", "schedules", "faq", "callus"]
   })()

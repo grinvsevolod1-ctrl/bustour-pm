@@ -36,6 +36,21 @@ export function resolveTransferScheduleTitle(
   return custom || TRANSFER_SCHEDULE_DEFAULT_TITLES[direction]
 }
 
+/**
+ * Легаси sections.order, сохранённые до появления секции «Расписания»,
+ * ключа "schedules" не содержат — расписания пропадали с публичной страницы,
+ * хотя рейсы есть в БД. Намеренное скрытие делается тумблером
+ * section.schedules, а не удалением из порядка, поэтому дописываем ключ
+ * после первого seo-блока (или в начало). Read-path only, без записи в БД.
+ */
+export function ensureSchedulesInOrder(order: string[]): string[] {
+  if (order.includes("schedules")) return order
+  const seoIdx = order.findIndex((key) => key === "seo" || /^seo\d+$/.test(key))
+  const out = [...order]
+  out.splice(seoIdx === -1 ? 0 : seoIdx + 1, 0, "schedules")
+  return out
+}
+
 /** #110: legacy `content*` → standard `seo*` (no DB write; read-path only). */
 export function withTransferSeoAlias(
   settings: Record<string, string>,
