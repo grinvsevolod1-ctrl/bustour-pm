@@ -40,7 +40,8 @@ const schemaLib = readFileSync(join(process.cwd(), "lib/faq-schema.ts"), "utf8")
 assert.match(schemaLib, /FAQPage/)
 assert.match(schemaLib, /acceptedAnswer/)
 
-const media = readFileSync(join(process.cwd(), "components/admin/media-explorer.tsx"), "utf8")
+// Проверка клика по карточке переехала в вынесенную сетку медиафайлов
+const media = readFileSync(join(process.cwd(), "components/admin/media-explorer/media-grid.tsx"), "utf8")
 assert.match(media, /event\.target !== event\.currentTarget/)
 
 const grid = readFileSync(join(process.cwd(), "components/admin/editor/media-grid-extension.tsx"), "utf8")

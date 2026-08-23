@@ -5,7 +5,11 @@ import { join } from "node:path"
 const root = process.cwd()
 const input = readFileSync(join(root, "components/admin/shortcode-input.tsx"), "utf8")
 const grid = readFileSync(join(root, "components/admin/section-fields-form.tsx"), "utf8")
-const config = readFileSync(join(root, "lib/admin-config.ts"), "utf8")
+// DRY-хелперы полей вынесены из admin-config.ts в admin-config-fields.ts — проверяем оба файла
+const config =
+  readFileSync(join(root, "lib/admin-config.ts"), "utf8") +
+  "\n" +
+  readFileSync(join(root, "lib/admin-config-fields.ts"), "utf8")
 const css = readFileSync(join(root, "app/globals.css"), "utf8")
 
 assert.match(input, /editor\.getText\(\{ blockSeparator: "\\n" \}\)/)

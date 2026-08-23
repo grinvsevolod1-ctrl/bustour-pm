@@ -92,7 +92,11 @@ const legalPage = readFileSync(
 assert.match(legalPage, /seoPreviewDescriptionFields\(/)
 assert.ok(!legalPage.includes('label: "Meta description"'))
 
-const tourForm = readFileSync(join(process.cwd(), "components", "admin", "tour-form.tsx"), "utf8")
+// SEO-секции формы тура вынесены в tour-form/seo-sections.tsx — проверяем оба файла
+const tourForm =
+  readFileSync(join(process.cwd(), "components", "admin", "tour-form.tsx"), "utf8") +
+  "\n" +
+  readFileSync(join(process.cwd(), "components", "admin", "tour-form", "seo-sections.tsx"), "utf8")
 assert.match(tourForm, /name="metaDescription"/)
 assert.match(tourForm, /name="metaShortDesc"/)
 assert.match(tourForm, /SEO_META_DESCRIPTION_HINT/)

@@ -4,7 +4,11 @@ import path from "node:path"
 
 const root = path.join(import.meta.dirname, "..")
 const adminConfig = fs.readFileSync(path.join(root, "lib/admin-config.ts"), "utf8")
-const tourForm = fs.readFileSync(path.join(root, "components/admin/tour-form.tsx"), "utf8")
+// SEO-секции формы тура вынесены в tour-form/seo-sections.tsx — проверяем оба файла
+const tourForm =
+  fs.readFileSync(path.join(root, "components/admin/tour-form.tsx"), "utf8") +
+  "\n" +
+  fs.readFileSync(path.join(root, "components/admin/tour-form/seo-sections.tsx"), "utf8")
 const articleForm = fs.readFileSync(path.join(root, "components/admin/article-form.tsx"), "utf8")
 const seo = fs.readFileSync(path.join(root, "lib/seo-metadata.ts"), "utf8")
 const settingMedia = fs.readFileSync(path.join(root, "components/admin/setting-media-field.tsx"), "utf8")

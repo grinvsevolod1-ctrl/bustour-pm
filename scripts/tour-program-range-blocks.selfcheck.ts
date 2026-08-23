@@ -44,7 +44,11 @@ assert.match(
 // ============================================================
 // 2. ADMIN FORM — accordion per block, collapsible, RichEditor + dayFrom/dayTo inputs
 // ============================================================
-const tourForm = fs.readFileSync(path.join(root, "components/admin/tour-form.tsx"), "utf8")
+// Программа по дням вынесена в tour-form/program-section.tsx — проверяем оба файла
+const tourForm =
+  fs.readFileSync(path.join(root, "components/admin/tour-form.tsx"), "utf8") +
+  "\n" +
+  fs.readFileSync(path.join(root, "components/admin/tour-form/program-section.tsx"), "utf8")
 
 // RichEditor used for program description (not plain Textarea):
 assert.match(

@@ -19,7 +19,8 @@ const types = readFileSync("lib/types.ts", "utf8")
 // tourFromForm (парсинг программы тура) переехал из actions.ts в
 // tour-actions.ts — selfcheck читал только старый файл и падал на живом коде.
 const actions = readFileSync("app/admin/actions.ts", "utf8") + "\n" + readFileSync("app/admin/tour-actions.ts", "utf8")
-const form = readFileSync("components/admin/tour-form.tsx", "utf8")
+// Программа по дням вынесена в tour-form/program-section.tsx — проверяем оба файла
+const form = readFileSync("components/admin/tour-form.tsx", "utf8") + "\n" + readFileSync("components/admin/tour-form/program-section.tsx", "utf8")
 assert.match(types, /program:\s*\{\s*day:\s*string;\s*text:\s*string;\s*dayStart\?:\s*number;\s*dayEnd\?:\s*number\s*\}\[\]/)
 assert.match(actions, /return \{ day, text, dayStart, dayEnd \}/)
 assert.match(form, /value=\{day\.dayStart\s*\?\?\s*""\}/)
