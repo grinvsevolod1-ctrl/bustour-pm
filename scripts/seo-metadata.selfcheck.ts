@@ -150,7 +150,7 @@ async function main() {
   const { join, dirname } = await import("node:path")
   const { fileURLToPath } = await import("node:url")
   const root = join(dirname(fileURLToPath(import.meta.url)), "..")
-  const infoPage = readFileSync(join(root, "app/(site)/info/[slug]/page.tsx"), "utf8")
+  const infoPage = readFileSync(join(root, "app/(site)/helpful/[slug]/page.tsx"), "utf8")
   assert.match(
     infoPage,
     /metaShortDesc\s*\|\|\s*article\?\.metaDescription/,

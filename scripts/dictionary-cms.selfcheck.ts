@@ -28,7 +28,7 @@ const read = (rel: string) => fs.readFileSync(path.join(root, rel), "utf8")
 
 const page = pageSettingsGroups.dictionary
 assert.ok(page, "dictionary in pageSettingsGroups")
-assert.equal(page.url, "/info/dictionary")
+assert.equal(page.url, "/helpful/dictionary")
 
 const seed = dictionaryDefaultSettings()
 assert.ok(seed[DICTIONARY_TABS_ORDER_KEY])
@@ -54,12 +54,12 @@ assert.equal(dictionarySettingKeys(DICTIONARY_PAGE_CMS_KEY, "term2").body, "dict
 assert.equal(shortKeyFromDictionarySlotId(1), "term")
 assert.equal(shortKeyFromDictionarySlotId(3), "term3")
 
-const publicPage = read("app/(site)/info/dictionary/page.tsx")
+const publicPage = read("app/(site)/helpful/dictionary/page.tsx")
 assert.ok(publicPage.includes("resolveDictionaryTabsOrder"))
 assert.ok(publicPage.includes("metadataFromSettings"))
 assert.ok(!publicPage.includes("dictionary.tab1"), "no fixed tab1 keys in public page")
 
-const content = read("app/(site)/info/dictionary/dictionary-content.tsx")
+const content = read("app/(site)/helpful/dictionary/dictionary-content.tsx")
 assert.ok(content.includes("InfoTabsContent"), "reuses memos chip tabs")
 assert.ok(!content.includes("aria-expanded"), "no accordion")
 assert.ok(!content.includes("aside"), "no sidebar tabs")

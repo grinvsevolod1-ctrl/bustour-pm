@@ -47,7 +47,7 @@ const editor = readFileSync(join(root, "components/admin/transfer-schedule-edito
 assert.match(editor, /beforeHtml|afterHtml|schedule\./, "editor has per-direction CMS fields")
 assert.match(editor, /placeholder|DEFAULT|resolveTransferScheduleTitle|TRANSFER_SCHEDULE/, "editable title with default placeholder")
 
-const pub = readFileSync(join(root, "app/(site)/info/transfers/[slug]/page.tsx"), "utf8")
+const pub = readFileSync(join(root, "app/(site)/helpful/transfers/[slug]/page.tsx"), "utf8")
 assert.doesNotMatch(pub, /schedulesBetweenHtml/, "public no between block")
 assert.match(pub, /resolveTransferScheduleTitle|schedule\.outbound|beforeHtml/, "public uses schedule CMS blocks")
 

@@ -23,10 +23,10 @@ assert.match(seo, /keywordsExpanded|expandShortcodes\(keywordsRaw\)/, "meta keyw
 const aviaCity = readFileSync(join(root, "app/(site)/aviatory/[countrySlug]/[citySlug]/page.tsx"), "utf8")
 assert.match(aviaCity, /ParsedText/, "avia city H1 uses ParsedText")
 
-const transfers = readFileSync(join(root, "app/(site)/info/transfers/page.tsx"), "utf8")
+const transfers = readFileSync(join(root, "app/(site)/helpful/transfers/page.tsx"), "utf8")
 assert.match(transfers, /ParsedText|expandShortcodes|expandPlainText/, "transfers titles expand shortcodes")
 
-const transferDetail = readFileSync(join(root, "app/(site)/info/transfers/[slug]/page.tsx"), "utf8")
+const transferDetail = readFileSync(join(root, "app/(site)/helpful/transfers/[slug]/page.tsx"), "utf8")
 assert.match(transferDetail, /ParsedText|expandShortcodes|expandPlainText/, "transfer detail expands")
 
 const resortCards = readFileSync(join(root, "components/site/resort-cards.tsx"), "utf8")

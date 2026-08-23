@@ -15,7 +15,7 @@ const PATHS = [
   "/legal/privacy",
   "/legal/offer",
   "/testimonials",
-  "/info",
+  "/helpful",
 ] as const
 
 async function main() {

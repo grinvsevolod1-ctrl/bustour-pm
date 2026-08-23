@@ -83,6 +83,10 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Раздел «Полезная информация» переехал: /info/* → /helpful/* (301, 1:1).
+      // :path* покрывает все вложенные URL — статьи, трансферы, memos, dictionary.
+      { source: "/info", destination: "/helpful", permanent: true },
+      { source: "/info/:path*", destination: "/helpful/:path*", permanent: true },
       // Old country pages under /tours/[category]/country/[slug]
       // (must come before the generic /tours/... rules below)
       { source: "/tours/bus/country/:slug", destination: "/avtobusnye-tury/:slug/", permanent: true },

@@ -12,7 +12,7 @@ import { ParsedText } from "@/components/site/parsed-text"
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings()
   return metadataFromSettings(settings, "transfers", "Трансферы в аэропорт — БасТур", "Комфортный и надёжный трансфер в аэропорты Москвы из Минска. Шереметьево, Внуково, Домодедово и другие направления.", {
-    path: "/info/transfers",
+    path: "/helpful/transfers",
   })
 }
 
@@ -72,7 +72,7 @@ export default async function TransfersPage() {
         <Breadcrumb
           items={[
             { label: "Главная", href: "/" },
-            { label: "Полезная информация", href: "/info" },
+            { label: "Полезная информация", href: "/helpful" },
             { label: "Трансферы в аэропорт" },
           ]}
         />
@@ -105,7 +105,7 @@ export default async function TransfersPage() {
           </TitleUnderline>
           {airportTransfers.length ? <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {airportTransfers.map((transfer) => (
-              <DestCard key={transfer.id} title={transfer.title} image={transfer.image || "/images/transfers/sheremetyevo.png"} href={`/info/transfers/${transfer.slug}`} />
+              <DestCard key={transfer.id} title={transfer.title} image={transfer.image || "/images/transfers/sheremetyevo.png"} href={`/helpful/transfers/${transfer.slug}`} />
             ))}
           </div> : null}
         </section> : null}
@@ -121,7 +121,7 @@ export default async function TransfersPage() {
           </TitleUnderline>
           {individualTransfers.length ? <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {individualTransfers.map((transfer) => (
-              <DestCard key={transfer.id} title={transfer.title} image={transfer.image || "/images/transfers/individual.png"} href={`/info/transfers/${transfer.slug}`} />
+              <DestCard key={transfer.id} title={transfer.title} image={transfer.image || "/images/transfers/individual.png"} href={`/helpful/transfers/${transfer.slug}`} />
             ))}
           </div> : null}
         </section> : null}

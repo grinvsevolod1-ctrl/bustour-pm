@@ -15,7 +15,7 @@ const WIDTHS = [1440, 1024, 768, 320] as const
 const PATHS = {
   dates: process.env.SMOKE_DATES_PATH || "/avtobusnye-tury/rossiya/sankt-peterburg/tur-vyhodnogo-dnya-v-piter",
   resort: process.env.SMOKE_RESORT_PATH || "/avtobusnye-tury/rossiya/sankt-peterburg/",
-  prose: process.env.SMOKE_PROSE_PATH || "/info/transfers/sheremetyevo",
+  prose: process.env.SMOKE_PROSE_PATH || "/helpful/transfers/sheremetyevo",
 }
 
 async function dismissCookie(page: Page) {

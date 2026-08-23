@@ -233,7 +233,7 @@ export const pageSettingsGroups: Record<string, {
   },
   info: {
     heading: "Страница «Полезная информация» (блог)",
-    url: "/info",
+    url: "/helpful",
     groups: [
       {
         heading: "SEO и мета",
@@ -266,7 +266,7 @@ export const pageSettingsGroups: Record<string, {
   },
   dictionary: {
     heading: "Страница «Туристический словарь»",
-    url: "/info/dictionary",
+    url: "/helpful/dictionary",
     groups: [
       {
         heading: "SEO и мета",
@@ -292,7 +292,7 @@ export const pageSettingsGroups: Record<string, {
   },
   memos: {
     heading: "Страница «Памятка туристу»",
-    url: "/info/memos",
+    url: "/helpful/memos",
     groups: [
       {
         heading: "SEO и мета",
@@ -346,7 +346,7 @@ export const pageSettingsGroups: Record<string, {
   },
   transfers: {
     heading: "Страница «Трансферы»",
-    url: "/info/transfers",
+    url: "/helpful/transfers",
     groups: [
       {
         heading: "SEO и мета",

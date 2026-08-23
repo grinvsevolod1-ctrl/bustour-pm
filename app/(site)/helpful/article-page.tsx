@@ -61,7 +61,7 @@ export async function ArticlePageContent({
             dangerouslySetInnerHTML={{ __html: serializeJsonLd(articleSchema) }}
           />
         ) : null}
-        <Breadcrumb items={[{ label: "Полезная информация", href: "/info" }, { label: article.title }]} />
+        <Breadcrumb items={[{ label: "Полезная информация", href: "/helpful" }, { label: article.title }]} />
         <article className="mt-4">
           <span className="text-sm text-ink-muted">{formatArticleDate(article.date)}</span>
           <h1 className="mt-2 text-3xl font-bold leading-tight text-ink text-balance">

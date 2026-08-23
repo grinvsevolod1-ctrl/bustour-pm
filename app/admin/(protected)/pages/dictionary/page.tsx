@@ -54,7 +54,7 @@ export default async function DictionaryAdminPage() {
   const seoWorkspace = buildSeoWorkspace({
     groups: page.groups,
     settings,
-    pagePath: page.url ?? "/info/dictionary",
+    pagePath: page.url ?? "/helpful/dictionary",
     fallbackTitle: page.heading,
   })
   const mainGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups

@@ -290,7 +290,7 @@ export const ADMIN_SECTIONS: AdminSectionEntry[] = [
   {
     href: '/admin/pages/info',
     label: 'Блог (полезная информация)',
-    description: 'SEO и заголовок страницы списка статей /info',
+    description: 'SEO и заголовок страницы списка статей /helpful',
     synonyms: ['блог', 'полезная информация', 'статьи', 'список статей', 'info'],
     group: 'Инфо-страницы',
     icon: ScrollText,

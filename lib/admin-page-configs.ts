@@ -184,7 +184,7 @@ export function transferPageConfig(slug: string, transferTitle?: string): {
   const title = transferTitle ?? slug
   return {
     heading: `Трансферы в аэропорт > ${title}`,
-    url: `/info/transfers/${slug}`,
+    url: `/helpful/transfers/${slug}`,
     sections: [
       { key: `${p}.section.seo`, label: "Расширенный текст" },
       { key: `${p}.section.schedules`, label: "Расписания" },

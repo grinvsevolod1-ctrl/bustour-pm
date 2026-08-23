@@ -125,7 +125,7 @@ assert.equal(aviaCityPageConfig("hurgada").url, "/aviatury/_/hurgada/")
 assert.equal(pageSettingsGroups.home.url, "/")
 assert.equal(pageSettingsGroups.company.url, "/company")
 assert.equal(pageSettingsGroups.rental.url, "/bus-rental")
-assert.equal(pageSettingsGroups.dictionary.url, "/info/dictionary")
+assert.equal(pageSettingsGroups.dictionary.url, "/helpful/dictionary")
 
 // --- Source guards: no pageHref from settings hot.slug / raw /aviatory ---
 const hotAdmin = read("app/admin/(protected)/pages/hot/page.tsx")
@@ -157,11 +157,11 @@ assert.doesNotMatch(cityEdit, /`\/aviatory\/\$\{countrySlug\}/)
 
 const articlesList = read("app/admin/(protected)/articles/page.tsx")
 assert.match(articlesList, /articleUrl\(/)
-assert.doesNotMatch(articlesList, /`\/info\/\$\{article\.slug\}`/)
+assert.doesNotMatch(articlesList, /`\/helpful\/\$\{article\.slug\}`/)
 
 const articleEdit = read("app/admin/(protected)/articles/[id]/page.tsx")
 assert.match(articleEdit, /articleUrl\(/)
-assert.doesNotMatch(articleEdit, /pageHref=\{`\/info\/\$\{article\.slug\}`\}/)
+assert.doesNotMatch(articleEdit, /pageHref=\{`\/helpful\/\$\{article\.slug\}`\}/)
 
 const hrefLib = read("lib/admin-public-href.ts")
 assert.match(hrefLib, /resolveHotPublicHref/)

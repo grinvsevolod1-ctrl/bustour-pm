@@ -55,7 +55,7 @@ export default async function MemosAdminPage() {
   const seoWorkspace = buildSeoWorkspace({
     groups: page.groups,
     settings,
-    pagePath: page.url ?? "/info/memos",
+    pagePath: page.url ?? "/helpful/memos",
     fallbackTitle: page.heading,
   })
   const mainGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups

@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
     MEMOS_PAGE_CMS_KEY,
     "Памятки туристу — БасТур",
     "Памятки для туристов, выезжающих в разные страны: важная информация и правила, которые помогут избежать затруднений во время путешествия.",
-    { path: "/info/memos" },
+    { path: "/helpful/memos" },
   )
 }
 
@@ -66,7 +66,7 @@ export default async function MemosPage() {
         <Breadcrumb
           items={[
             { label: "Главная", href: "/" },
-            { label: "Полезная информация", href: "/info" },
+            { label: "Полезная информация", href: "/helpful" },
             { label: title },
           ]}
         />

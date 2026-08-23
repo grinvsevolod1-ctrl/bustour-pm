@@ -31,7 +31,7 @@ const settings: SiteSettings = {
 // ── Helpers ────────────────────────────────────────────────────────────
 assert.equal(organizationId("https://bastur.by"), "https://bastur.by/#organization")
 assert.equal(organizationId("https://bastur.by/"), "https://bastur.by/#organization")
-assert.equal(absoluteUrl("https://bastur.by", "/info/a"), "https://bastur.by/info/a")
+assert.equal(absoluteUrl("https://bastur.by", "/helpful/a"), "https://bastur.by/helpful/a")
 assert.equal(absoluteUrl("https://bastur.by/", "https://cdn/x.jpg"), "https://cdn/x.jpg")
 assert.equal(absoluteUrl("https://bastur.by", ""), undefined)
 
@@ -84,13 +84,13 @@ const article = buildArticleJsonLd({
   description: "<p>Текст</p>",
   image: "/uploads/a.jpg",
   date: "2026-07-01",
-  urlPath: "/info/novosti/news-1",
+  urlPath: "/helpful/novosti/news-1",
 })
 assert.ok(article)
 assert.equal(article!["@type"], "Article")
 assert.equal(article!.headline, "Новость 1")
 assert.equal(article!.description, "Текст")
-assert.equal(article!.url, "https://bastur.by/info/novosti/news-1")
+assert.equal(article!.url, "https://bastur.by/helpful/novosti/news-1")
 assert.equal(article!.datePublished, "2026-07-01")
 assert.equal(article!.publisher["@id"], "https://bastur.by/#organization")
 assert.equal(buildArticleJsonLd({ origin: "https://x.by", brandName: "X", title: "  ", urlPath: "/a" }), null)
@@ -122,7 +122,7 @@ const home = readFileSync(join(root, "app/(site)/page.tsx"), "utf8")
 assert.match(home, /buildWebSiteJsonLd/)
 assert.match(home, /application\/ld\+json/)
 
-const articlePage = readFileSync(join(root, "app/(site)/info/article-page.tsx"), "utf8")
+const articlePage = readFileSync(join(root, "app/(site)/helpful/article-page.tsx"), "utf8")
 assert.match(articlePage, /buildArticleJsonLd/)
 assert.match(articlePage, /articleUrl/)
 

@@ -67,7 +67,7 @@ export function ArticleForm({ article }: { article?: Article }) {
         <p className="text-sm font-semibold text-admin-fg">SEO и мета</p>
         <SeoLivePreview
           serpHost={new URL(getCanonicalOrigin()).host}
-          serpPath={article ? `/info/${article.slug}` : "/info/"}
+          serpPath={article ? `/helpful/${article.slug}` : "/helpful/"}
           titleName="metaTitle"
           descriptionName="metaDescription"
           shortDescName="metaShortDesc"

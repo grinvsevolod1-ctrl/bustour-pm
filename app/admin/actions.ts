@@ -357,10 +357,10 @@ export async function saveArticleAction(_prev: unknown, formData: FormData) {
         after: { id, slug: input.slug, title: input.title, category: input.category },
       })
       revalidatePath("/admin/articles")
-      revalidatePath("/info")
-      revalidatePath(`/info/${input.slug}`)
+      revalidatePath("/helpful")
+      revalidatePath(`/helpful/${input.slug}`)
       if (existingArticle && existingArticle.slug !== input.slug) {
-        revalidatePath(`/info/${existingArticle.slug}`)
+        revalidatePath(`/helpful/${existingArticle.slug}`)
       }
       return { success: true }
     } else {
@@ -378,8 +378,8 @@ export async function saveArticleAction(_prev: unknown, formData: FormData) {
     return { error: mapDbError(err, "Не удалось сохранить статью") }
   }
   revalidatePath("/admin/articles")
-  revalidatePath("/info")
-  revalidatePath(`/info/${input.slug}`)
+  revalidatePath("/helpful")
+  revalidatePath(`/helpful/${input.slug}`)
   redirect("/admin/articles")
 }
 
@@ -398,7 +398,7 @@ export async function deleteArticleAction(formData: FormData) {
       })
       revalidatePath("/admin/articles")
       revalidatePath("/admin/archive")
-      revalidatePath("/info")
+      revalidatePath("/helpful")
     },
     "/admin/articles?notice=archived",
     "/admin/articles",
@@ -420,7 +420,7 @@ export async function restoreArticleAction(formData: FormData) {
       })
       revalidatePath("/admin/articles")
       revalidatePath("/admin/archive")
-      revalidatePath("/info")
+      revalidatePath("/helpful")
     },
     "/admin/archive?notice=restored",
     "/admin/archive",
@@ -442,7 +442,7 @@ export async function purgeArticleAction(formData: FormData) {
       })
       revalidatePath("/admin/articles")
       revalidatePath("/admin/archive")
-      revalidatePath("/info")
+      revalidatePath("/helpful")
     },
     "/admin/archive?notice=purged",
     "/admin/archive",

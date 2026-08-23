@@ -4,7 +4,7 @@ import { useState } from "react"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { sanitizeCmsHtml } from "@/lib/sanitize-html"
 
-/** Shared chip tabs + panel — /info/memos, /info/dictionary (and clones). */
+/** Shared chip tabs + panel — /helpful/memos, /helpful/dictionary (and clones). */
 export type InfoTab = {
   id: string
   label: string

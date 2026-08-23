@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     "info",
     "Полезная информация — БасТур",
     "Статьи и советы для путешественников от туристической компании БасТур.",
-    { path: "/info/" },
+    { path: "/helpful/" },
   )
 }
 

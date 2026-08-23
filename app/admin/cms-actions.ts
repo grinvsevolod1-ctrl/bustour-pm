@@ -469,7 +469,7 @@ function revalidateMemosAdmin() {
   revalidateSite()
   revalidatePath("/admin/pages/memos")
   revalidatePath("/admin/audit")
-  revalidatePath("/info/memos")
+  revalidatePath("/helpful/memos")
 }
 
 export async function createMemoTabAction() {
@@ -587,7 +587,7 @@ function revalidateDictionaryAdmin() {
   revalidateSite()
   revalidatePath("/admin/pages/dictionary")
   revalidatePath("/admin/audit")
-  revalidatePath("/info/dictionary")
+  revalidatePath("/helpful/dictionary")
 }
 
 export async function createDictionaryTabAction() {

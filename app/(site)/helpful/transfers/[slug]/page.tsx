@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     pageKey,
     `${heading} — БасТур`,
     transfer.intro.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || `${heading}.`,
-    { path: `/info/transfers/${transfer.slug}` },
+    { path: `/helpful/transfers/${transfer.slug}` },
   )
 }
 
@@ -83,8 +83,8 @@ export default async function TransferDetailPage({
       <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
         <Breadcrumb items={[
           { label: "Главная", href: "/" },
-          { label: "Полезная информация", href: "/info" },
-          { label: "Трансферы в аэропорт", href: "/info/transfers" },
+          { label: "Полезная информация", href: "/helpful" },
+          { label: "Трансферы в аэропорт", href: "/helpful/transfers" },
           { label: transfer.title },
         ]} />
         <div className="space-y-8">

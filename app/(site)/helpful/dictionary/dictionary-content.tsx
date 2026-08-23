@@ -26,7 +26,7 @@ function plainBodyToHtml(text: string): string {
     .join("")
 }
 
-/** Same chip tabs + panel as /info/memos (InfoTabsContent). */
+/** Same chip tabs + panel as /helpful/memos (InfoTabsContent). */
 export function DictionaryContent({ entries }: { entries: DictionaryEntry[] }) {
   const tabs: InfoTab[] = entries.map((e) => ({
     id: e.id,

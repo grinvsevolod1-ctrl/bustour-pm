@@ -45,7 +45,7 @@ export default async function DictionaryTabEditPage({
     <div className="space-y-6">
       <PageHeader
         title={title}
-        description={`Раздел «${slot}» · /info/dictionary`}
+        description={`Раздел «${slot}» · /helpful/dictionary`}
       >
         <ButtonLink href="/admin/pages/dictionary#dictionary-list" variant="secondary">
           К списку разделов

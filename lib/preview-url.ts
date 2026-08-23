@@ -79,7 +79,7 @@ export async function generatePreviewUrl(
       const transfer = await getTransferById(entityId)
       if (!transfer) return null
       return withPreview(
-        `/info/transfers/${stripArchivedSuffix(transfer.slug)}`,
+        `/helpful/transfers/${stripArchivedSuffix(transfer.slug)}`,
         "transfer",
         transfer.id,
       )

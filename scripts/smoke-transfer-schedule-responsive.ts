@@ -6,7 +6,7 @@ import assert from "node:assert/strict"
 import { chromium, type Page } from "@playwright/test"
 
 const BASE = (process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000").replace(/\/$/, "")
-const PATH = process.env.TRANSFER_SMOKE_PATH || "/info/transfers/sheremetyevo"
+const PATH = process.env.TRANSFER_SMOKE_PATH || "/helpful/transfers/sheremetyevo"
 const WIDTHS = [1440, 1024, 768, 320] as const
 
 async function dismissCookie(page: Page) {

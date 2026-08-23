@@ -41,7 +41,7 @@ async function main() {
 
   assert.match(
     saveArticleBody,
-    /revalidatePath\(`\/info\/\$\{existingArticle\.slug\}`\)/,
+    /revalidatePath\(`\/helpful\/\$\{existingArticle\.slug\}`\)/,
     "saveArticleAction revalidates OLD article slug public page after slug change (cache flush for moved scoped content)",
   )
 

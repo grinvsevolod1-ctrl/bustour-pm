@@ -98,9 +98,9 @@ export async function saveTransferAction(_prev: unknown, formData: FormData) {
     }
     revalidatePath("/admin/transfers")
     revalidatePath("/admin/schedules")
-    revalidatePath("/info/transfers")
-    revalidatePath(`/info/transfers/${input.slug}`)
-    if (existing && existing.slug !== input.slug) revalidatePath(`/info/transfers/${existing.slug}`)
+    revalidatePath("/helpful/transfers")
+    revalidatePath(`/helpful/transfers/${input.slug}`)
+    if (existing && existing.slug !== input.slug) revalidatePath(`/helpful/transfers/${existing.slug}`)
     return { success: true }
   } catch (err) {
     if (isRedirectError(err)) throw err
@@ -125,7 +125,7 @@ export async function moveTransferAction(formData: FormData) {
     after: { direction },
   })
   revalidatePath("/admin/transfers")
-  revalidatePath("/info/transfers")
+  revalidatePath("/helpful/transfers")
 }
 
 export async function deleteTransferAction(formData: FormData) {
@@ -146,8 +146,8 @@ export async function deleteTransferAction(formData: FormData) {
       revalidatePath("/admin/transfers")
       revalidatePath("/admin/archive")
       revalidatePath("/admin/schedules")
-      revalidatePath("/info/transfers")
-      if (transfer) revalidatePath(`/info/transfers/${transfer.slug}`)
+      revalidatePath("/helpful/transfers")
+      if (transfer) revalidatePath(`/helpful/transfers/${transfer.slug}`)
     },
     "/admin/transfers?notice=archived",
     "/admin/transfers",
@@ -170,7 +170,7 @@ export async function restoreTransferAction(formData: FormData) {
       revalidatePath("/admin/transfers")
       revalidatePath("/admin/archive")
       revalidatePath("/admin/schedules")
-      revalidatePath("/info/transfers")
+      revalidatePath("/helpful/transfers")
     },
     "/admin/archive?notice=restored",
     "/admin/archive",
@@ -193,7 +193,7 @@ export async function purgeTransferAction(formData: FormData) {
       revalidatePath("/admin/transfers")
       revalidatePath("/admin/archive")
       revalidatePath("/admin/schedules")
-      revalidatePath("/info/transfers")
+      revalidatePath("/helpful/transfers")
     },
     "/admin/archive?notice=purged",
     "/admin/archive",
@@ -232,8 +232,8 @@ export async function saveTransferSchedulesAction(_prev: unknown, formData: Form
     })
     revalidatePath("/admin/schedules")
     revalidatePath(`/admin/transfers/${transferId}`)
-    if (transfer) revalidatePath(`/info/transfers/${transfer.slug}`)
-    revalidatePath("/info/transfers")
+    if (transfer) revalidatePath(`/helpful/transfers/${transfer.slug}`)
+    revalidatePath("/helpful/transfers")
     return { success: true }
   } catch (err) {
     return { error: mapDbError(err, "Не удалось сохранить расписание") }

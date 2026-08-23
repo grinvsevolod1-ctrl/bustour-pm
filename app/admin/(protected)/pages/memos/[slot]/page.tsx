@@ -56,7 +56,7 @@ export default async function MemoTabEditPage({
     <div className="space-y-6">
       <PageHeader
         title={title}
-        description={`Вкладка «${slot}» · /info/memos`}
+        description={`Вкладка «${slot}» · /helpful/memos`}
       >
         <ButtonLink href="/admin/pages/memos#memos-list" variant="secondary">
           К списку вкладок

@@ -1,10 +1,10 @@
 /**
- * CMS for /info/dictionary — chip tabs (CRUD + order), same UI as /info/memos.
+ * CMS for /helpful/dictionary — chip tabs (CRUD + order), same UI as /helpful/memos.
  * Legacy fixed keys dictionary.tab1|2|3.* still read as fallback.
  */
 
 export const DICTIONARY_PAGE_CMS_KEY = "dictionary"
-export const DICTIONARY_PAGE_URL = "/info/dictionary"
+export const DICTIONARY_PAGE_URL = "/helpful/dictionary"
 export const DICTIONARY_PAGE_SECTIONS_DEFAULT = ["faq", "callus"] as const
 export const DICTIONARY_TABS_ORDER_KEY = "dictionary.tabs.order"
 

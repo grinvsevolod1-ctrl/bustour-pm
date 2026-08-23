@@ -32,7 +32,9 @@ const RESERVED_SLUGS = new Set([
   "favicon.ico",
   "_next",
   // Реальные корневые разделы app/(site), которых не было в списке:
-  // слаг "info" переписал бы /info/* → /aviatory/* и убил бы раздел «Информация».
+  // слаг "helpful" переписал бы /helpful/* → /aviatory/* и убил бы раздел «Информация».
+  // "info" остаётся в списке: там живут 301-редиректы старых URL на /helpful.
+  "helpful",
   "info",
   "bus-rental",
   "tour",

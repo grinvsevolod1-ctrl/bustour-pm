@@ -139,7 +139,7 @@ async function main() {
   const busDetail = readFileSync(join(process.cwd(), "app/(site)/bus-rental/[slug]/page.tsx"), "utf8")
   assert.match(busDetail, /expandPublicDeep/)
 
-  const info = readFileSync(join(process.cwd(), "app/(site)/info/page.tsx"), "utf8")
+  const info = readFileSync(join(process.cwd(), "app/(site)/helpful/page.tsx"), "utf8")
   assert.match(info, /expandPublicList/)
 
   const testimonials = readFileSync(join(process.cwd(), "app/(site)/testimonials/page.tsx"), "utf8")

@@ -28,7 +28,7 @@ export default async function AdminTransfersPage() {
                 <Td className="text-admin-fg-muted">{transfer.priceRoundTrip || "—"}</Td>
                 <Td className="text-admin-fg-muted">{transfer.priceOneWay || "—"}</Td>
                 <Td actions><div className="flex items-center justify-end gap-1">
-                  <IconLink href={`/info/transfers/${transfer.slug}`} target="_blank" aria-label="Открыть на сайте"><ExternalLink className="h-4 w-4" /></IconLink>
+                  <IconLink href={`/helpful/transfers/${transfer.slug}`} target="_blank" aria-label="Открыть на сайте"><ExternalLink className="h-4 w-4" /></IconLink>
                   <IconLink href={`/admin/transfers/${transfer.id}`} aria-label="Редактировать"><Pencil className="h-4 w-4" /></IconLink>
                   <VisibilityToggle settingKey={`transfer:${transfer.slug}.visible`} visible={visible} label={`трансфер «${transfer.title}»`} />
                   <ConfirmActionForm

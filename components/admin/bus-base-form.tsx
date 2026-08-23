@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useContext } from "react"
+import { useActionState, useContext, useEffect, useRef } from "react"
 import { Check } from "lucide-react"
 import { saveBusAction } from "@/app/admin/bus-actions"
 import type { Bus } from "@/lib/types"
@@ -28,8 +28,51 @@ export function BusBaseForm({
   const titleId = bus ? "bus-title" : "new-bus-title"
   useActionToast(state, { successMessage: bus ? "Автобус сохранён" : "Автобус создан" })
 
+  // Внутри PageSettingsForm собственная кнопка формы скрыта — без регистрации
+  // draft-контрибьютора sticky-Save молча терял галерею/документы/поля автобуса.
+  const formRef = useRef<HTMLFormElement>(null)
+  const baselineRef = useRef<string | null>(null)
+  const serializeForm = () => {
+    const form = formRef.current
+    if (!form) return ""
+    const parts: string[] = []
+    for (const [key, value] of new FormData(form).entries()) {
+      if (typeof value === "string") parts.push(`${key}=${value}`)
+    }
+    return parts.join("&")
+  }
+  const serializeRef = useRef(serializeForm)
+  serializeRef.current = serializeForm
+  useEffect(() => {
+    if (baselineRef.current === null) baselineRef.current = serializeRef.current()
+  }, [])
+  useEffect(() => {
+    if (!pageSettingsFormContext) return
+    return pageSettingsFormContext.registerDraft({
+      id: bus ? `bus-base:${bus.id}` : "bus-base:new",
+      label: "Основные данные автобуса",
+      isDirty: () =>
+        baselineRef.current !== null && serializeRef.current() !== baselineRef.current,
+      async save() {
+        const form = formRef.current
+        if (!form) return { ok: true }
+        const result = await saveBusAction(null, new FormData(form))
+        if (result && "error" in result && result.error) {
+          return { ok: false, error: String(result.error) }
+        }
+        return { ok: true }
+      },
+      commitBaseline() {
+        baselineRef.current = serializeRef.current()
+      },
+      reset() {
+        formRef.current?.reset()
+      },
+    })
+  }, [bus, pageSettingsFormContext])
+
   return (
-    <form id="bus-base-form" action={action} className="space-y-4">
+    <form id="bus-base-form" ref={formRef} action={action} className="space-y-4">
       {bus ? <input type="hidden" name="id" value={bus.id} /> : null}
 
       {state && "error" in state && (

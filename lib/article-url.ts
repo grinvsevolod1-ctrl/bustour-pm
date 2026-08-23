@@ -8,5 +8,5 @@ export const articleCategoryPath = {
 } satisfies Record<Article["category"], string>
 
 export function articleUrl(article: Pick<Article, "category" | "slug">) {
-  return `/info/${articleCategoryPath[article.category]}/${article.slug}`
+  return `/helpful/${articleCategoryPath[article.category]}/${article.slug}`
 }

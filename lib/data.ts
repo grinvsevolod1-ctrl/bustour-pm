@@ -16,11 +16,11 @@ export const navItems = [
   },
   {
     label: "Полезная информация",
-    href: "/info",
+    href: "/helpful",
     children: [
-      { label: "Трансферы", href: "/info/transfers" },
-      { label: "Памятки туристу", href: "/info/memos" },
-      { label: "Туристический словарь", href: "/info/dictionary" },
+      { label: "Трансферы", href: "/helpful/transfers" },
+      { label: "Памятки туристу", href: "/helpful/memos" },
+      { label: "Туристический словарь", href: "/helpful/dictionary" },
     ],
   },
   { label: "Контакты", href: "/contacts" },

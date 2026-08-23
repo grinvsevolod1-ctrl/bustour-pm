@@ -1,10 +1,10 @@
 /**
- * CMS for /info/memos — tabs order separate from page extras (callus/faq).
+ * CMS for /helpful/memos — tabs order separate from page extras (callus/faq).
  * #96
  */
 
 export const MEMOS_PAGE_CMS_KEY = "memos"
-export const MEMOS_PAGE_URL = "/info/memos"
+export const MEMOS_PAGE_URL = "/helpful/memos"
 /** Page extras only (no memo tabs — those live in tabs.order). */
 export const MEMOS_PAGE_SECTIONS_DEFAULT = ["callus"] as const
 export const MEMOS_TABS_ORDER_KEY = "memos.tabs.order"

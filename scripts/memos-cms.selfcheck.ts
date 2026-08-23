@@ -33,7 +33,7 @@ assert.equal(getSectionDef("memo")?.allowMultiple, true)
 
 const page = pageSettingsGroups.memos
 assert.ok(page, "memos in pageSettingsGroups")
-assert.equal(page.url, "/info/memos")
+assert.equal(page.url, "/helpful/memos")
 
 const seed = memosDefaultSettings()
 assert.ok(seed[MEMOS_TABS_ORDER_KEY])
@@ -57,7 +57,7 @@ assert.equal(memoSettingKeys(MEMOS_PAGE_CMS_KEY, "memo2").file, "memos.memoFile2
 assert.equal(shortKeyFromMemoSlotId(1), "memo")
 assert.equal(shortKeyFromMemoSlotId(3), "memo3")
 
-const publicPage = read("app/(site)/info/memos/page.tsx")
+const publicPage = read("app/(site)/helpful/memos/page.tsx")
 assert.ok(!publicPage.includes("turkey.pdf"), "no hardcode file names in public page")
 assert.ok(publicPage.includes("resolveMemosTabsOrder"))
 assert.ok(publicPage.includes("metadataFromSettings"))

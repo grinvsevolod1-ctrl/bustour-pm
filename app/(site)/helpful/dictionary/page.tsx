@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     DICTIONARY_PAGE_CMS_KEY,
     "Туристический словарь — БасТур",
     "Словарь туристических терминов, аббревиатур и сокращений. Говорите с турагентом на одном языке.",
-    { path: "/info/dictionary" },
+    { path: "/helpful/dictionary" },
   )
 }
 
@@ -51,7 +51,7 @@ export default async function DictionaryPage() {
         <Breadcrumb
           items={[
             { label: "Главная", href: "/" },
-            { label: "Полезная информация", href: "/info" },
+            { label: "Полезная информация", href: "/helpful" },
             { label: title },
           ]}
         />
