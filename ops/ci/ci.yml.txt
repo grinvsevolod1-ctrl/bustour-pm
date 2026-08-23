@@ -1,0 +1,137 @@
+# CI БасТур — проверки на каждый push/PR.
+#
+# Закрывает главную дыру процесса: «пуш в main = автодеплой на прод», при
+# котором на сервере не было ни одной проверки. Теперь до деплоя прогоняются
+# те же гейты, что и локально: tsc, vitest, полный selfcheck и next build,
+# плюс отдельный e2e-джоб на Playwright.
+#
+# Постгрес поднимается как service-контейнер (образ 18 — как на VPS),
+# миграции накатываются drizzle-миграциями через `db:migrate:prod`.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+# Отменяем предыдущий прогон на той же ветке — не жжём раннеры на устаревших коммитах.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Единый источник правды для окружения CI (совпадает с локальной песочницей).
+  DATABASE_URL: postgresql://bastur:bastur@localhost:5432/bastur_ci
+  AUTH_SECRET: ci-auth-secret-not-for-production-0000000000000000
+  REVIEW_CONTACT_SECRET: ci-review-secret-not-for-production-00000000000000
+  ADMIN_USERNAME: admin
+  ADMIN_PASSWORD: admin123
+  E2E_ADMIN_USERNAME: admin
+  E2E_ADMIN_PASSWORD: admin123
+  NEXT_PUBLIC_SITE_URL: http://localhost:3000
+  # webp пропускаем — на раннере нет пересобранного под CPU sharp, тесты не про это.
+  MEDIA_SKIP_WEBP: "1"
+
+jobs:
+  quality:
+    name: Типы, тесты, сборка
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: bastur
+          POSTGRES_PASSWORD: bastur
+          POSTGRES_DB: bastur_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U bastur -d bastur_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      # dev-стенд: капча включена (fail-closed), selfcheck security это проверяет.
+      BASTUR_DEPLOY_ENV: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node из .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Миграции БД
+        run: npm run db:migrate:prod
+
+      - name: TypeScript (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Юнит-тесты (vitest)
+        run: npm test
+
+      - name: Selfcheck (полный, включая DB/server)
+        run: npx tsx scripts/smart-test.ts --all-selfcheck --selfcheck-only
+
+      - name: Сборка (next build --webpack)
+        # Preflight уже прогнан выше отдельными шагами — в сборке его пропускаем.
+        run: npm run build
+        env:
+          BUSTOUR_SKIP_PREFLIGHT: "1"
+          NODE_ENV: production
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: bastur
+          POSTGRES_PASSWORD: bastur
+          POSTGRES_DB: bastur_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U bastur -d bastur_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      # local — капча пропускается автоматически, формы в e2e отправляются.
+      BASTUR_DEPLOY_ENV: local
+      # dev-сервер стартует под Playwright; preflight не нужен (quality-джоб его закрыл).
+      BUSTOUR_SKIP_PREFLIGHT: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node из .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Миграции БД
+        run: npm run db:migrate:prod
+
+      - name: Установка Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E (setup + chromium)
+        run: npm run test:e2e
+
+      - name: Артефакты отчёта Playwright
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
