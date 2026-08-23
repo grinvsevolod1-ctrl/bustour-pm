@@ -49,11 +49,16 @@ const dry = spawnSync(
 const dry2 =
   dry.status === 0
     ? dry
-    : spawnSync("npx", ["tsx", "scripts/telegram-notify.ts", "--dry-run", "--title", "selfcheck", "--message", "ping"], {
-        cwd: root,
-        encoding: "utf8",
-        shell: true,
-      })
+    : // shell нужен только на Windows (npx.cmd); на Linux shell:true с массивом args даёт DEP0190
+      spawnSync(
+        process.platform === "win32" ? "npx.cmd" : "npx",
+        ["tsx", "scripts/telegram-notify.ts", "--dry-run", "--title", "selfcheck", "--message", "ping"],
+        {
+          cwd: root,
+          encoding: "utf8",
+          shell: process.platform === "win32",
+        },
+      )
 
 assert.equal(dry2.status, 0, dry2.stderr || dry2.stdout)
 assert.match(dry2.stdout, /Notification queued/)
