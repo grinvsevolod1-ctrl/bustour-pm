@@ -26,6 +26,7 @@ import {
 import { parseFaqGroups, parseNamespacedFaqsFromAggregate, type NamespacedFaq } from "@/lib/faq-form"
 import { getCollection } from "@/lib/admin-config"
 import { isUsablePublicCmsText } from "@/lib/cms-public-text"
+import { parseDeclaredToggles, normalizeDeclaredToggles } from "@/lib/settings-toggles"
 import type { BlockCollection } from "@/lib/types"
 import {
   MEMOS_PAGE_CMS_KEY,
@@ -127,26 +128,24 @@ export async function saveSettingsAction(_prev: unknown, formData: FormData) {
     if (typeof value !== "string") continue
     entries[key] = value
   }
-  // Checkboxes only submit when checked — normalise known toggles to "1"/"0".
-  const __togglesFromForm = String(formData.get("__toggles") || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-  // Fallback toggles: any current setting key that looks like a visibility toggle
-  // (*.visible, *.section.*, *.callus, *.faq) is added to toggleKeys so an
-  // unchecked checkbox still lands in entries as "0". Fixes the "user unchecked
-  // visibility but save silently left old '1' in DB" bug.
+  // Checkboxes only submit when checked — normalise declared toggles to "1"/"0".
+  // КРИТИЧНО: нормализуем ТОЛЬКО тогглы, которые форма явно объявила своими
+  // через __toggles. Раньше здесь был fallback-цикл по ВСЕМ ключам видимости
+  // из всей БД (*.visible, *.section.*, *.callus, *.faq): сохранение любой
+  // формы (город, памятка, статья...) обнуляло видимость секций на всех
+  // остальных страницах сайта, т.к. их чекбоксов в текущей форме нет.
+  // Отсюда «блоки сами отключаются» по всей админке. Формы, управляющие
+  // видимостью через глазки (PageSectionsManager), шлют её JSON-полем
+  // __sectionVisibility — оно уже разобрано выше.
   const currentBefore = await getSettings()
-  const toggleKeysFromCurrent = Object.keys(currentBefore).filter((k) =>
-    /(^section\.)|(\.visible$)|(\.section\.[^.]+$)|(\.callus$)|(\.faq$)/.test(k),
+  Object.assign(
+    entries,
+    normalizeDeclaredToggles(
+      parseDeclaredToggles(formData.get("__toggles")),
+      (key) => Boolean(formData.get(key)),
+      visibilityKeysFromJson,
+    ),
   )
-  const toggleKeys = Array.from(new Set([...__togglesFromForm, ...toggleKeysFromCurrent]))
-  for (const key of toggleKeys) {
-    // Видимость секций уже разобрана из __sectionVisibility — не перезаписываем
-    // её отсутствием одноимённого чекбокса в форме.
-    if (visibilityKeysFromJson.has(key)) continue
-    entries[key] = formData.get(key) ? "1" : "0"
-  }
   // Unchanged RichEditor / hidden-tab fields can submit "". Keep an intentional
   // clear only when the editor reports a user change.
   for (const key of Object.keys(entries)) {

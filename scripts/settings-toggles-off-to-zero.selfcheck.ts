@@ -1,29 +1,47 @@
+/**
+ * Контракт нормализации тогглов в saveSettingsAction.
+ *
+ * Новый контракт (после фикса «блоки сами отключаются»):
+ * 1. Выключенные чекбоксы → "0" ТОЛЬКО для ключей, объявленных формой в __toggles
+ *    (lib/settings-toggles.ts / normalizeDeclaredToggles).
+ * 2. Глобального fallback-цикла по всем ключам видимости из БД БЫТЬ НЕ ДОЛЖНО:
+ *    он обнулял видимость секций на всех страницах при сохранении любой формы.
+ * Run: npx tsx scripts/settings-toggles-off-to-zero.selfcheck.ts
+ */
 import assert from "node:assert/strict"
 import fs from "node:fs"
 import path from "node:path"
+import { normalizeDeclaredToggles, parseDeclaredToggles } from "../lib/settings-toggles"
 
 async function main() {
   const root = path.resolve(__dirname, "..")
-  const src = fs.readFileSync(path.join(root, "app", "admin", "cms-actions.ts"), "utf8")
+  const actionsSrc = fs.readFileSync(path.join(root, "app", "admin", "cms-actions.ts"), "utf8")
 
-  const hasToggleRegex = /for\s*\(\s*const\s+key\s+of\s+toggleKeys\s*\)\s*\{[\s\S]*?entries\[key\]\s*=\s*formData\.get\(key\)\s*\?\s*"1"\s*:\s*"0"[\s\S]*?\}/
-  assert.match(src, hasToggleRegex, "saveSettingsAction has __toggles -> entries 1/0 loop")
-
-  const hasPattern1 = /\*\.visible|section\.\*|\*\.section\.\*/
-  const hasFallbackVisibleOff =
-    /(\.visible|section\.|callus|faq)[\s\S]{0,800}(!formData\.has|entries\[.*\]\s*=\s*"0"|Object\.keys\(current\)\.filter\([\s\S]*?visible|Object\.keys\(current\)\.some\([\s\S]*?visible)/
-  const hasToggleRecompute = /toggleKeys\.push|toggleKeys\s*=\s*\[.*\.filter|Object\.entries\(current\)\.filter.*?visible/
+  // 1. Экшен использует единую утилиту нормализации объявленных тогглов.
   assert.ok(
-    hasPattern1.test(src) || hasFallbackVisibleOff.test(src) || hasToggleRecompute.test(src),
-    "saveSettingsAction must fill OFF for known visibility/section keys when they weren't submitted (fallback toggles off)",
+    actionsSrc.includes("normalizeDeclaredToggles") && actionsSrc.includes("parseDeclaredToggles"),
+    "saveSettingsAction должен нормализовать тогглы через lib/settings-toggles",
+  )
+  assert.ok(actionsSrc.includes("__toggles"), "__toggles читается из formData")
+
+  // 2. РЕГРЕССИЯ: глобальный fallback по всем ключам видимости из БД удалён.
+  assert.ok(
+    !actionsSrc.includes("toggleKeysFromCurrent"),
+    "глобальный fallback-цикл toggleKeysFromCurrent должен быть удалён (обнулял чужие страницы)",
   )
 
-  assert.ok(
-    src.includes("__toggles") && src.includes("split"),
-    "__toggles field read from formData and split to keys",
+  // 3. Поведение утилиты: выключено → "0" только для объявленных ключей.
+  const out = normalizeDeclaredToggles(
+    parseDeclaredToggles("home.section.hero,home.notify"),
+    (key) => key === "home.section.hero",
+    new Set(),
   )
+  assert.deepEqual(out, { "home.section.hero": "1", "home.notify": "0" })
 
-  console.log("OK 1/2 — __toggles loop with 1/0, 2/2 — fallback ensures visibility keys default to 0 when unchecked")
+  // 4. Не объявлено формой — не сохраняется вовсе (чужие страницы не трогаем).
+  assert.deepEqual(normalizeDeclaredToggles(parseDeclaredToggles(""), () => false, new Set()), {})
+
+  console.log("OK — declared-only toggles 1/0; global visibility fallback removed")
 }
 
 main().catch((err) => {
