@@ -10,6 +10,19 @@ const RUN_ID = Date.now().toString(36)
 const TOUR_TITLE = `E2E Smoke Tour ${RUN_ID}`
 const TOUR_SLUG = `e2e-smoke-tour-${RUN_ID}`
 
+async function fillShortcode(page: Page, name: string, value: string) {
+  // ShortcodeInput рендерит TipTap: input[name] — скрытый, текст вводится в
+  // соседний contenteditable с role=textbox внутри div.shortcode-input.
+  const box = page
+    .locator(`div.shortcode-input:has(input[type="hidden"][name="${name}"]) [role="textbox"]`)
+    .first()
+  await expect(box, `shortcode field "${name}" must be editable`).toBeVisible({ timeout: 15_000 })
+  await box.click()
+  await box.fill(value)
+  // Дождаться, пока TipTap onUpdate прокинет значение в скрытый input.
+  await expect(page.locator(`input[type="hidden"][name="${name}"]`).first()).toHaveValue(value)
+}
+
 async function pickCombobox(page: Page, name: string, preferred?: string) {
   // AdminCombobox renders <div class="relative"> containing both the hidden
   // input[name] and the visible role=combobox input — scope by that container.
@@ -46,12 +59,15 @@ test.describe("admin smoke", () => {
       await page.goto("/admin/tours/new")
       await expect(page.locator("#tour-form")).toBeVisible({ timeout: 15_000 })
 
-      // --- Required text fields
-      await page.fill('input[name="title"], #tour-title', TOUR_TITLE)
-      const slugField = page.locator('input[name="slug"]')
+      // --- Required text fields (title/description — TipTap ShortcodeInput)
+      await fillShortcode(page, "title", TOUR_TITLE)
+      const slugField = page.locator('input[name="slug"]:not([type="hidden"])')
       if (await slugField.count()) await slugField.first().fill(TOUR_SLUG)
-      const description = page.locator('textarea[name="description"], input[name="description"]')
-      await description.first().fill("Автоматический smoke-тест: тур создан Playwright и будет заархивирован.")
+      await fillShortcode(
+        page,
+        "description",
+        "Автоматический smoke-тест: тур создан Playwright и будет заархивирован.",
+      )
 
       // --- Country / city comboboxes (must pick existing options)
       await pickCombobox(page, "country")
