@@ -1,44 +1,38 @@
 "use client"
 
+// Контейнер загрузчика медиа: держит состояние очереди/DnD и оркеструет
+// загрузку. Разметка вынесена в media-uploader/{upload-banners,file-tiles},
+// сетевой слой — в media-uploader/upload-api.
 import { useEffect, useId, useRef, useState } from "react"
-import { ChevronDown, ChevronUp, FolderOpen, GripVertical, LoaderCircle, Upload, X } from "lucide-react"
+import { FolderOpen, Upload } from "lucide-react"
 import { toast } from "sonner"
-import { Alert, IconButton, Label } from "@/components/admin/ui"
-import { MediaThumbnail } from "@/components/admin/media-thumbnail"
-import { detectType, extToType, extensionsByType, formatBytes, mimeTypesByType, MAX_MEDIA_SIZE_MB } from "@/lib/media/utils"
+import { Alert, Label } from "@/components/admin/ui"
+import { detectType, extensionsByType, formatBytes, mimeTypesByType, MAX_MEDIA_SIZE_MB } from "@/lib/media/utils"
 import { cn } from "@/lib/utils"
 import { MediaPickerDialog } from "@/components/admin/media-picker-dialog"
-import { MediaAltField } from "@/components/admin/media-alt-field"
-import { InstanceAltField } from "@/components/admin/instance-alt-field"
 import { moveMediaAt, patchMediaAt, removeMediaAt } from "@/lib/media/list"
 import { sha256HexFromBlob } from "@/lib/media/checksum"
 import { encodeImageFileToWebp } from "@/lib/browser-webp"
 import type { MediaItem, UploadedFile } from "@/lib/media/types"
 import { isMediaReady, toUploadedFile } from "@/lib/media/types"
+import {
+  fileAcceptValue,
+  revokeObjectUrl,
+  uploadFileApi,
+  waitForReadyMedia,
+  type PendingUpload,
+} from "@/components/admin/media-uploader/upload-api"
+import { ProcessingBanner, TransferBusyBanner } from "@/components/admin/media-uploader/upload-banners"
+import { PendingTile, UploadedTile } from "@/components/admin/media-uploader/file-tiles"
 
 export type MediaType = UploadedFile["type"]
 export type { MediaItem, UploadedFile } from "@/lib/media/types"
 export { detectType, extToType, formatBytes } from "@/lib/media/utils"
-
-export function uploadedFileFromUrl(url: string): UploadedFile {
-  const cleanUrl = url.split(/[?#]/, 1)[0]
-  const rawName = cleanUrl.slice(cleanUrl.lastIndexOf("/") + 1)
-  let name = rawName || "Медиа"
-
-  try {
-    name = decodeURIComponent(name)
-  } catch {
-    // Keep the raw basename when the URL contains malformed encoding.
-  }
-
-  return {
-    id: url,
-    url,
-    name,
-    size: "",
-    type: extToType(cleanUrl) ?? "image",
-  }
-}
+export {
+  startUploadFileApi,
+  uploadFileApi,
+  uploadedFileFromUrl,
+} from "@/components/admin/media-uploader/upload-api"
 
 type MediaUploaderBaseProps = {
   accept?: MediaType[]
@@ -72,97 +66,6 @@ type MultipleMediaUploaderProps = MediaUploaderBaseProps & {
 export type MediaUploaderProps = SingleMediaUploaderProps | MultipleMediaUploaderProps
 
 const allTypes: MediaType[] = ["image", "video", "document"]
-
-type PendingUpload = {
-  id: string
-  name: string
-  sizeLabel: string
-  /** 0–100; -1 = indeterminate until first progress event */
-  progress: number
-  /** Shown while progress is indeterminate or as status prefix */
-  stage: "prepare" | "compress" | "upload" | "process"
-}
-
-async function waitForReadyMedia(id: string, timeoutMs = 10 * 60_000): Promise<UploadedFile> {
-  const startedAt = Date.now()
-
-  while (Date.now() - startedAt < timeoutMs) {
-    const response = await fetch(`/api/media/${encodeURIComponent(id)}`, {
-      credentials: "same-origin",
-    })
-    if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null
-      throw new Error(payload?.error ?? "Не удалось дождаться обработки файла.")
-    }
-    const payload = (await response.json().catch(() => null)) as MediaItem | null
-    if (!payload) throw new Error("Файл не найден.")
-    if (payload.status === "ready") return toUploadedFile(payload)
-    if (payload.status === "failed") {
-      throw new Error(payload.errorMessage || "Не удалось обработать файл.")
-    }
-    await new Promise((resolve) => window.setTimeout(resolve, 1500))
-  }
-
-  throw new Error("Сервер слишком долго обрабатывает файл. Проверьте медиатеку позже.")
-}
-
-/** XHR upload so we can show real byte progress (fetch has no upload progress). */
-export function startUploadFileApi(
-  file: File,
-  onProgress?: (ratio: number) => void,
-  opts?: { folderId?: string | null },
-): Promise<MediaItem> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open("POST", "/api/media/upload")
-    xhr.withCredentials = true
-    xhr.responseType = "json"
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable && event.total > 0) {
-        onProgress?.(event.loaded / event.total)
-      }
-    }
-    xhr.onload = () => {
-      const payload = xhr.response as MediaItem | { error?: string } | null
-      if (xhr.status >= 200 && xhr.status < 300 && payload && "id" in payload) {
-        onProgress?.(1)
-        resolve(payload)
-        return
-      }
-      const message =
-        payload && typeof payload === "object" && "error" in payload && payload.error
-          ? payload.error
-          : "Не удалось загрузить файл."
-      reject(new Error(message))
-    }
-    xhr.onerror = () => reject(new Error("Сеть недоступна. Проверьте соединение и попробуйте снова."))
-    xhr.onabort = () => reject(new Error("Загрузка отменена."))
-    const formData = new FormData()
-    formData.append("file", file)
-    if (opts?.folderId) formData.append("folderId", opts.folderId)
-    xhr.send(formData)
-  })
-}
-
-export async function uploadFileApi(
-  file: File,
-  onProgress?: (ratio: number) => void,
-  opts?: { folderId?: string | null },
-): Promise<UploadedFile> {
-  const item = await startUploadFileApi(file, onProgress, opts)
-  if (item.status === "ready") return toUploadedFile(item)
-  return waitForReadyMedia(item.id)
-}
-
-function revokeObjectUrl(url: string) {
-  if (url.startsWith("blob:")) URL.revokeObjectURL(url)
-}
-
-function fileAcceptValue(types: MediaType[]) {
-  return types
-    .flatMap((type) => [...extensionsByType[type], ...mimeTypesByType[type]])
-    .join(",")
-}
 
 export function MediaUploader(props: MediaUploaderProps) {
   const mode = props.mode ?? "single"
@@ -282,7 +185,7 @@ export function MediaUploader(props: MediaUploaderProps) {
         return false
       }
       if (maxSizeMB !== undefined && file.size > maxSizeMB * 1024 * 1024) {
-        rejected.push(`«${file.name}»: размер больше ${maxSizeMB} МБ.`)
+        rejected.push(`«${file.name}»: размер больше ${maxSizeMB} МБ.`)
         return false
       }
       return true
@@ -432,66 +335,13 @@ export function MediaUploader(props: MediaUploaderProps) {
     setLibraryOpen(false)
   }
 
-  const doneCount = pendingUploads.filter((item) => item.progress >= 100).length
-  const overallPct =
-    pendingUploads.length === 0
-      ? 0
-      : Math.round(
-          pendingUploads.reduce((sum, item) => sum + Math.max(0, item.progress), 0) /
-            pendingUploads.length,
-        )
-
   return (
     <div className={cn("space-y-3", className)}>
       {label ? <Label htmlFor={inputId}>{label}</Label> : null}
 
-      {transferBusy ? (
-        <Alert
-          tone="warning"
-          title="Идёт загрузка"
-          className="sticky top-0 z-30 shadow-sm"
-        >
-          <div className="space-y-2" aria-live="polite" aria-atomic="true">
-            <p>
-              {pendingUploads.length === 1
-                ? `Файл «${pendingUploads[0]!.name}»…`
-                : `${doneCount} из ${pendingUploads.length} файлов…`}{" "}
-              <span className="font-medium tabular-nums">{overallPct}%</span>
-            </p>
-            <p className="text-amber-900/80">
-              Не закрывайте вкладку и не уходите со страницы — загрузка прервётся. Можно добавить ещё
-              файлы в очередь.
-            </p>
-            <div
-              className="h-1.5 overflow-hidden rounded-full bg-amber-200/80"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={overallPct}
-              aria-label="Общий прогресс загрузки"
-            >
-              <div
-                className="h-full rounded-full bg-amber-600 transition-[width] duration-200 ease-out motion-reduce:transition-none"
-                style={{ width: `${overallPct}%` }}
-              />
-            </div>
-          </div>
-        </Alert>
-      ) : null}
+      {transferBusy ? <TransferBusyBanner pendingUploads={pendingUploads} /> : null}
 
-      {pendingUploads.some((item) => item.stage === "process") ? (
-        <Alert tone="info" title="Контент в обработке" className="sticky top-0 z-20 shadow-sm">
-          <div className="space-y-2" aria-live="polite" aria-atomic="true">
-            <p>
-              Файл уже загружен на сервер. Можно закрыть страницу или перейти в другой раздел —
-              обработка продолжится.
-            </p>
-            <p className="text-blue-800/80">
-              Как только сервер закончит обработку, файл появится в медиатеке или обновится в списке.
-            </p>
-          </div>
-        </Alert>
-      ) : null}
+      {pendingUploads.some((item) => item.stage === "process") ? <ProcessingBanner /> : null}
 
       <div className="flex flex-wrap items-stretch gap-3">
         <div
@@ -500,145 +350,35 @@ export function MediaUploader(props: MediaUploaderProps) {
             files.length || pendingUploads.length ? "flex" : "hidden",
           )}
         >
-          {files.map((file, index) => {
-            const canReorder = mode === "multiple" && files.length > 1
-            return (
-              <div
-                key={`${file.id}::${index}`}
-                draggable={canReorder}
-                onDragStart={() => {
-                  if (!canReorder) return
-                  setDragIndex(index)
-                  setDragOverIndex(index)
-                }}
-                onDragOver={(event) => {
-                  if (!canReorder || dragIndex === null) return
-                  event.preventDefault()
-                  setDragOverIndex(index)
-                }}
-                onDrop={(event) => {
-                  if (!canReorder) return
-                  event.preventDefault()
-                  dropAt(index)
-                }}
-                onDragEnd={() => {
-                  setDragIndex(null)
-                  setDragOverIndex(null)
-                }}
-                className={cn(
-                  "relative w-56 max-w-full overflow-hidden rounded-lg border bg-white",
-                  canReorder &&
-                    dragOverIndex === index &&
-                    dragIndex !== index
-                    ? "border-admin-fg bg-admin-muted/40"
-                    : "border-admin-border",
-                )}
-              >
-                {canReorder ? (
-                  <div className="absolute left-2 top-2 z-10 flex items-center gap-0.5">
-                    <span
-                      className="cursor-grab rounded bg-white/90 p-1 text-admin-fg-subtle active:cursor-grabbing"
-                      aria-label="Перетащить"
-                      title="Перетащить"
-                    >
-                      <GripVertical className="h-4 w-4" aria-hidden="true" />
-                    </span>
-                    <div className="flex flex-col rounded bg-white/90">
-                      <IconButton
-                        type="button"
-                        className="h-5 w-6"
-                        disabled={index === 0}
-                        onClick={() => reorderFile(index, index - 1)}
-                        aria-label="Выше"
-                      >
-                        <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
-                      </IconButton>
-                      <IconButton
-                        type="button"
-                        className="h-5 w-6"
-                        disabled={index === files.length - 1}
-                        onClick={() => reorderFile(index, index + 1)}
-                        aria-label="Ниже"
-                      >
-                        <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
-                      </IconButton>
-                    </div>
-                  </div>
-                ) : null}
-                <IconButton
-                  type="button"
-                  tone="danger"
-                  className="absolute right-2 top-2 z-10 bg-white/90"
-                  onClick={() => removeFile(index)}
-                  aria-label={`Удалить ${file.name}`}
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </IconButton>
-                <MediaThumbnail file={file} />
-                {altMode === "library" ? (
-                  <MediaAltField file={file} onSaved={(next) => patchFile(index, next)} />
-                ) : altMode === "instance" ? (
-                  <InstanceAltField file={file} onChange={(next) => patchFile(index, next)} />
-                ) : null}
-              </div>
-            )
-          })}
+          {files.map((file, index) => (
+            <UploadedTile
+              key={`${file.id}::${index}`}
+              file={file}
+              index={index}
+              filesCount={files.length}
+              canReorder={mode === "multiple" && files.length > 1}
+              altMode={altMode}
+              dragIndex={dragIndex}
+              dragOverIndex={dragOverIndex}
+              onDragStart={(idx) => {
+                setDragIndex(idx)
+                setDragOverIndex(idx)
+              }}
+              onDragOver={setDragOverIndex}
+              onDrop={dropAt}
+              onDragEnd={() => {
+                setDragIndex(null)
+                setDragOverIndex(null)
+              }}
+              onReorder={reorderFile}
+              onRemove={removeFile}
+              onPatch={patchFile}
+            />
+          ))}
 
-          {pendingUploads.map((pending) => {
-            const pct = pending.progress < 0 ? null : pending.progress
-            return (
-              <div
-                key={pending.id}
-                className="relative w-56 max-w-full overflow-hidden rounded-lg border border-admin-border bg-white"
-                aria-busy="true"
-              >
-                <div
-                  className={cn(
-                    "flex h-36 flex-col items-center justify-center gap-2 bg-admin-muted/60 px-3",
-                    pct === null && "motion-safe:animate-pulse",
-                  )}
-                >
-                  <LoaderCircle
-                    className="h-7 w-7 text-admin-fg motion-safe:animate-spin motion-reduce:animate-none"
-                    aria-hidden="true"
-                  />
-                  <span className="text-xs font-medium tabular-nums text-admin-fg">
-                    {pending.stage === "process"
-                      ? "Контент в обработке"
-                      : pct === null
-                        ? pending.stage === "compress"
-                          ? "Сжатие…"
-                          : pending.stage === "upload"
-                            ? "Загрузка…"
-                            : "Подготовка…"
-                        : `${pct}%`}
-                  </span>
-                </div>
-                <div className="space-y-1.5 border-t border-admin-border p-3">
-                  <p className="truncate text-sm font-medium text-admin-fg" title={pending.name}>
-                    {pending.name}
-                  </p>
-                  <p className="text-xs text-admin-fg-subtle">{pending.sizeLabel}</p>
-                  <div
-                    className="h-1 overflow-hidden rounded-full bg-admin-muted"
-                    role="progressbar"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={pct ?? undefined}
-                    aria-label={`Прогресс «${pending.name}»`}
-                  >
-                    <div
-                      className={cn(
-                        "h-full rounded-full bg-admin-fg transition-[width] duration-200 ease-out motion-reduce:transition-none",
-                        pct === null && "w-1/3 motion-safe:animate-pulse",
-                      )}
-                      style={pct === null ? undefined : { width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+          {pendingUploads.map((pending) => (
+            <PendingTile key={pending.id} pending={pending} />
+          ))}
         </div>
 
         <div className="grid min-w-0 flex-1 basis-full grid-cols-1 gap-3 lg:basis-0 lg:grid-cols-2">

@@ -22,8 +22,11 @@ assert.match(status, /"Ошибка обработки"/, "failed label shown")
 const uploader = readFileSync(join(root, "components/admin/media-uploader.tsx"), "utf8")
 assert.match(uploader, /onUploadAccepted\?\.\(existing\)/, "uploader reports deduped pending item immediately")
 assert.match(uploader, /onUploadAccepted\?\.\(\{/, "uploader reports uploaded item before ready wait")
-assert.match(uploader, /Можно закрыть страницу или перейти в другой раздел/, "uploader explains persisted processing state")
-assert.match(uploader, /return waitForReadyMedia\(item\.id\)/, "non-library flows still wait for ready media")
+// Баннер «в обработке» вынесен в media-uploader/upload-banners.tsx, ожидание ready — в upload-api.ts (рефакторинг).
+const banners = readFileSync(join(root, "components/admin/media-uploader/upload-banners.tsx"), "utf8")
+assert.match(banners, /Можно закрыть страницу или перейти в другой раздел/, "uploader explains persisted processing state")
+const uploadApi = readFileSync(join(root, "components/admin/media-uploader/upload-api.ts"), "utf8")
+assert.match(uploadApi, /return waitForReadyMedia\(item\.id\)/, "non-library flows still wait for ready media")
 
 const service = readFileSync(join(root, "lib/media/service.ts"), "utf8")
 assert.match(service, /status:\s*"processing"/, "service creates pending processing records")

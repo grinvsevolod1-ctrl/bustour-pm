@@ -29,7 +29,9 @@ assert.match(mediaService, /videoBytesForUpload/, "saveFile runs video normalize
 assert.match(mediaService, /MAX_MEDIA_SIZE_BYTES/, "size ceiling used")
 
 const uploader = readFileSync(join(root, "components/admin/media-uploader.tsx"), "utf8")
-assert.match(uploader, /Сжатие/, "UI shows compress stage")
+// Стадии загрузки-плитки вынесены в media-uploader/file-tiles.tsx (рефакторинг).
+const tiles = readFileSync(join(root, "components/admin/media-uploader/file-tiles.tsx"), "utf8")
+assert.match(tiles, /Сжатие/, "UI shows compress stage")
 assert.match(uploader, /MAX_MEDIA_SIZE_MB/, "uploader default limit from shared const")
 
 async function main() {

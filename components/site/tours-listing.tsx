@@ -518,7 +518,7 @@ export function ToursListing({
                     Результаты поиска
                   </TitleUnderline>
                 ) : (
-                  <div className="sr-only" ref={resultsHeadingRef as any} tabIndex={-1}>
+                  <div className="sr-only" ref={resultsHeadingRef as React.RefObject<HTMLDivElement>} tabIndex={-1}>
                     Результаты поиска
                   </div>
                 )}
