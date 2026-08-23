@@ -81,6 +81,7 @@ export interface MediaService {
   getAltTextByUrl(url: string): Promise<string | null>
   getDefaultAltsByMediaIds(ids: string[]): Promise<Map<string, string>>
   updateAlt(id: string, alt: string): Promise<MediaItem | null>
+  updateAuthor(id: string, author: string): Promise<MediaItem | null>
   updateFolder(id: string, folderId: string | null): Promise<MediaItem | null>
   deleteFile(id: string): Promise<boolean>
   claimNextProcessingMedia(leaseMs?: number): Promise<MediaWorkerJob | null>
@@ -158,6 +159,7 @@ function mapMediaItem(row: MediaRecordRow): MediaItem {
     size: displaySize(row.size),
     type: row.type as UploadedFile["type"],
     alt: row.altText ?? undefined,
+    author: row.author ?? undefined,
     folderId: row.folderId ?? null,
     status,
     processingStage: normalizeStage(row.processingStage, status),
@@ -183,6 +185,7 @@ const mediaSelect = {
   size: mediaFiles.size,
   type: mediaFiles.type,
   altText: mediaFiles.altText,
+  author: mediaFiles.author,
   folderId: mediaFiles.folderId,
   status: mediaFiles.status,
   processingStage: mediaFiles.processingStage,
@@ -365,6 +368,23 @@ async function getAltTextByUrl(url: string): Promise<string | null> {
   return alt || null
 }
 
+/** Авторы изображений по URL — для подписи «Фото: …» под картинками в статьях. */
+async function getAuthorsByUrls(urls: string[]): Promise<Map<string, string>> {
+  const unique = [...new Set(urls.map((u) => u.trim()).filter(Boolean))]
+  const map = new Map<string, string>()
+  if (!unique.length) return map
+  await ensureDb()
+  const rows = await db
+    .select({ url: mediaFiles.url, author: mediaFiles.author })
+    .from(mediaFiles)
+    .where(inArray(mediaFiles.url, unique))
+  for (const row of rows) {
+    const author = row.author?.trim()
+    if (author) map.set(row.url, author)
+  }
+  return map
+}
+
 async function getDefaultAltsByMediaIds(ids: string[]): Promise<Map<string, string>> {
   const unique = [...new Set(ids.filter(Boolean))]
   const map = new Map<string, string>()
@@ -389,6 +409,18 @@ async function updateAlt(id: string, alt: string): Promise<MediaItem | null> {
   }
   const trimmed = alt.trim()
   await db.update(mediaFiles).set({ altText: trimmed || null }).where(eq(mediaFiles.id, id))
+  return getMediaById(id)
+}
+
+async function updateAuthor(id: string, author: string): Promise<MediaItem | null> {
+  await ensureDb()
+  const existing = await getMediaById(id)
+  if (!existing) return null
+  if (!isMediaReady(existing)) {
+    throw new Error("Нельзя изменить автора, пока файл ещё обрабатывается.")
+  }
+  const trimmed = author.trim()
+  await db.update(mediaFiles).set({ author: trimmed || null }).where(eq(mediaFiles.id, id))
   return getMediaById(id)
 }
 
@@ -612,6 +644,7 @@ export const mediaService: MediaService = {
   getAltTextByUrl,
   getDefaultAltsByMediaIds,
   updateAlt,
+  updateAuthor,
   updateFolder,
   deleteFile,
   claimNextProcessingMedia,
@@ -620,6 +653,8 @@ export const mediaService: MediaService = {
   failMediaProcessing,
   processMediaJob,
 }
+
+export { getAuthorsByUrls }
 
 export {
   saveFile,

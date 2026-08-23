@@ -107,6 +107,21 @@ export async function updateMediaAlt(id: string, alt: string): Promise<MediaItem
   return payload
 }
 
+/** Persist image author/source credit for a library file (UUID id). */
+export async function updateMediaAuthor(id: string, author: string): Promise<MediaItem> {
+  const response = await fetch(`/api/media/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ author }),
+    credentials: "same-origin",
+  })
+  const payload = (await response.json().catch(() => null)) as MediaItem | { error?: string } | null
+  if (!response.ok || !payload || !("id" in payload)) {
+    throw new Error(payload && "error" in payload ? payload.error : "Не удалось сохранить автора.")
+  }
+  return payload
+}
+
 export async function updateMediaFolder(
   id: string,
   folderId: string | null,

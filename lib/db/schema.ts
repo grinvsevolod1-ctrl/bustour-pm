@@ -249,7 +249,7 @@ export const articles = pgTable("articles", {
   archivedIdx: index("articles_archived_idx").on(table.archived),
   // Каталог статей: WHERE archived ORDER BY createdAt DESC.
   archivedCreatedIdx: index("articles_archived_created_idx").on(table.archived, table.createdAt),
-  articlesCategoryEnum: check("articles_category_enum", sql`${table.category} IN ('news','special','reviews')`),
+  articlesCategoryEnum: check("articles_category_enum", sql`${table.category} IN ('news','special','reviews','helpful')`),
   articlesContentJson: check("articles_content_is_json", sql`${table.content} IS JSON`),
 }))
 
@@ -424,6 +424,8 @@ export const mediaFiles = pgTable("media_files", {
   type: text("type").notNull(),
   checksum: text("checksum").notNull().default(""),
   altText: text("alt_text"),
+  // Автор/источник изображения — требование лицензий фотостоков; выводится подписью на сайте.
+  author: text("author"),
   folderId: text("folder_id").references(() => mediaFolders.id, { onDelete: "set null" }),
   status: text("status").notNull().default("ready"),
   processingStage: text("processing_stage").notNull().default("ready"),

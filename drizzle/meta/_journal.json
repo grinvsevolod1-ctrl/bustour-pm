@@ -57,6 +57,13 @@
       "when": 1787429083282,
       "tag": "0007_amusing_the_professor",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787469171680,
+      "tag": "0008_faithful_devos",
+      "breakpoints": true
     }
   ]
 }

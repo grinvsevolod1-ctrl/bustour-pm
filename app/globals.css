@@ -461,6 +461,16 @@ span.flatpickr-weekday {
   border-radius: 0.5rem;
   margin: 1em 0;
 }
+/* Подпись автора/источника под изображением (лицензии фотостоков).
+   Вставляется сервером сразу после <img>, поэтому убираем нижний отступ картинки. */
+.prose-content .image-credit {
+  display: block;
+  margin-top: -0.75em;
+  margin-bottom: 1em;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-ink-muted, #6b7280);
+}
 .prose-content,
 .prose-editor {
   min-width: 0;

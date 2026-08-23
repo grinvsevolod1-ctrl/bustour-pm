@@ -166,12 +166,13 @@ export type Review = {
   contactPhone?: string
 }
 
-export const ARTICLE_CATEGORIES = ["news", "special", "reviews"] as const
+export const ARTICLE_CATEGORIES = ["news", "special", "reviews", "helpful"] as const
 export type ArticleCategory = (typeof ARTICLE_CATEGORIES)[number]
 export const ARTICLE_CATEGORY_LABELS: Record<ArticleCategory, string> = {
   news: "Новости",
   special: "Спецпредложения",
   reviews: "Обзоры туров",
+  helpful: "Полезные статьи",
 }
 
 export function isArticleCategory(value: string): value is ArticleCategory {

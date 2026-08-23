@@ -8,6 +8,8 @@ export interface UploadedFile {
   type: MediaType
   /** Library default alt (`media_files.alt_text`) when known. */
   alt?: string
+  /** Автор/источник изображения (`media_files.author`) — требование лицензий. */
+  author?: string
   /** Per-page override for cover/gallery bindings. */
   customAlt?: string
   /** Flat folder id; null/undefined = root (unfiled). */
@@ -42,6 +44,7 @@ export function toUploadedFile(file: UploadedFile | MediaItem): UploadedFile {
     size: file.size,
     type: file.type,
     alt: file.alt,
+    author: file.author,
     customAlt: file.customAlt,
     folderId: file.folderId,
   }

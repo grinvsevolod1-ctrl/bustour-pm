@@ -13,16 +13,17 @@ export async function PATCH(
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
-  let body: { alt?: unknown; folderId?: unknown }
+  let body: { alt?: unknown; author?: unknown; folderId?: unknown }
   try {
-    body = (await request.json()) as { alt?: unknown; folderId?: unknown }
+    body = (await request.json()) as { alt?: unknown; author?: unknown; folderId?: unknown }
   } catch {
     return NextResponse.json({ error: "Некорректный JSON." }, { status: 400 })
   }
 
   const hasAlt = "alt" in body
+  const hasAuthor = "author" in body
   const hasFolder = "folderId" in body
-  if (!hasAlt && !hasFolder) {
+  if (!hasAlt && !hasAuthor && !hasFolder) {
     return NextResponse.json({ error: "Нечего обновлять." }, { status: 400 })
   }
 
@@ -31,6 +32,11 @@ export async function PATCH(
     if (hasAlt) {
       const alt = typeof body.alt === "string" ? body.alt : ""
       updated = await mediaService.updateAlt(id, alt)
+      if (!updated) return NextResponse.json({ error: "Файл не найден." }, { status: 404 })
+    }
+    if (hasAuthor) {
+      const author = typeof body.author === "string" ? body.author : ""
+      updated = await mediaService.updateAuthor(id, author)
       if (!updated) return NextResponse.json({ error: "Файл не найден." }, { status: 404 })
     }
     if (hasFolder) {
@@ -58,9 +64,12 @@ export async function PATCH(
     entityId: id,
     summary: hasFolder
       ? `Перемещён медиафайл #${id}`
-      : `Обновлён alt медиа #${id}`,
+      : hasAuthor
+        ? `Обновлён автор медиа #${id}`
+        : `Обновлён alt медиа #${id}`,
     after: {
       ...(hasAlt ? { alt: typeof body.alt === "string" ? body.alt : "" } : {}),
+      ...(hasAuthor ? { author: typeof body.author === "string" ? body.author : "" } : {}),
       ...(hasFolder ? { folderId: updated?.folderId ?? null } : {}),
     },
   })
