@@ -85,7 +85,8 @@ async function main() {
   assert.equal(article!.metaShortDesc, `Анонс ${YEAR}`)
 
   const cmsSrc = readFileSync(join(process.cwd(), "lib/cms.ts"), "utf8")
-  assert.match(cmsSrc, /export async function getPublicSettings/)
+  // getPublicSettings обёрнут в React cache(): export const ... = cache(async ...)
+  assert.match(cmsSrc, /export (?:async function getPublicSettings|const getPublicSettings\s*=\s*cache\()/)
   assert.match(cmsSrc, /expandSettingsValues/)
 
   const expandLib = readFileSync(join(process.cwd(), "lib/expand-content-blocks.ts"), "utf8")

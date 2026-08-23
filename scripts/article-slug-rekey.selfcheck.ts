@@ -5,8 +5,12 @@ import path from "node:path"
 async function main() {
   const root = path.resolve(__dirname, "..")
   const src = fs.readFileSync(path.join(root, "app", "admin", "actions.ts"), "utf8")
-  // Туровые actions вынесены в tour-actions.ts — baseline-проверку читаем оттуда.
+  // Доменные actions вынесены из actions.ts: туры — tour-actions.ts,
+  // автобусы — bus-actions.ts, трансферы — transfer-actions.ts.
+  // Baseline-проверки читаем из фактических файлов.
   const tourSrc = fs.readFileSync(path.join(root, "app", "admin", "tour-actions.ts"), "utf8")
+  const busSrc = fs.readFileSync(path.join(root, "app", "admin", "bus-actions.ts"), "utf8")
+  const transferSrc = fs.readFileSync(path.join(root, "app", "admin", "transfer-actions.ts"), "utf8")
 
   assert.match(
     tourSrc,
@@ -14,12 +18,12 @@ async function main() {
     "tour save rekeyPageScopedContent tour:* exists (baseline)",
   )
   assert.match(
-    src,
+    busSrc,
     /rekeyPageScopedContent\(`bus:/,
     "bus save rekeyPageScopedContent bus:* exists (baseline)",
   )
   assert.match(
-    src,
+    transferSrc,
     /rekeyPageScopedContent\(`transfer:/,
     "transfer save rekeyPageScopedContent transfer:* exists (baseline)",
   )
