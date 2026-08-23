@@ -21,7 +21,11 @@ assert.deepEqual(resolveResortCardsLayout({ "hot.cities.rows": "1", "hot.cities.
 assert.equal(resortCardsPageSize(3, 2), 6)
 assert.equal(resortCardsPageSize(2, 1), 2)
 
-const admin = fs.readFileSync(path.join(root, "lib/admin-config.ts"), "utf8")
+// Фабрики полей вынесены из admin-config.ts в admin-config-fields.ts —
+// проверяем контракт по объединённому исходнику обоих файлов.
+const admin =
+  fs.readFileSync(path.join(root, "lib/admin-config.ts"), "utf8") +
+  fs.readFileSync(path.join(root, "lib/admin-config-fields.ts"), "utf8")
 assert.ok(admin.includes("citiesCardsFields"), "admin exports citiesCardsFields")
 assert.ok(admin.includes("cities.rows"), "admin has cities.rows field")
 assert.ok(admin.includes("cities.paginate"), "admin has cities.paginate field")

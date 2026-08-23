@@ -20,5 +20,8 @@ export async function RichContent({ html, className }: { html?: string | null; c
     const authors = await getAuthorsByUrls(imageSrcs)
     sanitized = injectImageAuthorCredits(sanitized, authors)
   }
-  return <div className={cn("prose-content", className)} dangerouslySetInnerHTML={{ __html: sanitized }} />
+  // Повторный sanitizeCmsHtml идемпотентен (подпись — наш экранированный <span>,
+  // span/class в allowlist), зато страж security-xss-allowlist-sanitize видит
+  // явный безопасный вызов прямо в точке рендера.
+  return <div className={cn("prose-content", className)} dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(sanitized) }} />
 }

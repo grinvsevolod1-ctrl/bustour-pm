@@ -28,7 +28,10 @@ function splitTransactionBlocks(body: string): string[] {
 
 async function main() {
   const root = path.resolve(__dirname, "..")
-  const actionsSrc = fs.readFileSync(path.join(root, "app", "admin", "actions.ts"), "utf8")
+  // Экшены автобусов и трансферов вынесены из actions.ts в отдельные файлы —
+  // читаем оба, чтобы контракт атомарных сейвов проверялся по актуальному коду.
+  const busActionsSrc = fs.readFileSync(path.join(root, "app", "admin", "bus-actions.ts"), "utf8")
+  const transferActionsSrc = fs.readFileSync(path.join(root, "app", "admin", "transfer-actions.ts"), "utf8")
   const queriesSrc = readQueriesSource(root)
 
   assert.match(
@@ -52,12 +55,13 @@ async function main() {
     "updateTransfer accepts executor param for transactions",
   )
 
-  const saveBusIdx = actionsSrc.indexOf("export async function saveBusAction")
-  assert.ok(saveBusIdx > 0, "saveBusAction present")
-  const saveBusBody = actionsSrc.slice(
+  const saveBusIdx = busActionsSrc.indexOf("export async function saveBusAction")
+  assert.ok(saveBusIdx >= 0, "saveBusAction present")
+  const saveBusNextExport = busActionsSrc.indexOf("export async function", saveBusIdx + 100)
+  const saveBusBody = busActionsSrc.slice(
     saveBusIdx,
     Math.min(
-      actionsSrc.indexOf("export async function", saveBusIdx + 100),
+      saveBusNextExport < 0 ? busActionsSrc.length : saveBusNextExport,
       saveBusIdx + 4500,
     ),
   )
@@ -72,12 +76,13 @@ async function main() {
   )
   assert.ok(hasBusCreateTx, "saveBusAction create tx: createBus + saveSettings visible/callus defaults share same tx")
 
-  const saveTransferIdx = actionsSrc.indexOf("export async function saveTransferAction")
-  assert.ok(saveTransferIdx > 0, "saveTransferAction present")
-  const saveTransferBody = actionsSrc.slice(
+  const saveTransferIdx = transferActionsSrc.indexOf("export async function saveTransferAction")
+  assert.ok(saveTransferIdx >= 0, "saveTransferAction present")
+  const saveTransferNextExport = transferActionsSrc.indexOf("export async function", saveTransferIdx + 100)
+  const saveTransferBody = transferActionsSrc.slice(
     saveTransferIdx,
     Math.min(
-      actionsSrc.indexOf("export async function", saveTransferIdx + 100),
+      saveTransferNextExport < 0 ? transferActionsSrc.length : saveTransferNextExport,
       saveTransferIdx + 5200,
     ),
   )

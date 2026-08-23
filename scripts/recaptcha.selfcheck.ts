@@ -110,12 +110,19 @@ async function main() {
   const prevBypassAlt = process.env.RECAPTCHA_BYPASS
   const prevNodeEnv = process.env.NODE_ENV
   const prevDeployEnv = process.env.BASTUR_DEPLOY_ENV
+  // deploy-env.ts учитывает VERCEL_ENV и NEXT_PUBLIC_SITE_URL (http:// ⇒ dev-стенд).
+  // Чистим их тоже, иначе окружение машины (localhost-URL в песочнице/CI)
+  // протекает в ассерты про production и даёт ложные падения.
+  const prevVercelEnv = process.env.VERCEL_ENV
+  const prevSiteUrlEnv = process.env.NEXT_PUBLIC_SITE_URL
   delete process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
   delete process.env.RECAPTCHA_SECRET_KEY
   delete process.env.BYPASS_RECAPTCHA
   delete process.env.RECAPTCHA_BYPASS
   delete process.env.NODE_ENV
   delete process.env.BASTUR_DEPLOY_ENV
+  delete process.env.VERCEL_ENV
+  delete process.env.NEXT_PUBLIC_SITE_URL
   assert.equal(captchaRequiredClientError(""), undefined, "no client block without keys")
   const res = await verifyRecaptchaToken("", { required: true })
   assert.equal(res.ok, true, "server skips without keys even if required")
@@ -235,9 +242,10 @@ async function main() {
   else delete process.env.NODE_ENV
   if (prevDeployEnv !== undefined) process.env.BASTUR_DEPLOY_ENV = prevDeployEnv
   else delete process.env.BASTUR_DEPLOY_ENV
-  // clean other side-effects from test above
-  const prevSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
-  if (prevSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
+  if (prevVercelEnv !== undefined) process.env.VERCEL_ENV = prevVercelEnv
+  else delete process.env.VERCEL_ENV
+  if (prevSiteUrlEnv !== undefined) process.env.NEXT_PUBLIC_SITE_URL = prevSiteUrlEnv
+  else delete process.env.NEXT_PUBLIC_SITE_URL
 
   console.log("recaptcha.selfcheck: ok — bypass rules verified (local/dev + env flag)")
 }

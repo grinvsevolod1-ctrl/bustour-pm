@@ -47,6 +47,12 @@
   Ключи CMS (`pages/info`, pageKey="info") НЕ переименовывались — меняются только URL.
   Selfcheck-и обновлены (пути + ассерт `getPublicSettings` = cache()-обёртка).
 
+- [x] Чистка CI-дублей: удалены устаревшие `ops/ci/ci.yml.txt` и `ops/ci/README.md`
+  (папка ops/ci удалена целиком). Единственный актуальный CI-конфиг — `ci-workflow.yml`
+  в корне: он лежит там намеренно, т.к. GitHub App v0 не имеет права `workflows`.
+  Для включения CI владелец должен один раз выполнить локально:
+  `git mv ci-workflow.yml .github/workflows/ci.yml && git commit && git push`.
+
 ### Аудит ISR-кэширования публичных страниц (выводы)
 
 - Весь публичный сайт работает в режиме SSR без кэша: `export const dynamic = "force-dynamic"`
