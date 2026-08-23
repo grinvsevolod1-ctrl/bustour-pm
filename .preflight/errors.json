@@ -1,21 +1,10 @@
 {
-  "startedAt": "2026-08-22T19:42:04.703Z",
-  "finishedAt": "2026-08-22T19:42:39.998Z",
+  "startedAt": "2026-08-23T04:42:10.659Z",
+  "finishedAt": "2026-08-23T04:43:04.339Z",
   "errors": [],
-  "warnings": [
-    {
-      "stage": "selfcheck",
-      "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/recaptcha.selfcheck.ts",
-      "line": null,
-      "column": null,
-      "code": "SELFCHECK_FAIL",
-      "message": "dev-stand (BASTUR_DEPLOY_ENV=dev, NODE_ENV=prod) auto-bypasses captcha",
-      "raw": "AssertionError [ERR_ASSERTION]: dev-stand (BASTUR_DEPLOY_ENV=dev, NODE_ENV=prod) auto-bypasses captcha\n\nfalse !== true\n\n    at main (/vercel/share/v0-project/scripts/recaptcha.selfcheck.ts:147:10) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\n[SmartTest] Selfcheck failed: scripts/recaptcha.selfcheck.ts (exit 1)\n"
-    }
-  ],
+  "warnings": [],
   "totals": {
     "errors": 0,
-    "warnings": 1
+    "warnings": 0
   }
 }
