@@ -17,7 +17,10 @@ const nextConfig = {
       {
         source: "/(.*)",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
+          // SAMEORIGIN (не DENY): предпросмотр страниц в админке рендерит сайт
+          // в <iframe> с того же origin. Защита от clickjacking с чужих сайтов
+          // сохраняется — фреймить могут только страницы самого сайта.
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
@@ -36,7 +39,8 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com https://tourvisor.ru https://*.tourvisor.ru",
               "connect-src 'self' https://www.google.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://mc.yandex.ru https://mc.yandex.by https://api.resend.com https://tourvisor.ru https://*.tourvisor.ru",
               "frame-src 'self' https://www.google.com https://www.youtube.com https://www.youtube-nocookie.com https://mc.yandex.ru https://mc.yandex.by https://yandex.ru https://*.yandex.ru https://yandex.by https://*.yandex.by https://tourvisor.ru https://*.tourvisor.ru",
-              "frame-ancestors 'none'",
+              // 'self' (не 'none'): iframe-предпросмотр в админке — same-origin.
+              "frame-ancestors 'self'",
               "form-action 'self'",
               "base-uri 'self'",
               "object-src 'none'",
