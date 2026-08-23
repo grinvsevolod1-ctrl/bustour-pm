@@ -1,21 +1,10 @@
 {
-  "startedAt": "2026-08-23T05:08:53.396Z",
-  "finishedAt": "2026-08-23T05:09:26.689Z",
+  "startedAt": "2026-08-23T05:17:12.745Z",
+  "finishedAt": "2026-08-23T05:18:08.353Z",
   "errors": [],
-  "warnings": [
-    {
-      "stage": "selfcheck",
-      "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/recaptcha.selfcheck.ts",
-      "line": null,
-      "column": null,
-      "code": "SELFCHECK_FAIL",
-      "message": "BYPASS_RECAPTCHA=1 is IGNORED on production deploy target (fail-closed)",
-      "raw": "AssertionError [ERR_ASSERTION]: BYPASS_RECAPTCHA=1 is IGNORED on production deploy target (fail-closed)\n\ntrue !== false\n\n    at main \u001b[90m(/vercel/share/v0-project/\u001b[39mscripts/recaptcha.selfcheck.ts:163:10\u001b[90m)\u001b[39m {\n  generatedMessage: \u001b[33mfalse\u001b[39m,\n  code: \u001b[32m'ERR_ASSERTION'\u001b[39m,\n  actual: \u001b[33mtrue\u001b[39m,\n  expected: \u001b[33mfalse\u001b[39m,\n  operator: \u001b[32m'strictEqual'\u001b[39m,\n  diff: \u001b[32m'simple'\u001b[39m\n}\n\n[SmartTest] Selfcheck failed: scripts/recaptcha.selfcheck.ts (exit 1)\n"
-    }
-  ],
+  "warnings": [],
   "totals": {
     "errors": 0,
-    "warnings": 1
+    "warnings": 0
   }
 }

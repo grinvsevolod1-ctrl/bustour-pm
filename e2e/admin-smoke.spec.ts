@@ -84,9 +84,17 @@ test.describe("admin smoke", () => {
         }, "/images/karelia-lake.png")
       }
 
-      // --- Price
+      // --- Price: поле лежит внутри свёрнутого <details> «Дополнительно» —
+      // сначала раскрываем блок, иначе input невидим и fill зависает.
       const price = page.locator('input[name="priceAmount"]')
-      if (await price.count()) await price.first().fill("199")
+      if (await price.count()) {
+        await page
+          .locator("details:has(input[name='priceAmount']) > summary")
+          .first()
+          .click()
+        await expect(price.first()).toBeVisible({ timeout: 10_000 })
+        await price.first().fill("199")
+      }
 
       // --- Submit and wait for the admin redirect (…/admin/tours/{id}?notice=…)
       await page.locator('#tour-form button[type="submit"], button[form="tour-form"]').first().click()
