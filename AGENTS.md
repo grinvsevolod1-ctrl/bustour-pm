@@ -12,7 +12,8 @@
 
 - **Прод:** https://testnetnext.top (временный домен; боевой будет `bus-tour.by` —
   смена домена = поменять `NEXT_PUBLIC_SITE_URL` в `.env` и передеплоить)
-- **Репозиторий:** github.com/grinvsevolod1-ctrl/BUSTOUR, рабочая ветка `main`
+- **Репозиторий:** github.com/grinvsevolod1-ctrl/bustour-pm, рабочая ветка `main`
+  (старый репозиторий BUSTOUR удалён — единственный правильный это bustour-pm)
 - **Хостинг:** собственный VPS (Ubuntu), nginx → pm2 → Next.js standalone на
   порту 3000, PostgreSQL 18 на той же машине. НЕ Vercel-хостинг.
 
