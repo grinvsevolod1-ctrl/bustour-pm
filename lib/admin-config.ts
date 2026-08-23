@@ -231,6 +231,39 @@ export const pageSettingsGroups: Record<string, {
       },
     ],
   },
+  info: {
+    heading: "Страница «Полезная информация» (блог)",
+    url: "/info",
+    groups: [
+      {
+        heading: "SEO и мета",
+        fields: [
+          { key: "info.metaTitle", label: "Title (SEO)", type: "shortcode-input", placeholder: "Полезная информация — БасТур" },
+          ...seoPreviewDescriptionFields("info"),
+          {
+            key: "info.metaKeywords",
+            label: "Keywords",
+            type: "shortcode-input",
+            hint: "Через запятую. Попадают в meta keywords.",
+          },
+          { key: "info.metaImage", label: "Превью / OG изображение", type: "media" },
+        ],
+      },
+      {
+        heading: "Шапка страницы",
+        fields: [
+          { key: "info.title", label: "Заголовок", type: "shortcode-input", placeholder: "Полезная информация" },
+          {
+            key: "info.intro",
+            label: "Подзаголовок / вводный текст",
+            type: "shortcode-textarea-multiline",
+            rows: 3,
+            hint: "Необязательно. Показывается под заголовком списка статей.",
+          },
+        ],
+      },
+    ],
+  },
   dictionary: {
     heading: "Страница «Туристический словарь»",
     url: "/info/dictionary",

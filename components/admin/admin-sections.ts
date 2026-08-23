@@ -288,6 +288,14 @@ export const ADMIN_SECTIONS: AdminSectionEntry[] = [
     icon: BookOpen,
   },
   {
+    href: '/admin/pages/info',
+    label: 'Блог (полезная информация)',
+    description: 'SEO и заголовок страницы списка статей /info',
+    synonyms: ['блог', 'полезная информация', 'статьи', 'список статей', 'info'],
+    group: 'Инфо-страницы',
+    icon: ScrollText,
+  },
+  {
     href: '/admin/media',
     label: 'Медиагалерея',
     description: 'Все изображения и файлы сайта',

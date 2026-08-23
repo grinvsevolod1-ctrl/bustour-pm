@@ -130,6 +130,7 @@ export function buildSections(role: AdminRole): NavSection[] {
       label: 'Контент и SEO',
       items: [
         leaf('/admin/articles', 'Статьи и блог', Newspaper),
+        leaf('/admin/pages/info', 'Страница блога (SEO)', Newspaper),
         leaf('/admin/reviews', 'Отзывы', Star),
         branch('info', 'Инфо-страницы', Building2, [
           leaf('/admin/pages/company', 'Компания', Building2),

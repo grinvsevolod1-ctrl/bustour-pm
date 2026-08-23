@@ -50,6 +50,7 @@ type MediaRecordRow = {
   size: string
   type: string
   altText?: string | null
+  author?: string | null
   folderId?: string | null
   status?: string | null
   processingStage?: string | null
@@ -317,7 +318,7 @@ async function getAllMedia(filters: MediaListFilters): Promise<MediaItem[]> {
   const order =
     filters.sort === "createdAt:asc" ? "ORDER BY created_at ASC" : "ORDER BY created_at DESC"
   const result = await client.execute({
-    sql: `SELECT id, url, name, size, type, alt_text, folder_id, status, processing_stage, error_message, mime_type FROM media_files${where} ${order}`,
+    sql: `SELECT id, url, name, size, type, alt_text, author, folder_id, status, processing_stage, error_message, mime_type FROM media_files${where} ${order}`,
     args,
   })
   return result.rows.map((row) =>
@@ -328,6 +329,7 @@ async function getAllMedia(filters: MediaListFilters): Promise<MediaItem[]> {
       size: String(row.size),
       type: String(row.type),
       altText: row.alt_text == null ? null : String(row.alt_text),
+      author: row.author == null ? null : String(row.author),
       folderId: row.folder_id == null ? null : String(row.folder_id),
       status: row.status == null ? null : String(row.status),
       processingStage: row.processing_stage == null ? null : String(row.processing_stage),
