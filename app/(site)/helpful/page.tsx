@@ -3,7 +3,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { PageExtras } from "@/components/site/page-extras"
 import { ArticleCategorySection } from "@/components/site/article-category-section"
-import { ParsedText } from "@/components/site/parsed-text"
+import { CmsText } from "@/components/site/cms-text"
 import { getArticles } from "@/lib/queries"
 import { getPublicSettings } from "@/lib/cms"
 import { metadataFromSettings } from "@/lib/seo-metadata"
@@ -41,19 +41,7 @@ export default async function InfoPage() {
         <div className="space-y-8">
           <div className="space-y-3">
             <TitleUnderline as="h1">{title}</TitleUnderline>
-            {intro ? (
-              <div className="max-w-3xl space-y-2 text-muted-foreground leading-relaxed">
-                {intro
-                  .split("\n")
-                  .map((line) => line.trim())
-                  .filter(Boolean)
-                  .map((line, index) => (
-                    <p key={index}>
-                      <ParsedText text={line} />
-                    </p>
-                  ))}
-              </div>
-            ) : null}
+            <CmsText text={intro} className="max-w-3xl text-muted-foreground leading-relaxed" />
           </div>
           {ARTICLE_CATEGORIES.map((category) => {
             const categoryArticles = grouped.get(category) ?? []

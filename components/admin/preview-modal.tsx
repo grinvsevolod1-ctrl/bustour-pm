@@ -30,8 +30,9 @@ export function PreviewModal({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Popup className="fixed inset-3 z-50 m-auto flex max-h-[calc(100vh-1.5rem)] w-auto max-w-6xl flex-col overflow-hidden rounded-lg border border-admin-border bg-white shadow-xl outline-none">
+        {/* z-[100]: оверлеи админки должны быть выше sticky-шапок (см. AGENTS.md, «Грабли» №2) */}
+        <Dialog.Backdrop className="fixed inset-0 z-[100] bg-black/40" />
+        <Dialog.Popup className="fixed inset-3 z-[100] m-auto flex max-h-[calc(100vh-1.5rem)] w-auto max-w-6xl flex-col overflow-hidden rounded-lg border border-admin-border bg-white shadow-xl outline-none">
           <div className="flex items-center justify-between gap-3 border-b border-admin-border px-4 py-3">
             <Dialog.Title className="truncate text-sm font-semibold text-admin-fg">{title}</Dialog.Title>
             <div className="flex shrink-0 items-center gap-1">

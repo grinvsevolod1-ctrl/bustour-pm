@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { UserCircle2 } from "lucide-react"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { PageExtras } from "@/components/site/page-extras"
+import { CmsText } from "@/components/site/cms-text"
 import { getStaff } from "@/lib/queries"
 import { getPublicSettings } from "@/lib/cms"
 import { metadataFromSettings } from "@/lib/seo-metadata"
@@ -35,11 +36,10 @@ export default async function StaffPage() {
               {settings["staff.title"] || "Сотрудники"}
             </h1>
           </div>
-          {settings["staff.intro"] && (
-            <p className="w-full text-base leading-relaxed text-ink-muted text-pretty break-words">
-              {settings["staff.intro"]}
-            </p>
-          )}
+          <CmsText
+            text={settings["staff.intro"]}
+            className="w-full text-base leading-relaxed text-ink-muted text-pretty break-words"
+          />
 
           {members.length === 0 ? (
             <p className="text-base text-ink-muted">Информация о сотрудниках скоро появится.</p>

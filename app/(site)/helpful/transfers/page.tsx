@@ -10,6 +10,7 @@ import { getTransfers } from "@/lib/queries"
 import { metadataFromSettings } from "@/lib/seo-metadata"
 import { ParsedText } from "@/components/site/parsed-text"
 import { RichContent } from "@/components/site/rich-content"
+import { CmsText } from "@/components/site/cms-text"
 import { isCallusSectionKey } from "@/lib/multipliable-sections"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -63,13 +64,10 @@ function DestCard({
 }
 
 function TextBlock({ text }: { text: string }) {
+  // CmsText сам различает HTML из rich-редактора и legacy plain text.
   return (
-    <section className="space-y-4 text-base leading-relaxed text-ink">
-      {text.split("\n").map((line: string, i: number) => (
-        <p key={i}>
-          <ParsedText text={line} />
-        </p>
-      ))}
+    <section className="text-base leading-relaxed text-ink">
+      <CmsText text={text} className="space-y-4" />
     </section>
   )
 }

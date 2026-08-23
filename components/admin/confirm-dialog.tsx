@@ -30,8 +30,9 @@ export function ConfirmDialog({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Popup className="fixed inset-0 z-50 m-auto h-fit w-[calc(100%-2rem)] max-w-md rounded-lg border border-admin-border bg-white p-5 shadow-xl outline-none">
+        {/* z-[100]: sticky-сайдбар админки создаёт stacking context, оверлеи ниже z-[100] перекрываются шапками контента (см. AGENTS.md, «Грабли» №2) */}
+        <Dialog.Backdrop className="fixed inset-0 z-[100] bg-black/40" />
+        <Dialog.Popup className="fixed inset-0 z-[100] m-auto h-fit w-[calc(100%-2rem)] max-w-md rounded-lg border border-admin-border bg-white p-5 shadow-xl outline-none">
           <Dialog.Title className="text-base font-semibold text-admin-fg">{title}</Dialog.Title>
           <Dialog.Description className="mt-2 text-sm leading-relaxed text-admin-fg-muted">
             {message}

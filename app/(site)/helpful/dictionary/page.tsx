@@ -11,6 +11,7 @@ import {
   resolveDictionaryTabsOrder,
 } from "@/lib/dictionary-page-cms"
 import { DictionaryContent, type DictionaryEntry } from "./dictionary-content"
+import { CmsText } from "@/components/site/cms-text"
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings()
@@ -39,11 +40,11 @@ export default async function DictionaryPage() {
     settings["dictionary.title"]?.trim() || "Туристический словарь",
     dict,
   )
-  const intro = parseShortcodes(
+  // Шорткоды в intro применяет CmsText (RichContent/ParsedText), поэтому
+  // здесь оставляем сырое значение из CMS.
+  const intro =
     settings["dictionary.intro"]?.trim() ||
-      "Отправляясь к представителю туристического агентства, дабы рассказать ему о своих желаниях и возможностях, чтобы тот подобрал вам тур, который вы хотите, — необходимо общаться с турагентами на одном языке. Насколько точно турагент воплотит в реальность все ваши пожелания по поводу грядущего отдыха, во многом зависит от того, насколько точно и понятно вы их изложите.\nГоворить с профессионалом на одном языке вам поможет наш словарь туристических терминов, в котором мы собрали понятия, общепринятые в современном международном туризме.",
-    dict,
-  )
+    "Отправляясь к представителю туристического агентства, дабы рассказать ему о своих желаниях и возможностях, чтобы тот подобрал вам тур, который вы хотите, — необходимо общаться с турагентами на одном языке. Насколько точно турагент воплотит в реальность все ваши пожелания по поводу грядущего отдыха, во многом зависит от того, насколько точно и понятно вы их изложите.\nГоворить с профессионалом на одном языке вам поможет наш словарь туристических терминов, в котором мы собрали понятия, общепринятые в современном международном туризме."
 
   return (
     <>
@@ -59,7 +60,7 @@ export default async function DictionaryPage() {
         <div className="space-y-8">
           <section className="space-y-6">
             <TitleUnderline as="h1">{title}</TitleUnderline>
-            {intro ? <p className="text-base leading-relaxed text-ink whitespace-pre-line">{intro}</p> : null}
+            <CmsText text={intro} className="text-base leading-relaxed text-ink" />
           </section>
           <DictionaryContent entries={entries} />
         </div>

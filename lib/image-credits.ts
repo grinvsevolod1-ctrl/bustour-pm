@@ -4,6 +4,8 @@
 
 const IMG_TAG_RE = /<img\b[^>]*>/gi
 const SRC_RE = /\bsrc\s*=\s*"([^"]*)"/i
+const CLASS_RE = /\bclass\s*=\s*"([^"]*)"/i
+const ALIGN_RE = /\bseo-align-(left|right|center|full)\b/
 
 /** Собирает список src всех <img> в готовом HTML. */
 export function collectImageSrcs(html: string): string[] {
@@ -34,6 +36,10 @@ export function injectImageAuthorCredits(html: string, authorsByUrl: Map<string,
     const src = SRC_RE.exec(imgTag)?.[1]
     const author = src ? authorsByUrl.get(src) : undefined
     if (!author) return imgTag
-    return `${imgTag}<span class="image-credit">Фото: ${escapeHtml(author)}</span>`
+    // Подпись должна повторять выравнивание картинки: у обтекаемых (float)
+    // изображений блочный span иначе «уплывает» в начало текстового потока.
+    const align = ALIGN_RE.exec(CLASS_RE.exec(imgTag)?.[1] ?? "")?.[1]
+    const creditClass = align ? `image-credit image-credit--${align}` : "image-credit"
+    return `${imgTag}<span class="${creditClass}">Фото: ${escapeHtml(author)}</span>`
   })
 }
