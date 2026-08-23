@@ -12,7 +12,8 @@ import {
 } from "../components/admin/page-sections-manager"
 
 const root = process.cwd()
-const src = readFileSync(join(root, "components/admin/page-sections-manager.tsx"), "utf8")
+// Логика подписки/очистки вынесена в page-sections/draft-store.ts — проверяем её там
+const src = readFileSync(join(root, "components/admin/page-sections/draft-store.ts"), "utf8")
 
 assert.ok(src.includes("releaseDraftStore(storeId)"), "unsubscribe calls releaseDraftStore")
 assert.ok(src.includes("queueMicrotask"), "Strict Mode-safe microtask prune")

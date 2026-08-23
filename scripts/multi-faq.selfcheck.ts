@@ -98,8 +98,11 @@ assert.deepEqual(buildFaqFormIds("hot", ["faq", "faq2"], 0), [
   assert.equal(grouped[1]!.title, "Визы")
 }
 
+// Мультипликуемость faq задаётся реестром (allowMultiple), менеджер читает его через isMultipliableSectionBase
+const registry = fs.readFileSync(path.join(root, "lib/section-registry.ts"), "utf8")
+assert.ok(/id:\s*"faq",[^\n]*allowMultiple:\s*true/.test(registry), "faq multipliable in section registry")
 const mgr = fs.readFileSync(path.join(root, "components/admin/page-sections-manager.tsx"), "utf8")
-assert.ok(mgr.includes('"faq"'), "faq multipliable in PageSectionsManager")
+assert.ok(mgr.includes("isMultipliableSectionBase"), "manager uses registry helper for multipliable sections")
 
 const editor = fs.readFileSync(path.join(root, "components/admin/faq-editor.tsx"), "utf8")
 assert.ok(!editor.includes("Блок ЧаВо"), "Блок ЧаВо removed from FaqEditor")

@@ -62,9 +62,13 @@ const countryAdmin = read("app/admin/(protected)/countries/[id]/page.tsx")
 assert.ok(countryAdmin.includes("DESTINATION_DEFAULT_SECTION_ORDER"), "country admin uses shared default")
 
 const mgr = read("components/admin/page-sections-manager.tsx")
-assert.ok(mgr.includes('"callus"'), "manager mockup for callus")
-assert.ok(mgr.includes("Добавить секцию"), "recovery via Add section")
+assert.ok(mgr.includes('"callus"'), "manager handles callus slot fallback")
 assert.ok(mgr.includes("isMultipliableSectionBase"), "multipliable picker uses registry helper")
+// Мокапы и пикер «Добавить секцию» вынесены в page-sections/* — проверяем их там
+const mockups = read("components/admin/page-sections/section-mockups.tsx")
+assert.ok(mockups.includes('"callus"'), "mockup for callus present")
+const picker = read("components/admin/page-sections/add-section-picker.tsx")
+assert.ok(picker.includes("Добавить секцию"), "recovery via Add section")
 
 // Фабрики конфигов страниц вынесены в admin-page-configs.ts — проверяем оба файла суммарно.
 const configsSrc = read("lib/admin-config.ts") + read("lib/admin-page-configs.ts")
