@@ -49,7 +49,8 @@ assert.match(rich, /Развернуть/)
 const fields = read("components/admin/section-fields-form.tsx")
 assert.match(fields, /collapseEmpty/)
 
-const config = read("lib/admin-config.ts")
+// Типы полей вынесены из lib/admin-config.ts в lib/admin-config-types.ts
+const config = read("lib/admin-config-types.ts")
 assert.match(config, /collapseEmpty\?:/)
 
 const psf = read("components/admin/page-settings-form.tsx")

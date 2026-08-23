@@ -1,21 +1,10 @@
 {
-  "startedAt": "2026-08-23T07:45:06.954Z",
-  "finishedAt": "2026-08-23T07:45:13.814Z",
+  "startedAt": "2026-08-23T08:43:45.589Z",
+  "finishedAt": "2026-08-23T08:44:43.504Z",
   "errors": [],
-  "warnings": [
-    {
-      "stage": "selfcheck",
-      "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/article-slug-rekey.selfcheck.ts",
-      "line": null,
-      "column": null,
-      "code": "SELFCHECK_FAIL",
-      "message": " | [SmartTest] Selfcheck failed: scripts/article-slug-rekey.selfcheck.ts (exit 1) | ",
-      "raw": "    'import { redirect } from \"next/navigation\"\\n' +\n    'import { headers } from \"next/headers\"\\n' +\n    'import { clientIpFromHeaders, consumePersistentRateLimit, resetPersistentRateLimit } from \"@/lib/rate-limit\"\\n' +\n    'import { login, logout, requireAdmin, requireCapability } from \"@/lib/auth\"\\n' +\n    'import { writeAudit, auditTourSnapshot } from \"@/lib/admin-audit\"\\n' +\n    'import { safeInternalNext } from \"@/lib/safe-next\"\\n' +\n    'import { isRedirectError, mutateThenRedirect } from \"@/lib/admin-redirect\"\\n' +\n    '...',\n  expected: /rekeyPageScopedContent\\(`bus:/,\n  operator: 'match',\n  diff: 'simple'\n}\n\n[SmartTest] Selfcheck failed: scripts/article-slug-rekey.selfcheck.ts (exit 1)\n"
-    }
-  ],
+  "warnings": [],
   "totals": {
     "errors": 0,
-    "warnings": 1
+    "warnings": 0
   }
 }

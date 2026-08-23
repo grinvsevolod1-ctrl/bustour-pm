@@ -2,6 +2,9 @@
  * Shared site schema.org builders + public wiring.
  * Run: npx tsx scripts/site-schema.selfcheck.ts
  */
+// ВАЖНО: env-прелюдия должна идти первым импортом — lib/canonical-origin
+// фиксирует origin из env в момент своего импорта.
+import "./_selfcheck-site-env"
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
