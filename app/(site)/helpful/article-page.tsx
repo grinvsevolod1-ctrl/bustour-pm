@@ -6,7 +6,7 @@ import { TitleUnderline } from "@/components/site/title-underline"
 import { formatArticleDate } from "@/lib/article-date"
 import { articleUrl } from "@/lib/article-url"
 import { getPublicSettings, getSiteOrigin, isOn } from "@/lib/cms"
-import { callusSlotsFromOrder } from "@/lib/multipliable-sections"
+import { isCallusSectionKey } from "@/lib/multipliable-sections"
 import { getArticle, getArticleById } from "@/lib/queries"
 import { previewAllows, readAuthorizedPreview } from "@/lib/preview-access"
 import { ParsedText } from "@/components/site/parsed-text"
@@ -42,6 +42,29 @@ export async function ArticlePageContent({
     return Boolean(settings[`${pageKey}.seoHtml${suffix}`])
   })
 
+  // Чередование секций по порядку из админки: seo-тексты и faq/callus идут
+  // единым потоком (раньше все тексты рендерились подряд, а FAQ/«Перезвоните
+  // нам» — всегда после них, из-за чего перестановка секций «не работала»).
+  type FlowItem = { type: "seo"; key: string } | { type: "extras"; keys: string[]; hasFaq: boolean }
+  const flow: FlowItem[] = []
+  let faqTaken = false
+  for (const key of sectionOrder) {
+    if (/^seo\d*$/.test(key)) {
+      if (visibleSeoKeys.includes(key)) flow.push({ type: "seo", key })
+      continue
+    }
+    const isFaq = (key === "faq" || /^faq\d+$/.test(key)) && !faqTaken
+    if (!isFaq && !isCallusSectionKey(key)) continue
+    if (isFaq) faqTaken = true
+    const last = flow[flow.length - 1]
+    if (last?.type === "extras") {
+      last.keys.push(key)
+      if (isFaq) last.hasFaq = true
+    } else {
+      flow.push({ type: "extras", keys: [key], hasFaq: isFaq })
+    }
+  }
+
   const articleSchema = buildArticleJsonLd({
     origin,
     brandName: settings["site.brand"] || "БасТур",
@@ -69,15 +92,28 @@ export async function ArticlePageContent({
           </h1>
           <div className="mt-6 space-y-4 text-base leading-relaxed text-ink">
             {visibleSeoKeys.length ? (
-              visibleSeoKeys.map((key) => {
-                const suffix = key === "seo" ? "" : key.replace("seo", "")
-                const html = settings[`${pageKey}.seoHtml${suffix}`] ?? ""
-                const title = settings[`${pageKey}.seoTitle${suffix}`] ?? ""
+              flow.map((item) => {
+                if (item.type === "seo") {
+                  const suffix = item.key === "seo" ? "" : item.key.replace("seo", "")
+                  const html = settings[`${pageKey}.seoHtml${suffix}`] ?? ""
+                  const title = settings[`${pageKey}.seoTitle${suffix}`] ?? ""
+                  return (
+                    <section key={item.key} className="space-y-4">
+                      {title ? <TitleUnderline as="h2">{title}</TitleUnderline> : null}
+                      <RichContent html={html} />
+                    </section>
+                  )
+                }
                 return (
-                  <section key={key} className="space-y-4">
-                    {title ? <TitleUnderline as="h2">{title}</TitleUnderline> : null}
-                    <RichContent html={html} />
-                  </section>
+                  <PageExtras
+                    key={`extras-${item.keys.join("-")}`}
+                    pageKey={pageKey}
+                    faqScope={pageKey}
+                    sectionPrefix={pageKey}
+                    callusSlots={item.keys.filter(isCallusSectionKey)}
+                    showFaq={item.hasFaq}
+                    bare
+                  />
                 )
               })
             ) : article.contentHtml ? (
@@ -88,13 +124,15 @@ export async function ArticlePageContent({
           </div>
         </article>
       </main>
-      <PageExtras
-        pageKey={pageKey}
-        faqScope={pageKey}
-        sectionPrefix={pageKey}
-        callusSlots={callusSlotsFromOrder(sectionOrder)}
-        showFaq={sectionOrder.some((k) => k === "faq" || /^faq\d+$/.test(k))}
-      />
+      {!visibleSeoKeys.length ? (
+        <PageExtras
+          pageKey={pageKey}
+          faqScope={pageKey}
+          sectionPrefix={pageKey}
+          callusSlots={sectionOrder.filter(isCallusSectionKey)}
+          showFaq={sectionOrder.some((k) => k === "faq" || /^faq\d+$/.test(k))}
+        />
+      ) : null}
     </>
   )
 }
