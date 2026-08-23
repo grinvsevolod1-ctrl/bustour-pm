@@ -14,6 +14,7 @@ import {
   resolveMemosTabsOrder,
 } from "@/lib/memos-page-cms"
 import { MemosContent, type MemoTab } from "./memos-content"
+import { CmsText } from "@/components/site/cms-text"
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings()
@@ -53,11 +54,10 @@ export default async function MemosPage() {
   }))
 
   const title = parseShortcodes(settings["memos.title"]?.trim() || "Памятки туристу", dict)
-  const intro = parseShortcodes(
+  // Шорткоды в intro применяет CmsText (RichContent/ParsedText).
+  const intro =
     settings["memos.intro"]?.trim() ||
-      "В этом разделе вы можете ознакомиться и скачать памятки для туристов, выезжающих в разные страны.",
-    dict,
-  )
+    "В этом разделе вы можете ознакомиться и скачать памятки для туристов, выезжающих в разные страны."
   const headerImage = settings["memos.headerImage"]?.trim() || ""
 
   return (
@@ -79,7 +79,7 @@ export default async function MemosPage() {
               </div>
             ) : null}
             <TitleUnderline as="h1">{title}</TitleUnderline>
-            {intro ? <p className="text-base leading-relaxed text-ink whitespace-pre-line">{intro}</p> : null}
+            <CmsText text={intro} className="text-base leading-relaxed text-ink" />
           </section>
           <MemosContent tabs={tabs} />
         </div>

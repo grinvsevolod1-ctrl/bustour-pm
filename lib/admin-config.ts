@@ -139,7 +139,7 @@ export const pageSettingsGroups: Record<string, {
         heading: "Тексты страницы",
         fields: [
           { key: "staff.title", label: "Заголовок страницы (H1)", type: "shortcode-input" },
-          { key: "staff.intro", label: "Вводный текст под заголовком", type: "shortcode-textarea-multiline", rows: 3 },
+          { key: "staff.intro", label: "Вводный текст под заголовком", type: "richtext" },
         ],
       },
     ],
@@ -160,7 +160,7 @@ export const pageSettingsGroups: Record<string, {
         heading: "Тексты страницы",
         fields: [
           { key: "licenses.title", label: "Заголовок страницы (H1)", type: "shortcode-input" },
-          { key: "licenses.intro", label: "Вводный текст под заголовком", type: "shortcode-textarea-multiline", rows: 3 },
+          { key: "licenses.intro", label: "Вводный текст под заголовком", type: "richtext" },
         ],
       },
     ],
@@ -256,8 +256,7 @@ export const pageSettingsGroups: Record<string, {
           {
             key: "info.intro",
             label: "Подзаголовок / вводный текст",
-            type: "shortcode-textarea-multiline",
-            rows: 3,
+            type: "richtext",
             hint: "Необязательно. Показывается под заголовком списка статей.",
           },
         ],
@@ -282,9 +281,8 @@ export const pageSettingsGroups: Record<string, {
           { key: "dictionary.title", label: "Заголовок страницы (H1)", type: "shortcode-input" },
           {
             key: "dictionary.intro",
-            label: "Вводный текст (абзацы разделяются переводом строки)",
-            type: "shortcode-textarea-multiline",
-            rows: 4,
+            label: "Вводный текст",
+            type: "richtext",
           },
         ],
       },
@@ -315,8 +313,7 @@ export const pageSettingsGroups: Record<string, {
           {
             key: "memos.intro",
             label: "Подзаголовок / вводный текст",
-            type: "shortcode-textarea-multiline",
-            rows: 3,
+            type: "richtext",
           },
           {
             key: "memos.headerImage",
@@ -362,9 +359,8 @@ export const pageSettingsGroups: Record<string, {
           { key: "transfers.title", label: "Заголовок страницы (H1)", type: "shortcode-input" },
           {
             key: "transfers.intro",
-            label: "Вводный текст (абзацы разделяются переводом строки)",
-            type: "shortcode-textarea-multiline",
-            rows: 4,
+            label: "Вводный текст",
+            type: "richtext",
           },
           { key: "transfers.airportsTitle", label: "Заголовок блока аэропортов (H2)", type: "shortcode-input" },
           {
@@ -374,9 +370,8 @@ export const pageSettingsGroups: Record<string, {
           },
           {
             key: "transfers.outro",
-            label: "Нижний текстовый блок (абзацы разделяются переводом строки)",
-            type: "shortcode-textarea-multiline",
-            rows: 4,
+            label: "Нижний текстовый блок",
+            type: "richtext",
           },
         ],
       },
@@ -545,7 +540,7 @@ export const settingsGroups: SettingsGroup[] = [
   {
     heading: "Уведомления о заявках",
     description:
-      "Куда отправлять новые заявки с сайта (бронирования, звонки, аренда). E-mail работает через Resend (ключ RESEND_API_KEY в окружении), Telegram — через бота (TELEGRAM_BOT_TOKEN).",
+      "Куда отправлять новые заявки с сайта (бронирования, звонки, аренд��). E-mail работает через Resend (ключ RESEND_API_KEY в окружении), Telegram — через бота (TELEGRAM_BOT_TOKEN).",
     fields: [
       {
         key: "notify.emailTo",

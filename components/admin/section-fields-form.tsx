@@ -13,6 +13,31 @@ import { ShortcodeInput } from "@/components/admin/shortcode-input"
 import { CaptchaConfigStatusButton } from "@/components/admin/captcha-config-status"
 import type { CaptchaWiringStatus } from "@/lib/recaptcha"
 
+/** Legacy plain text (переводы строк) → HTML-абзацы для rich-редактора.
+ *  Без конвертации TipTap склеивает многострочный текст в один абзац. */
+function looksLikeHtml(s: string) {
+  return /<\/?[a-z][\s\S]*>/i.test(s)
+}
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
+
+function richDefaultValue(raw: string) {
+  const value = raw.trim()
+  if (!value || looksLikeHtml(value)) return raw
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => `<p>${escapeHtml(line)}</p>`)
+    .join("")
+}
+
 const optionDotClass: Record<NonNullable<SettingFieldOption["tone"]>, string> = {
   info: "bg-blue-500",
   warning: "bg-amber-500",
@@ -125,7 +150,7 @@ export function FieldsGrid({
                 {field.type === "richtext" ? (
                   <RichEditor
                     name={field.key}
-                    defaultValue={settings[field.key] ?? ""}
+                    defaultValue={richDefaultValue(settings[field.key] ?? "")}
                     placeholder={field.placeholder ?? ""}
                     required={field.required}
                     form={form}

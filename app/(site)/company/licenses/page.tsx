@@ -3,6 +3,7 @@ import { FileText } from "lucide-react"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { ImageLightbox } from "@/components/site/image-lightbox"
 import { PageExtras } from "@/components/site/page-extras"
+import { CmsText } from "@/components/site/cms-text"
 import { getCertSectionsWithItems } from "@/lib/queries"
 import { getPublicSettings } from "@/lib/cms"
 import { metadataFromSettings } from "@/lib/seo-metadata"
@@ -38,11 +39,11 @@ export default async function LicensesPage() {
           <h1 className="border-b-2 border-brand pb-2 text-2xl font-semibold text-ink md:text-3xl text-balance">
             {settings["licenses.title"] || "Лицензии и сертификаты"}
           </h1>
-          {settings["licenses.intro"] && (
-            <div className="space-y-4 whitespace-pre-line text-base leading-relaxed text-ink text-pretty">
-              {settings["licenses.intro"]}
-            </div>
-          )}
+          <CmsText
+            text={settings["licenses.intro"]}
+            className="text-base leading-relaxed text-ink text-pretty"
+            paragraphClassName="mb-2 last:mb-0"
+          />
         </section>
 
         {sections.length === 0 ? (
