@@ -74,7 +74,9 @@ export function PageFaqForm({
           if (name === "__storage") continue
           entries.push([name, value])
         }
-        if (!entries.length) return
+        // Почему без раннего return при пустых entries: namespace — сигнал
+        // «слот отправлен». Пустой слот = явное удаление всех вопросов;
+        // если namespace не отправить, сервер не узнает об удалении.
         const namespace = `__faqData:${storage}`
         const existing = aggregateFd.get(namespace)
         const all = existing ? JSON.parse(String(existing)) as [string, FormDataEntryValue][] : [] as [string, FormDataEntryValue][]

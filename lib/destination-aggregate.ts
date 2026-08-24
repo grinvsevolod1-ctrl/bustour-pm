@@ -10,11 +10,17 @@ type Aggregate = {
   id?: number
   oldPageKey?: string
   settings: Record<string, string>
-  faqs: Parameters<typeof replacePageFaqs>[1]
+  /**
+   * Legacy-FAQ из главной формы. `undefined` = в форме не было faq-полей —
+   * FAQ по умолчанию НЕ трогаем. Раньше сюда всегда попадал результат
+   * parseFaqGroups(formData) главной формы (всегда []), и любое сохранение
+   * без dirty FAQ-редактора стирало FAQ страницы.
+   */
+  faqs?: Parameters<typeof replacePageFaqs>[1]
   faqsByStorage?: NamespacedFaq[]
 }
 
-async function applyNamespacedFaqs(namespaced: NamespacedFaq[] | undefined, defaultPageKey: string, defaultFaqs: Parameters<typeof replacePageFaqs>[1], tx: DbExecutor) {
+async function applyNamespacedFaqs(namespaced: NamespacedFaq[] | undefined, defaultPageKey: string, defaultFaqs: Parameters<typeof replacePageFaqs>[1] | undefined, tx: DbExecutor) {
   const seenStorages = new Set<string>()
   if (namespaced && namespaced.length) {
     for (const entry of namespaced) {
@@ -22,7 +28,9 @@ async function applyNamespacedFaqs(namespaced: NamespacedFaq[] | undefined, defa
       await replacePageFaqs(entry.storage, entry.groups, tx)
     }
   }
-  if (!seenStorages.has(defaultPageKey)) {
+  // Fallback только для legacy-форм, где faq-поля лежат в главной форме.
+  // Если faq-полей в форме не было (defaultFaqs === undefined) — не трогаем.
+  if (defaultFaqs !== undefined && !seenStorages.has(defaultPageKey)) {
     await replacePageFaqs(defaultPageKey, defaultFaqs, tx)
   }
 }

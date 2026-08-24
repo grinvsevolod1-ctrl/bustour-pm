@@ -37,8 +37,13 @@ export function TourAdditionalBlock({
     ? currencies
     : [{ id: 0, code: currencyCode || "BYN", label: currencyCode || "BYN", symbol: "—", rate: 1, isBase: true, sortOrder: 0 }]
 
+  // Почему: если цена обязательна и ещё не заполнена (новый тур), блок должен
+  // быть раскрыт сразу — иначе обязательное поле спрятано и submit блокируется
+  // нативной валидацией без видимой причины.
+  const defaultOpen = ui.priceRequired && !priceAmount
+
   return (
-    <details className="group rounded-lg border border-admin-border bg-admin-muted/20">
+    <details open={defaultOpen || undefined} className="group rounded-lg border border-admin-border bg-admin-muted/20">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-admin-fg [&::-webkit-details-marker]:hidden">
         <span className="flex min-w-0 flex-wrap items-center gap-2">
           Дополнительно

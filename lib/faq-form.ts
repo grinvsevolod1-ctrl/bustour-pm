@@ -13,7 +13,12 @@ export function parseNamespacedFaqsFromAggregate(aggregateFd: FormData): Namespa
       const tmp = new FormData()
       for (const [name, entry] of entries) tmp.append(name, entry)
       const groups = parseFaqGroups(tmp)
-      if (groups.length) result.push({ storage, groups })
+      // Почему пустые groups тоже возвращаем: наличие namespace в агрегате
+      // означает «слот отправлен, его состояние авторитетно». Пустой список —
+      // явное удаление всех вопросов. Раньше пустые слоты выбрасывались, и
+      // сервер срабатывал по fallback-ветке, стирая FAQ пустым списком из
+      // главной формы (где faq-полей нет вовсе).
+      result.push({ storage, groups })
     } catch {
       // ignore malformed FAQ JSON
     }

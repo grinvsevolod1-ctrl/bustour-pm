@@ -69,9 +69,11 @@ export async function saveCountryAction(_prev: unknown, formData: FormData) {
   const richSettings: Record<string, string> = {}
   for (const group of aviaCountryPageGroups(input.slug, input.category)) for (const field of group.fields) { const value = formData.get(field.key); if (value !== null) richSettings[field.key] = String(value) }
   const settingsPatch = { ...(id ? {} : { [`${pageKey}.visible`]: "0", [`${pageKey}.section.callus`]: "0" }), ...Object.fromEntries(Object.entries(checked.data).map(([key, value]) => [`${pageKey}.${key}`, value])), ...richSettings }
-  const namespacedFaqsCreateCountry: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
-  let newId: number
-  try { newId = await saveCountryAggregate(input, { id: id || undefined, oldPageKey: existing ? `country:${existing.category}:${existing.slug}` : undefined, settings: settingsPatch, faqs: parseFaqGroups(formData), faqsByStorage: namespacedFaqsCreateCountry }) }
+const namespacedFaqsCreateCountry: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
+// Legacy-faq только если поля реально пришли в главной форме — иначе undefined (FAQ не трогаем)
+const legacyFaqsCreateCountry = formData.has("faqQuestion") || formData.has("faqGroupTitle") ? parseFaqGroups(formData) : undefined
+let newId: number
+try { newId = await saveCountryAggregate(input, { id: id || undefined, oldPageKey: existing ? `country:${existing.category}:${existing.slug}` : undefined, settings: settingsPatch, faqs: legacyFaqsCreateCountry, faqsByStorage: namespacedFaqsCreateCountry }) }
   catch (err) { return { error: mapDbError(err, id ? "Не удалось сохранить страну целиком" : "Не удалось создать страну целиком") } }
   await writeAudit({ admin, action: id ? "country_update" : "country_create", entityType: "country", entityId: newId, summary: `${id ? "Обновлена" : "Создана"} страна «${input.name}»`, after: { id: newId, slug: input.slug, name: input.name, category: input.category } })
   revalidatePath("/admin/countries")
@@ -131,7 +133,9 @@ export async function saveCountryPageAction(_prev: unknown, formData: FormData) 
     settingsPatch[key.startsWith(`${oldPageKey}.`) ? `${newPageKey}.${key.slice(oldPageKey.length + 1)}` : key] = value
   }
   const namespacedFaqsPage: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
-  try { await saveCountryAggregate(input, { id, oldPageKey, settings: settingsPatch, faqs: parseFaqGroups(formData), faqsByStorage: namespacedFaqsPage }) }
+  // Legacy-faq только если поля реально пришли в главной форме — иначе undefined (FAQ не трогаем)
+  const legacyFaqsPage = formData.has("faqQuestion") || formData.has("faqGroupTitle") ? parseFaqGroups(formData) : undefined
+  try { await saveCountryAggregate(input, { id, oldPageKey, settings: settingsPatch, faqs: legacyFaqsPage, faqsByStorage: namespacedFaqsPage }) }
   catch (error) { return { error: mapDbError(error, "Не удалось сохранить страну целиком") } }
   await writeAudit({ admin, action: "country_update", entityType: "country", entityId: id, summary: `Обновлена страна «${input.name}»`, before: { slug: existing.slug, name: existing.name }, after: { slug: input.slug, name: input.name } })
   revalidatePath(`/admin/countries/${id}`)

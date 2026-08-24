@@ -166,7 +166,23 @@ export function TourForm({
         pageHref={pageHref}
       />
 
-      <form id="tour-form" action={action} className="space-y-4" {...formInputHandlers()}>
+      <form
+        id="tour-form"
+        action={action}
+        className="space-y-4"
+        // Почему: обязательные поля могут лежать внутри свёрнутого <details>
+        // (например, цена в блоке «Дополнительно»). Браузер не может сфокусировать
+        // скрытый контрол при нативной валидации — submit молча обрывается.
+        // Раскрываем все details-предки невалидного поля до фокусировки.
+        onInvalidCapture={(e) => {
+          let details = (e.target as HTMLElement).closest("details")
+          while (details) {
+            details.open = true
+            details = details.parentElement?.closest("details") ?? null
+          }
+        }}
+        {...formInputHandlers()}
+      >
       {tour ? <input type="hidden" name="id" value={tour.id} /> : null}
 
       {state?.error ? (
@@ -198,7 +214,7 @@ export function TourForm({
             <ShortcodeInput
               id="description"
               name="description"
-              label="Описание"
+              label="Описа��ие"
               defaultValue={tour?.description}
               rows={3}
               multiline

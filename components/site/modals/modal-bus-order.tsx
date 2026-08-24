@@ -5,7 +5,6 @@ import { formatPhoneIfComplete, isSupportedPhone, sanitizePhoneTyping, submitLea
 import { captchaClientError } from "@/lib/recaptcha-public"
 import {
   ModalCaptchaRow,
-  ModalConsentNote,
   ModalDivider,
   ModalField,
   ModalSubmitButton,
@@ -17,16 +16,11 @@ import {
   useScheduleModalClose,
 } from "./site-modal-shell"
 
+// Короткая форма по запросу владельца: имя, телефон, комментарий,
+// согласие на обработку ПД и карточка заказываемого автобуса.
 type Values = {
   name: string
   phone: string
-  email: string
-  from: string
-  to: string
-  passengers: string
-  payment: string
-  departure: string
-  returnDate: string
   comment: string
   captcha: string
 }
@@ -34,20 +28,8 @@ type Values = {
 const initial: Values = {
   name: "",
   phone: "",
-  email: "",
-  from: "Минск",
-  to: "",
-  passengers: "",
-  payment: "Безналичный расчет",
-  departure: "",
-  returnDate: "",
   comment: "",
   captcha: "",
-}
-
-/** Below Tailwind `sm` — short phone-first form. */
-function isCompactBusForm() {
-  return typeof window !== "undefined" && !window.matchMedia("(min-width: 640px)").matches
 }
 
 export function ModalBusOrder({
@@ -63,7 +45,7 @@ export function ModalBusOrder({
   const [values, setValues] = useState(initial)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle")
-const [consent, setConsent] = useState(false)
+  const [consent, setConsent] = useState(false)
 
   function set(field: keyof Values, value: string) {
     setValues((v) => ({ ...v, [field]: value }))
@@ -72,21 +54,11 @@ const [consent, setConsent] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const compact = isCompactBusForm()
     const next = validateLead({
       name: values.name,
       phone: values.phone,
-      email: compact ? undefined : values.email,
       type: "rentbus",
     })
-    if (!compact) {
-      if (!values.email.trim()) next.email = "Укажите e-mail"
-      if (!values.from.trim()) next.from = "Укажите место отправления"
-      if (!values.to.trim()) next.to = "Укажите место назначения"
-      if (!values.passengers || Number(values.passengers) < 1) next.passengers = "Укажите число пассажиров"
-      if (!values.departure) next.departure = "Укажите дату отправления"
-      if (!values.returnDate) next.returnDate = "Укажите дату возвращения"
-    }
     if (!consent) next.consent = "Нужно согласие на обработку персональных данных"
     const captchaErr = captchaClientError(values.captcha)
     if (captchaErr) next.captcha = captchaErr
@@ -96,26 +68,12 @@ const [consent, setConsent] = useState(false)
     }
 
     setStatus("sending")
-    const message = compact
-      ? "Мобильная заявка — детали поездки уточнить по телефону"
-      : [
-          `Откуда: ${values.from.trim()}`,
-          `Куда: ${values.to.trim()}`,
-          `Количество пассажиров: ${values.passengers}`,
-          `Форма оплаты: ${values.payment}`,
-          `Дата отправления: ${values.departure}`,
-          `Дата возвращения: ${values.returnDate}`,
-          values.comment.trim() ? `Комментарий: ${values.comment.trim()}` : "",
-        ]
-          .filter(Boolean)
-          .join("\n")
     const result = await submitLead({
       type: "rentbus",
       name: values.name.trim(),
       phone: values.phone,
-      email: compact ? undefined : values.email.trim(),
       tour: busTitle,
-      message,
+      message: values.comment.trim() ? `Комментарий: ${values.comment.trim()}` : "",
       captchaToken: values.captcha || undefined,
       consent,
     })
@@ -134,7 +92,7 @@ const [consent, setConsent] = useState(false)
       onClose={onClose}
       title="Заказать аренду автобуса"
       titleId="modal-bus-order-title"
-      maxWidthClass="max-w-[684px]"
+      maxWidthClass="max-w-[480px]"
     >
       {status === "sent" ? (
         <ModalSuccess title="Заявка отправлена!" text="Мы свяжемся с вами в ближайшее время." />
@@ -149,7 +107,7 @@ const [consent, setConsent] = useState(false)
             </div>
           ) : null}
 
-          <ModalField label="Ф.И.О:" required error={errors.name}>
+          <ModalField label="Имя:" required error={errors.name}>
             <input
               name="name"
               autoComplete="name"
@@ -174,67 +132,14 @@ const [consent, setConsent] = useState(false)
             />
           </ModalField>
 
-          {/* Desktop-only trip details; mobile sends busTitle via lead.tour */}
-          <div className="hidden space-y-3 sm:block" data-bus-order-extended>
-            <ModalField label="E-mail:" required error={errors.email}>
-              <input
-                name="email"
-                autoComplete="email"
-                type="email"
-                spellCheck={false}
-                value={values.email}
-                onChange={(e) => set("email", e.target.value)}
-                className={modalInputClass(!!errors.email)}
-                aria-invalid={!!errors.email}
-              />
-            </ModalField>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ModalField label="Откуда:" required error={errors.from}>
-                <input value={values.from} onChange={(e) => set("from", e.target.value)} className={modalInputClass(!!errors.from)} />
-              </ModalField>
-              <ModalField label="Куда:" required error={errors.to}>
-                <input value={values.to} onChange={(e) => set("to", e.target.value)} className={modalInputClass(!!errors.to)} />
-              </ModalField>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ModalField label="Количество пассажиров:" required error={errors.passengers}>
-                <input
-                  type="number"
-                  min={1}
-                  inputMode="numeric"
-                  value={values.passengers}
-                  onChange={(e) => set("passengers", e.target.value)}
-                  className={modalInputClass(!!errors.passengers)}
-                />
-              </ModalField>
-              <ModalField label="Форма оплаты:" required>
-                <select value={values.payment} onChange={(e) => set("payment", e.target.value)} className={modalInputClass()}>
-                  <option>Безналичный расчет</option>
-                  <option>Наличный расчет</option>
-                </select>
-              </ModalField>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <ModalField label="Дата отправления:" required error={errors.departure}>
-                <input type="date" value={values.departure} onChange={(e) => set("departure", e.target.value)} className={modalInputClass(!!errors.departure)} />
-              </ModalField>
-              <ModalField label="Дата возвращения:" required error={errors.returnDate}>
-                <input type="date" value={values.returnDate} onChange={(e) => set("returnDate", e.target.value)} className={modalInputClass(!!errors.returnDate)} />
-              </ModalField>
-            </div>
-
-            <ModalField label="Комментарий к заявке:">
-              <textarea
-                value={values.comment}
-                onChange={(e) => set("comment", e.target.value)}
-                rows={2}
-                className={modalTextareaClass}
-              />
-            </ModalField>
-          </div>
+          <ModalField label="Комментарий к заявке:">
+            <textarea
+              value={values.comment}
+              onChange={(e) => set("comment", e.target.value)}
+              rows={3}
+              className={modalTextareaClass}
+            />
+          </ModalField>
 
           <ModalDivider />
           <ModalCaptchaRow

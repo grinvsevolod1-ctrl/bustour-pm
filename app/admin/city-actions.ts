@@ -102,8 +102,10 @@ export async function saveCityAction(_prev: unknown, formData: FormData) {
   }
   const settingsPatch = { ...(id ? {} : { [`${pageKey}.visible`]: "0", [`${pageKey}.section.callus`]: "0" }), ...Object.fromEntries(Object.entries(checked.data).map(([key, value]) => [`${pageKey}.${key}`, value])), [`${pageKey}.citiesTitle`]: String(formData.get("citiesTitle") || "").trim() }
   const namespacedFaqsCreate: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
+  // Legacy-faq только если поля реально пришли в главной форме — иначе undefined (FAQ не трогаем)
+  const legacyFaqsCreate = formData.has("faqQuestion") || formData.has("faqGroupTitle") ? parseFaqGroups(formData) : undefined
   let newId: number
-  try { newId = await saveCityAggregate(input, { id: id || undefined, oldPageKey: existing ? `city:${existing.category}:${existing.slug}` : undefined, settings: settingsPatch, faqs: parseFaqGroups(formData), faqsByStorage: namespacedFaqsCreate }) }
+  try { newId = await saveCityAggregate(input, { id: id || undefined, oldPageKey: existing ? `city:${existing.category}:${existing.slug}` : undefined, settings: settingsPatch, faqs: legacyFaqsCreate, faqsByStorage: namespacedFaqsCreate }) }
   catch (err) { return { error: mapDbError(err, id ? "Не удалось сохранить город целиком" : "Не удалось создать город целиком") } }
   await writeAudit({ admin, action: id ? "city_update" : "city_create", entityType: "city", entityId: newId, summary: `${id ? "Обновлён" : "Создан"} город «${input.name}»`, after: { id: newId, slug: input.slug, name: input.name, category: input.category } })
   revalidatePath("/admin/cities")
@@ -139,7 +141,7 @@ export async function saveCityPageAction(_prev: unknown, formData: FormData) {
     const fullField = `${pageKey}.${field}`
     const tabHash = "#settings-content" as const
     return {
-      error: `Проверьте поле «${labels[field] ?? "Основные данные"}»: ${issue?.message ?? "исправьте значение"}`,
+      error: `Проверьте поле «${labels[field] ?? "Основные да��ные"}»: ${issue?.message ?? "исправьте значение"}`,
       fieldErrors: { [fullField]: issue?.message ?? "Исправьте значение" },
       firstError: {
         field,
@@ -190,8 +192,10 @@ export async function saveCityPageAction(_prev: unknown, formData: FormData) {
     settingsPatch[key.startsWith(`${oldPageKey}.`) ? `${newPageKey}.${key.slice(oldPageKey.length + 1)}` : key] = value
   }
   const namespacedFaqs: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
+  // Legacy-faq только если поля реально пришли в главной форме — иначе undefined (FAQ не трогаем)
+  const legacyFaqs = formData.has("faqQuestion") || formData.has("faqGroupTitle") ? parseFaqGroups(formData) : undefined
   try {
-    await saveCityAggregate(input, { id, oldPageKey, settings: settingsPatch, faqs: parseFaqGroups(formData), faqsByStorage: namespacedFaqs })
+    await saveCityAggregate(input, { id, oldPageKey, settings: settingsPatch, faqs: legacyFaqs, faqsByStorage: namespacedFaqs })
   } catch (error) {
     return { error: mapDbError(error, "Не удалось сохранить город целиком") }
   }
