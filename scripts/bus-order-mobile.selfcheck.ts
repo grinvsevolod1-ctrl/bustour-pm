@@ -1,5 +1,7 @@
 /**
- * #51 — mobile «Заказать автобус» is phone-first; trip fields sm+ only.
+ * #51 → упрощение по запросу владельца: модалка «Заказать автобус» содержит
+ * только имя, телефон, комментарий, согласие на обработку ПД и карточку
+ * заказываемого автобуса. Никаких полей поездки (откуда/куда/дата/пассажиры).
  */
 import assert from "node:assert/strict"
 import fs from "node:fs"
@@ -10,26 +12,21 @@ const modal = fs.readFileSync(
   "utf8",
 )
 
-assert.match(modal, /function isCompactBusForm/, "compact helper")
-assert.match(modal, /min-width: 640px/, "sm breakpoint")
-assert.match(modal, /data-bus-order-extended/, "extended block marker")
-assert.match(modal, /hidden space-y-3 sm:block/, "extended hidden below sm")
-assert.match(modal, /Мобильная заявка/, "compact message")
-assert.ok(modal.includes("tour: busTitle"), "bus title in payload")
+// Обязательный состав формы
+assert.ok(modal.includes('label="Имя:"'), "name field")
 assert.ok(modal.includes('label="Телефон:"'), "phone field")
-assert.ok(modal.includes('label="Ф.И.О:"'), "name required by API")
+assert.ok(modal.includes('label="Комментарий к заявке:"'), "comment field")
+assert.ok(modal.includes("обработку"), "consent checkbox text")
+assert.ok(modal.includes('type="checkbox"'), "consent checkbox input")
+assert.ok(modal.includes("tour: busTitle"), "bus title in payload")
+assert.ok(modal.includes("busTitle"), "bus card shown in modal")
 
-// Trip / email only inside extended block (after data-bus-order-extended)
-const extIdx = modal.indexOf("data-bus-order-extended")
-assert.ok(extIdx > 0, "extended marker present")
-const before = modal.slice(0, extIdx)
-const after = modal.slice(extIdx)
-assert.ok(!before.includes('label="E-mail:"'), "email not in mobile-visible section")
-assert.ok(after.includes('label="E-mail:"'), "email in extended")
-assert.ok(after.includes('label="Откуда:"'), "from in extended")
-assert.ok(after.includes('label="Куда:"'), "to in extended")
-assert.ok(after.includes('label="Количество пассажиров:"'), "passengers in extended")
-assert.ok(after.includes('label="Дата отправления:"'), "departure in extended")
+// Поля поездки удалены — не должны вернуться
+assert.ok(!modal.includes('label="Откуда:"'), "no from field")
+assert.ok(!modal.includes('label="Куда:"'), "no to field")
+assert.ok(!modal.includes('label="E-mail:"'), "no email field")
+assert.ok(!modal.includes('label="Количество пассажиров:"'), "no passengers field")
+assert.ok(!modal.includes('label="Дата отправления:"'), "no departure field")
 
 const btn = fs.readFileSync(
   path.join(import.meta.dirname, "../components/site/bus-order-button.tsx"),

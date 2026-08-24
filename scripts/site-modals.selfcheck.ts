@@ -44,14 +44,18 @@ assert.ok(tour.includes("captchaToken"))
 assert.match(tour, /modalFormClass/, "tour order uses dense form")
 assert.match(tour, /sm:grid-cols-2/, "tour order two-column on sm+")
 
+// Упрощённая модалка по запросу владельца: имя, телефон, комментарий,
+// согласие на обработку ПД и карточка заказываемого автобуса.
 const bus = fs.readFileSync(path.join(dir, "modal-bus-order.tsx"), "utf8")
-assert.ok(bus.includes("max-w-[684px]"))
 assert.ok(bus.includes("Заказать аренду автобуса"))
 assert.ok(bus.includes("captchaToken"))
-assert.match(bus, /hidden space-y-3 sm:block/, "bus trip fields desktop-only")
-assert.match(bus, /isCompactBusForm|min-width: 640px/, "mobile compact submit path")
-assert.match(bus, /Мобильная заявка/, "mobile lead message note")
+assert.ok(bus.includes('label="Имя:"'), "bus order name field")
+assert.ok(bus.includes('label="Телефон:"'), "bus order phone field")
+assert.ok(bus.includes('label="Комментарий к заявке:"'), "bus order comment field")
+assert.ok(bus.includes('type="checkbox"'), "bus order consent checkbox")
 assert.ok(bus.includes("busTitle"), "bus context in lead.tour")
+assert.ok(!bus.includes('label="Откуда:"'), "no trip fields in simplified bus order")
+assert.ok(!bus.includes('label="E-mail:"'), "no email in simplified bus order")
 
 const rev = fs.readFileSync(path.join(dir, "modal-testimonial.tsx"), "utf8")
 assert.ok(rev.includes("Оставить отзыв"))
