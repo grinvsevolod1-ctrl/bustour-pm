@@ -300,11 +300,12 @@ export function TourGallery({
 
   return (
     <>
-      {/* Mobile: column. Desktop: row. Main slide must keep width/height on small screens
-          (flex-1 + aspect-ratio + max-h collapses to 0 height in some mobile browsers). */}
+      {/* Mobile: column. Desktop: row. Main slide's aspect-ratio drives the row height;
+          the thumbnail column must not exceed it (md:min-h-0) so it stays aligned and
+          scrolls its own overflow via the up/down buttons instead of stretching the row. */}
       <div className="flex w-full min-w-0 select-none flex-col gap-3 md:flex-row md:items-stretch md:gap-3">
         <div
-          className="relative aspect-[16/9] w-full min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-cream md:min-h-0 md:min-w-0 md:max-h-[70vh] md:flex-1 md:self-start"
+          className="relative aspect-[16/9] w-full min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-cream md:min-h-0 md:min-w-0 md:max-h-[70vh] md:flex-1"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
@@ -392,7 +393,7 @@ export function TourGallery({
         </div>
 
         {total > 1 && (
-          <div className="flex w-full gap-2 py-1 md:w-40 md:flex-none md:flex-col md:gap-2 md:py-0 lg:w-48">
+          <div className="flex w-full gap-2 py-1 md:min-h-0 md:w-40 md:flex-none md:flex-col md:gap-2 md:py-0 lg:w-48">
             <button
               type="button"
               onClick={() => scrollThumbnails("up")}
@@ -405,7 +406,7 @@ export function TourGallery({
             </button>
             <div
               ref={thumbnailsRef}
-              className="flex min-w-0 gap-2 overflow-x-auto scrollbar-none md:max-h-[70vh] md:min-h-0 md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto"
+              className="flex min-w-0 gap-2 overflow-x-auto scrollbar-none md:min-h-0 md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto"
               style={{ scrollbarWidth: "none" } as React.CSSProperties}
             >
               {slides.map((slide, i) => {
