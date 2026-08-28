@@ -302,9 +302,9 @@ export function TourGallery({
     <>
       {/* Mobile: column. Desktop: row. Main slide must keep width/height on small screens
           (flex-1 + aspect-ratio + max-h collapses to 0 height in some mobile browsers). */}
-      <div className="flex w-full min-w-0 select-none flex-col gap-3 md:flex-row md:items-start md:gap-3">
+      <div className="flex w-full min-w-0 select-none flex-col gap-3 md:flex-row md:items-stretch md:gap-3">
         <div
-          className="relative aspect-[16/9] w-full min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-cream md:min-h-0 md:min-w-0 md:max-h-[70vh] md:flex-1"
+          className="relative aspect-[16/9] w-full min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-cream md:min-h-0 md:min-w-0 md:max-h-[70vh] md:flex-1 md:self-start"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
@@ -392,7 +392,7 @@ export function TourGallery({
         </div>
 
         {total > 1 && (
-          <div className="flex w-full gap-2 py-1 md:h-[min(70vh,calc((100vw-13rem)*9/16))] md:w-40 md:flex-none md:flex-col md:gap-2 md:py-0 lg:w-48">
+          <div className="flex w-full gap-2 py-1 md:w-40 md:flex-none md:flex-col md:gap-2 md:py-0 lg:w-48">
             <button
               type="button"
               onClick={() => scrollThumbnails("up")}
