@@ -124,7 +124,7 @@ assert.equal(aviaCityPageConfig("hurgada").url, "/aviatury/_/hurgada/")
 // --- Static CMS pages: hardcoded public urls ---
 assert.equal(pageSettingsGroups.home.url, "/")
 assert.equal(pageSettingsGroups.company.url, "/company")
-assert.equal(pageSettingsGroups.rental.url, "/bus-rental")
+assert.equal(pageSettingsGroups.rental.url, "/arenda-avtobusov-v-minske")
 assert.equal(pageSettingsGroups.dictionary.url, "/helpful/dictionary")
 
 // --- Source guards: no pageHref from settings hot.slug / raw /aviatory ---

@@ -14,7 +14,7 @@ const PATHS = [
   "/company/licenses",
   "/legal/privacy",
   "/legal/offer",
-  "/testimonials",
+  "/reviews",
   "/helpful",
 ] as const
 

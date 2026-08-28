@@ -142,7 +142,7 @@ const testimonials = fs.readFileSync(
 assert.ok(testimonials.includes("ModalTestimonial"), "testimonial modal wired")
 
 const reviewsPage = fs.readFileSync(
-  path.join(import.meta.dirname, "../app/(site)/testimonials/page.tsx"),
+  path.join(import.meta.dirname, "../app/(site)/reviews/page.tsx"),
   "utf8",
 )
 assert.ok(reviewsPage.includes("TestimonialButton"), "reviews page uses TestimonialButton")
