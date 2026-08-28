@@ -98,9 +98,9 @@ export function ProgramTimeline({
             onClick={() => setOpen(isOpen ? null : i)}
           >
             {/* Left: day number + дней label + dashed connector */}
-            <div className="flex w-10 shrink-0 flex-col items-center">
+            <div className="flex w-14 shrink-0 flex-col items-center">
               <span
-                className={`text-2xl font-semibold leading-tight transition-colors ${
+                className={`whitespace-nowrap text-2xl font-semibold leading-tight tabular-nums transition-colors ${
                   isOpen ? "text-brand" : "text-ink-muted"
                 }`}
               >
