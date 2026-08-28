@@ -7,12 +7,37 @@
  *   строка 3+ — данные, "длинный" формат: одна строка = один выезд × одна категория номера.
  *   Несколько строк с одинаковыми датами отправления/прибытия объединяются в один выезд.
  *
- * Даты — строго текст в формате YYYY-MM-DD (без автоформата Excel, чтобы избежать
- * искажений из-за локали/часового пояса при повторном сохранении файла в Excel).
+ * Даты в файле показываются как текст в формате ДД.ММ.ГГГГ (без автоформата Excel,
+ * чтобы избежать искажений из-за локали/часового пояса при повторном сохранении файла).
+ * Внутри приложения даты всё так же хранятся как YYYY-MM-DD — при импорте формат
+ * ДД.ММ.ГГГГ (и, для обратной совместимости, YYYY-MM-DD) конвертируется обратно.
  */
 import ExcelJS from "exceljs"
 import type { DatesTable, DatesTableRow, DatesTableTag, Tour } from "@/lib/types"
 import { TAG_ICONS, isDateRangeOrdered, isIsoDate } from "@/lib/dates-table"
+
+/** YYYY-MM-DD -> ДД.ММ.ГГГГ (для отображения в экспортируемом файле). */
+function isoToDisplayDate(iso: string): string {
+  if (!isIsoDate(iso)) return iso
+  const [y, m, d] = iso.split("-")
+  return `${d}.${m}.${y}`
+}
+
+/**
+ * Принимает ДД.ММ.ГГГГ или (для обратной совместимости со старыми экспортами) YYYY-MM-DD
+ * и возвращает YYYY-MM-DD, либо null, если строка не распознана как дата.
+ */
+function parseFlexibleDate(raw: string): string | null {
+  const trimmed: string = raw.trim()
+  if (isIsoDate(trimmed)) return trimmed
+  const match: RegExpMatchArray | null = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmed)
+  if (match) {
+    const [, d, m, y] = match
+    const iso = `${y}-${m}-${d}`
+    return isIsoDate(iso) ? iso : null
+  }
+  return null
+}
 
 const SHEET_NAME_MAX = 31
 const INSTRUCTIONS_SHEET = "Инструкция"
@@ -89,7 +114,7 @@ export function buildPricingWorkbook(tours: Tour[]): ExcelJS.Workbook {
     "Если у выезда несколько категорий номеров — под ним идёт несколько строк с одинаковыми датами.",
     "",
     "Колонки:",
-    "  Дата отправления / прибытия — строго ГГГГ-ММ-ДД (например 2025-12-31). Не меняйте формат ячейки на «Дата».",
+    "  Дата отправления / прибытия — строго ДД.ММ.ГГГГ (например 31.12.2025). Не меняйте формат ячейки на «Дата».",
     "  Описание выезда — текст, одинаковый для всех строк одного выезда.",
     `  Теги — формат "иконка:подпись; иконка:подпись". Доступные иконки: ${TAG_ICONS.join(", ")}.`,
     "  Наценка сумма/валюта — доп. сбор за выезд (одинаковый для всех строк выезда), можно оставить пустым.",
@@ -138,8 +163,8 @@ export function buildPricingWorkbook(tours: Tour[]): ExcelJS.Workbook {
       const lines2 = rooms.length ? rooms : [null]
       for (const room of lines2) {
         const excelRow = sheet.getRow(r++)
-        excelRow.getCell(1).value = row.startDate
-        excelRow.getCell(2).value = row.endDate
+        excelRow.getCell(1).value = isoToDisplayDate(row.startDate)
+        excelRow.getCell(2).value = isoToDisplayDate(row.endDate)
         excelRow.getCell(3).value = row.description
         excelRow.getCell(4).value = tagsText
         excelRow.getCell(5).value = row.extraPriceAmount || ""
@@ -188,8 +213,10 @@ export function parsePricingWorkbook(
     for (let r = 3; r <= lastRow; r++) {
       const excelRow = sheet.getRow(r)
       if (!excelRow || excelRow.cellCount === 0) continue
-      const startDate = cellText(excelRow.getCell(1).value).trim()
-      const endDate = cellText(excelRow.getCell(2).value).trim()
+      const startDateRaw = cellText(excelRow.getCell(1).value).trim()
+      const endDateRaw = cellText(excelRow.getCell(2).value).trim()
+      const startDate = startDateRaw ? parseFlexibleDate(startDateRaw) ?? "" : ""
+      const endDate = endDateRaw ? parseFlexibleDate(endDateRaw) ?? "" : ""
       const description = cellText(excelRow.getCell(3).value).trim()
       const tagsText = cellText(excelRow.getCell(4).value).trim()
       const extraAmount = cellNumber(excelRow.getCell(5).value)
@@ -205,11 +232,11 @@ export function parsePricingWorkbook(
         errors.push({ sheet: sheet.name, row: r, message: "Не указана дата отправления — строка пропущена." })
         continue
       }
-      if (!isIsoDate(startDate) || (endDate && !isIsoDate(endDate))) {
+      if (!startDate || (endDateRaw && !endDate)) {
         errors.push({
           sheet: sheet.name,
           row: r,
-          message: `Некорректная дата ("${startDate}" / "${endDate}"). Формат: ГГГГ-ММ-ДД. Строка пропущена.`,
+          message: `Некорректная дата ("${startDateRaw}" / "${endDateRaw}"). Формат: ДД.ММ.ГГГГ. Строка пропущена.`,
         })
         continue
       }
