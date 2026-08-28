@@ -112,16 +112,20 @@ export function mapTour(
   const firstDatedRow = fillFromDates
     ? upcomingRows(datesTable.rows).find((date) => !!deriveDuration(date.startDate, date.endDate))
     : undefined
+  // «Стоимость от» на публичных страницах = минимальная цена номера (с учётом
+  // скидки) среди БУДУЩИХ заездов из таблицы дат. Так число всегда отражает
+  // реально бронируемую цену и не расходится с таблицей внизу страницы.
+  // Ручное поле «Цена» (row.priceAmount) в блоке «Дополнительно» — запасной
+  // вариант: используется, только когда таблица дат не заполнена ценами.
   // Corner-cut: tours-listing price conversion assumes datesTable.currency matches the base currency.
   const derivedPriceAmount = fillFromDates ? minTablePrice(datesTable) : 0
-  const priceAmount = !row.priceAmount && derivedPriceAmount ? derivedPriceAmount : row.priceAmount
+  const priceAmount = derivedPriceAmount > 0 ? derivedPriceAmount : row.priceAmount
   // Цена форматируется при чтении из priceAmount + datesCurrency — хранимая
   // строка row.price была зафиксирована в момент сохранения тура и устаревала
   // при смене валюты/суммы. Fallback на row.price — только когда суммы нет
   // вовсе (нестандартный текст цены, забитый руками в старых данных).
-  const price = priceAmount > 0
-    ? formatMoney(priceAmount, !row.priceAmount && derivedPriceAmount ? datesTable.currency : row.datesCurrency || "BYN")
-    : row.price
+  const priceCurrency = row.datesCurrency || "BYN"
+  const price = priceAmount > 0 ? formatMoney(priceAmount, priceCurrency) : row.price
   const duration = !row.duration.trim() && firstDatedRow ? deriveDuration(firstDatedRow.startDate, firstDatedRow.endDate) : row.duration
   const nights = !row.nights && firstDatedRow ? deriveNights(firstDatedRow.startDate, firstDatedRow.endDate) : row.nights
   const cover = coerceMediaNode(row.image) ?? { url: row.image || "" }
