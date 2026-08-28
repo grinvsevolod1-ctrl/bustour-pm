@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { getSettings, getBlocks, getFaqBlocksForPage } from "@/lib/cms"
 import { getCityDestinations } from "@/lib/cities"
-import { aviaHomePageConfig, resortsSectionFields } from "@/lib/admin-config"
+import { aviaHomePageConfig } from "@/lib/admin-config"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
 import { SectionFieldsForm } from "@/components/admin/section-fields-form"
 import { PageSettingsForm } from "@/components/admin/page-settings-form"
@@ -109,11 +109,6 @@ export default async function AviatoryHomePage() {
           settingKey={pickerSettingKey}
           blocks={resortBlocks}
           currentValue={currentTableId}
-        />
-        <SectionFieldsForm
-          fields={resortsSectionFields(pageKey, { suffix })}
-          settings={settings}
-          hideSubmit
         />
       </div>
     )

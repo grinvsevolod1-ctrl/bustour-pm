@@ -4,7 +4,7 @@ import { saveCityPageAction } from "@/app/admin/city-actions"
 import { getCityById, getCityDestinations } from "@/lib/cities"
 import { getCountries } from "@/lib/countries"
 import { getSettings, getBlocks, getSiteOrigin, getFaqBlocksForPage } from "@/lib/cms"
-import { aviaCityPageConfig, hotCityPageConfig, resortsSectionFields } from "@/lib/admin-config"
+import { aviaCityPageConfig, hotCityPageConfig } from "@/lib/admin-config"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
 import { SectionFieldsForm } from "@/components/admin/section-fields-form"
 import { PageSettingsForm } from "@/components/admin/page-settings-form"
@@ -126,11 +126,6 @@ export default async function EditCityPage({
           settingKey={pickerSettingKey}
           blocks={resortBlocks}
           currentValue={currentTableId}
-        />
-        <SectionFieldsForm
-          fields={resortsSectionFields(pageKey, { suffix })}
-          settings={settings}
-          hideSubmit
         />
       </div>
     )
@@ -298,7 +293,7 @@ export default async function EditCityPage({
               search: searchGroup ? (
                 <div className="space-y-4">
                   <p className="text-sm text-admin-fg-muted">
-                    Фильтры и каталог туров в выбранном городе. Перетащите секцию, чтобы
+                    Фильтры и каталог туров в выбранном городе. Перетащи��е секцию, чтобы
                     разместить блоки выше или ниже каталога.
                   </p>
                   <SectionFieldsForm fields={searchGroup.fields} settings={settings} hideSubmit />

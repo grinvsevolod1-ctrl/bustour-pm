@@ -4,7 +4,7 @@ import { saveCountryPageAction } from "@/app/admin/country-actions"
 import { getCountryById } from "@/lib/countries"
 import { getCityDestinations } from "@/lib/cities"
 import { getSettings, getBlocks, getSiteOrigin, getFaqBlocksForPage } from "@/lib/cms"
-import { aviaCountryPageConfig, hotCountryPageConfig, resortsSectionFields } from "@/lib/admin-config"
+import { aviaCountryPageConfig, hotCountryPageConfig } from "@/lib/admin-config"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
 import { SectionFieldsForm } from "@/components/admin/section-fields-form"
 import { PageSettingsForm } from "@/components/admin/page-settings-form"
@@ -126,11 +126,6 @@ export default async function EditCountryPage({
           settingKey={pickerSettingKey}
           blocks={resortBlocks}
           currentValue={currentTableId}
-        />
-        <SectionFieldsForm
-          fields={resortsSectionFields(pageKey, { suffix })}
-          settings={settings}
-          hideSubmit
         />
       </div>
     )

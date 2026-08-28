@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { getSettings, getBlocks, getFaqBlocksForPage } from "@/lib/cms"
-import { hotHomePageConfig, resortsSectionFields } from "@/lib/admin-config"
+import { hotHomePageConfig } from "@/lib/admin-config"
 import { PageSectionsManager } from "@/components/admin/page-sections-manager"
 import { SectionFieldsForm } from "@/components/admin/section-fields-form"
 import { PageSettingsForm } from "@/components/admin/page-settings-form"
@@ -100,11 +100,6 @@ export default async function HotHomePage() {
           settingKey={pickerSettingKey}
           blocks={resortBlocks}
           currentValue={currentTableId}
-        />
-        <SectionFieldsForm
-          fields={resortsSectionFields(pageKey, { suffix })}
-          settings={settings}
-          hideSubmit
         />
       </div>
     )

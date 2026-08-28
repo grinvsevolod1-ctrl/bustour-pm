@@ -653,7 +653,6 @@ export {
   citiesCardsFields,
   searchSectionFields,
   searchSectionGroup,
-  resortsSectionFields,
 } from "@/lib/admin-config-fields"
 
 // Фабрики конфигов динамических страниц вынесены в lib/admin-page-configs.ts.

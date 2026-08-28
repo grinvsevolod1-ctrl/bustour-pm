@@ -13,7 +13,6 @@ import {
   pageHeaderGroup,
   searchSectionGroup,
   citiesCardsFields,
-  resortsSectionFields,
 } from "@/lib/admin-config-fields"
 
 /**
@@ -60,10 +59,6 @@ export function aviaHomePageConfig(): {
           titlePlaceholder: "Популярные направления",
           titleHint: "Оставьте пустым — будет «Популярные направления»",
         }),
-      },
-      {
-        heading: "Секция «Таблица авиатуров»",
-        fields: resortsSectionFields(p),
       },
     ],
   }
@@ -127,12 +122,6 @@ export function aviaCityPageConfig(
           titlePlaceholder: `Популярные курорты в ${name}`,
           titleHint: "Оставьте пустым — будет «Популярные курорты в [Страна]»",
         }),
-      },
-      {
-        heading: isBus
-          ? `Секция «Таблица автобусных туров в ${name}»`
-          : `Секция «Таблица авиатуров в ${name}»`,
-        fields: resortsSectionFields(p),
       },
     ],
   }
@@ -251,12 +240,6 @@ export function aviaCountryPageConfig(slug: string, countryName?: string, catego
           titleHint: `Оставьте пустым — будет «Популярные курорты в ${name}»`,
         }),
       },
-      {
-        heading: isBus
-          ? `Секция «Таблица автобусных туров в ${name}»`
-          : `Секция «Таблица авиатуров в ${name}»`,
-        fields: resortsSectionFields(p),
-      },
     ],
   }
 }
@@ -305,10 +288,6 @@ export function hotHomePageConfig(): {
           titlePlaceholder: "Популярные направления",
           titleHint: "Оставьте пустым — будет «Популярные направления»",
         }),
-      },
-      {
-        heading: "Секция «Таблица горящих туров»",
-        fields: resortsSectionFields(p),
       },
     ],
   }
@@ -365,10 +344,6 @@ export function busHomePageConfig(): {
           titleHint: "Оставьте пустым — будет «Популярные направления»",
         }),
       },
-      {
-        heading: "Секция «Таблица автобусных туров»",
-        fields: resortsSectionFields(p),
-      },
     ],
   }
 }
@@ -419,10 +394,6 @@ export function hotCountryPageConfig(slug: string, countryName?: string, categor
           titleHint: `Оставьте пустым — будет «Популярные курорты в ${name}»`,
         }),
       },
-      {
-        heading: `Секция «Таблица горящих туров в ${name}»`,
-        fields: resortsSectionFields(p),
-      },
     ],
   }
 }
@@ -472,10 +443,6 @@ export function hotCityPageConfig(slug: string, cityName?: string): {
           titlePlaceholder: `Популярные курорты в ${name}`,
           titleHint: `Оставьте пустым — будет «Популярные курорты в ${name}»`,
         }),
-      },
-      {
-        heading: `Секция «Таблица горящих туров — ${name}»`,
-        fields: resortsSectionFields(p),
       },
     ],
   }

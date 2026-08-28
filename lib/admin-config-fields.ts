@@ -196,27 +196,3 @@ export function searchSectionGroup(
   }
 }
 
-/**
- * Description field for a resort-table section (resorts / resorts2 / resorts3 …).
- * Resort-section TITLES are always derived from the block.title itself
- * (ResortTableBuilder) — override was removed as legacy.
- * Pattern: `${prefix}.resortsDescription{suffix}` only.
- */
-export function resortsSectionFields(
-  prefix: string,
-  opts?: { suffix?: string; descriptionPlaceholder?: string },
-): SettingField[] {
-  const suffix = opts?.suffix ?? ""
-  return [
-    {
-      key: `${prefix}.resortsDescription${suffix}`,
-      label: `Описание под таблицей${suffix ? ` (${suffix})` : ""}`,
-      type: "shortcode-textarea-multiline",
-      rows: 3,
-      placeholder:
-        opts?.descriptionPlaceholder ??
-        "Сравните цены, даты выездов и длительность в наглядной таблице. Можно отсортировать по колонкам.",
-      hint: "Пара предложений, чтобы пользователь понял: что здесь показано и как пользоваться. Пусто — не показывается. Заголовок секции берётся из самого блока таблицы.",
-    },
-  ]
-}
