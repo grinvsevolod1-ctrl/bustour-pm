@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useRef, useState } from "react"
+import { useActionState, useEffect, useRef, useState } from "react"
 import { Download, FileSpreadsheet, LoaderCircle, Upload } from "lucide-react"
 import { toast } from "sonner"
 import { Alert, Button, Card, CardBody, CardHeader, CardTitle } from "@/components/admin/ui"
@@ -41,9 +41,13 @@ export function TourPricingImportExport() {
     }
   }
 
-  function handleImportSubmit() {
-    if (fileInputRef.current) fileInputRef.current.value = ""
-  }
+  // Очищаем выбранный файл только ПОСЛЕ успешной загрузки, а не в момент сабмита:
+  // иначе значение input сбрасывается раньше, чем React соберёт FormData, и файл теряется.
+  useEffect(() => {
+    if (state?.updatedCount && fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }, [state])
 
   return (
     <Card>
@@ -64,11 +68,7 @@ export function TourPricingImportExport() {
             Скачать Excel
           </Button>
 
-          <form
-            action={formAction}
-            onSubmit={handleImportSubmit}
-            className="flex flex-wrap items-center gap-2"
-          >
+          <form action={formAction} className="flex flex-wrap items-center gap-2">
             <input
               ref={fileInputRef}
               type="file"
