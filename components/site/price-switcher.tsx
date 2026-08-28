@@ -9,6 +9,7 @@ import type { Currency } from "@/lib/types"
 // base currency; other currencies are derived from their stored rate.
 export function PriceSwitcher({
   amount,
+  amountCurrency = "",
   currencies,
   className,
   extraPriceAmount = 0,
@@ -20,6 +21,8 @@ export function PriceSwitcher({
   shrink = false,
 }: {
   amount: number
+  // Валюта, в которой задан amount (обычно datesCurrency тура). Пусто = базовая.
+  amountCurrency?: string
   currencies: Currency[]
   className?: string
   extraPriceAmount?: number
@@ -37,6 +40,7 @@ export function PriceSwitcher({
   const active = list.find((c) => c.code === code) ?? base
   const price = getTourPriceBreakdown({
     baseAmount: amount,
+    baseAmountCurrency: amountCurrency,
     activeCurrency: active,
     currencies: list,
     extraPriceAmount,

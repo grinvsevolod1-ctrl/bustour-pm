@@ -129,7 +129,7 @@ export function SiteFooter({
               `© ${settings["site.brand"]}, 2013 - ${new Date().getFullYear()} Копирование материалов с сайта запрещено.`}
           </p>
           <SiteCookieSettingsLink className="w-fit text-ink underline underline-offset-2 hover:text-brand-dark" />
-          <p className="text-ink-muted">dev netnext</p>
+          <p className="text-ink-muted">netnext.site</p>
         </div>
       </div>
     </footer>

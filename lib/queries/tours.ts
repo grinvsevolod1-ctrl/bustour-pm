@@ -155,6 +155,7 @@ export async function getRelatedTours(slug: string, limit = 4): Promise<Tour[]> 
 export type TourInput = {
   slug: string
   title: string
+  heading: string
   description: string
   price: string
   priceAmount: number
@@ -189,6 +190,7 @@ function serializeTour(input: TourInput) {
   return {
     slug: input.slug,
     title: input.title,
+    heading: input.heading,
     description: input.description,
     price: input.price,
     priceAmount: input.priceAmount,

@@ -19,6 +19,9 @@ export const tours = pgTable("tours", {
   id: serial("id").primaryKey(),
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
+  // Отдельный H1-заголовок страницы тура. Пусто — берётся из title.
+  // Нужно, чтобы длинный H1 не ломал короткое название в карточках/каталоге.
+  heading: text("heading").notNull().default(""),
   description: text("description").notNull(),
   price: text("price").notNull(),
   priceAmount: real("priceAmount").notNull().default(0),

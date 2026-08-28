@@ -8,6 +8,7 @@ import type { Currency } from "@/lib/types"
 export function BookingForm({
   price,
   amount,
+  amountCurrency = "",
   currencies = [],
   tour,
   extraPriceAmount = 0,
@@ -15,6 +16,7 @@ export function BookingForm({
 }: {
   price: string
   amount?: number
+  amountCurrency?: string
   currencies?: Currency[]
   tour?: string
   extraPriceAmount?: number
@@ -30,6 +32,7 @@ export function BookingForm({
         {fallbackAmount > 0 ? (
           <PriceSwitcher
             amount={fallbackAmount}
+            amountCurrency={amountCurrency}
             currencies={currencies}
             className="min-w-0 sm:text-right"
             extraPriceAmount={extraPriceAmount}

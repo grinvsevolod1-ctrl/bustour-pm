@@ -185,7 +185,7 @@ export function TourForm({
         className="space-y-4"
         // Почему: обязательные поля могут лежать внутри свёрнутого <details>
         // (например, цена в блоке «Дополнительно»). Браузер не может сфокусировать
-        // скрытый контрол при нативной валидации — submit молча обрывается.
+        // скрытый контрол при нативной валидации — submit мо��ча обрывается.
         // Раскрываем все details-предки невалидного поля до фокусировки.
         onInvalidCapture={(e) => {
           let details = (e.target as HTMLElement).closest("details")
@@ -221,6 +221,19 @@ export function TourForm({
               autoFromName={!tour}
               placeholder="tur-v-kareliyu"
             />
+          </div>
+          <div>
+            <Label htmlFor="tour-heading">Заголовок H1 на странице</Label>
+            <ShortcodeInput
+              id="tour-heading"
+              name="heading"
+              label="Заголовок H1"
+              defaultValue={tour?.heading}
+              placeholder="Если пусто — используется «Название»"
+            />
+            <p className="mt-1 text-xs text-admin-fg-muted">
+              Отдельный заголовок H1 в самом туре. Пусто — берётся «Название». Пригодится, когда заголовок на странице должен отличаться от короткого названия в списках и меню.
+            </p>
           </div>
           <div>
             <Label htmlFor="description" required>Описание</Label>
@@ -389,7 +402,7 @@ export function TourForm({
 
       {/* Маркер «блок FAQ был на форме»: живёт вне disabled-fieldset, потому что
           отключённые поля не отправляются. Без него скрытая секция FAQ уходила
-          на сервер как «пустой FAQ» и стирала сохранённые вопросы. */}
+          на серве�� как «пустой FAQ» и стирала сохранённые вопросы. */}
       {showSection("faq") ? <input type="hidden" name="__faqPresent" value="1" /> : null}
       <fieldset disabled={!showSection("faq")} className={showSection("faq") ? undefined : "hidden"} aria-hidden={!showSection("faq")}>
         <FormSection id="s-faq" title="Частые вопросы (для этой страницы)">

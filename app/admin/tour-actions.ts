@@ -117,6 +117,7 @@ async function tourFromForm(formData: FormData): Promise<TourInput | { error: st
   return {
     slug: String(formData.get("slug") || "").trim(),
     title: String(formData.get("title") || "").trim(),
+    heading: String(formData.get("heading") || "").trim(),
     description: String(formData.get("description") || "").trim(),
     price,
     priceAmount,

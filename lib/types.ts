@@ -67,6 +67,8 @@ export type Tour = {
   id: number
   slug: string
   title: string
+  /** Отдельный H1 страницы тура. Пусто — используется title. */
+  heading: string
   description: string
   price: string
   priceAmount: number

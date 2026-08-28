@@ -22,19 +22,31 @@ export type TourPriceBreakdown = {
 
 export function getTourPriceBreakdown({
   baseAmount,
+  baseAmountCurrency = "",
   activeCurrency,
   currencies,
   extraPriceAmount = 0,
   extraPriceCurrency = "",
 }: {
   baseAmount: number
+  // Валюта, в которой задан baseAmount. Пусто = базовая валюта.
+  // «Стоимость от» приходит из таблицы дат в datesCurrency (напр. USD),
+  // поэтому перед конвертацией в активную валюту сумму нужно привести
+  // к базовой: amountInBase = baseAmount / rate(datesCurrency).
+  baseAmountCurrency?: string
   activeCurrency: Currency
   currencies: Currency[]
   extraPriceAmount?: number
   extraPriceCurrency?: string
 }): TourPriceBreakdown {
   const activeCode = activeCurrency.symbol || activeCurrency.code
-  const additionalAmount = Math.max(0, baseAmount) * (activeCurrency.rate || 1)
+  const sourceCode = baseAmountCurrency.trim().toUpperCase()
+  const sourceCurrency = sourceCode
+    ? currencies.find((currency) => currency.code.toUpperCase() === sourceCode)
+    : undefined
+  const sourceRate = sourceCurrency?.rate || 1
+  const amountInBase = Math.max(0, baseAmount) / sourceRate
+  const additionalAmount = amountInBase * (activeCurrency.rate || 1)
   const additionalPrice = formatMoney(additionalAmount, activeCode)
   const extraCode = extraPriceCurrency.trim().toUpperCase()
 

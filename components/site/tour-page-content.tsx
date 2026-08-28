@@ -163,7 +163,7 @@ export async function TourPageContent({
         ) : null}
         <Breadcrumb items={breadcrumbItems} />
         <div className="space-y-4">
-          <TitleUnderline as="h1"><ParsedText text={tour.title} /></TitleUnderline>
+          <TitleUnderline as="h1"><ParsedText text={tour.heading || tour.title} /></TitleUnderline>
           <Alert text={alertText} type={tour.alertType} />
         </div>
 
@@ -187,6 +187,7 @@ export async function TourPageContent({
             <BookingForm
               price={tour.price}
               amount={tour.priceAmount}
+              amountCurrency={tour.datesCurrency}
               currencies={currencies}
               tour={tour.title}
               extraPriceAmount={tour.extraPriceAmount}

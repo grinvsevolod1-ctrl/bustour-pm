@@ -78,6 +78,7 @@ export function TourCard({
             {hasStructuredPrice ? (
               <PriceSwitcher
                 amount={(tour as Tour & { priceAmount?: number }).priceAmount || 0}
+                amountCurrency={(tour as Tour & { datesCurrency?: string }).datesCurrency || ""}
                 currencies={currencies}
                 initialCurrencyCode={currencyCode}
                 showCurrencySelector={false}

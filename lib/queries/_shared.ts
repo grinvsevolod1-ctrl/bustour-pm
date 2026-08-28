@@ -131,9 +131,10 @@ export function mapTour(
   const cover = coerceMediaNode(row.image) ?? { url: row.image || "" }
   return {
     id: row.id,
-    slug: row.slug,
-    title: row.title,
-    description: row.description,
+  slug: row.slug,
+  title: row.title,
+  heading: (row as { heading?: string | null }).heading || "",
+  description: row.description,
     price,
     priceAmount,
     extraPriceAmount: row.extraPriceAmount,

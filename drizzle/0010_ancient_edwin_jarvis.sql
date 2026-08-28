@@ -1,0 +1,1 @@
+ALTER TABLE "tours" ADD COLUMN "heading" text DEFAULT '' NOT NULL;
