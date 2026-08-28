@@ -225,9 +225,31 @@ export function TourGallery({
   const { active, outgoing, direction, go, endAnim } = useSlider(total)
   const [lightbox, setLightbox] = useState<number | null>(null)
   const thumbnailsRef = useRef<HTMLDivElement>(null)
+  const mainSlideRef = useRef<HTMLDivElement>(null)
   const [canScrollUp, setCanScrollUp] = useState(false)
   const [canScrollDown, setCanScrollDown] = useState(false)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Thumbnail column's content (up to 7+ thumbnails) is naturally taller than
+  // the 16:9 main slide, so flex stretch alone can't cap it — measure the main
+  // slide's real height on desktop and pin the column to match it exactly.
+  const [desktopColumnHeight, setDesktopColumnHeight] = useState<number | null>(null)
+
+  useEffect(() => {
+    const mainEl = mainSlideRef.current
+    if (!mainEl || typeof ResizeObserver === "undefined" || typeof window === "undefined") return
+    const mq = window.matchMedia("(min-width: 768px)")
+    const update = () => {
+      setDesktopColumnHeight(mq.matches ? mainEl.getBoundingClientRect().height : null)
+    }
+    const ro = new ResizeObserver(update)
+    ro.observe(mainEl)
+    mq.addEventListener("change", update)
+    update()
+    return () => {
+      ro.disconnect()
+      mq.removeEventListener("change", update)
+    }
+  }, [])
 
   const activeAlt =
     slides[active]?.alt && total > 1
@@ -305,6 +327,7 @@ export function TourGallery({
           scrolls its own overflow via the up/down buttons instead of stretching the row. */}
       <div className="flex w-full min-w-0 select-none flex-col gap-3 md:flex-row md:items-stretch md:gap-3">
         <div
+          ref={mainSlideRef}
           className="relative aspect-[16/9] w-full min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-cream md:min-h-0 md:min-w-0 md:max-h-[70vh] md:flex-1"
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
@@ -393,7 +416,10 @@ export function TourGallery({
         </div>
 
         {total > 1 && (
-          <div className="flex w-full gap-2 py-1 md:min-h-0 md:w-40 md:flex-none md:flex-col md:gap-2 md:py-0 lg:w-48">
+          <div
+            className="flex w-full gap-2 py-1 md:w-40 md:flex-none md:flex-col md:gap-2 md:py-0 lg:w-48"
+            style={desktopColumnHeight ? { height: desktopColumnHeight } : undefined}
+          >
             <button
               type="button"
               onClick={() => scrollThumbnails("up")}
