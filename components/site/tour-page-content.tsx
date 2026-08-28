@@ -1,4 +1,3 @@
-import { Calendar, MapPin, Moon, Bus } from "lucide-react"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { TourGallery } from "@/components/site/tour-gallery"
 import { BookingForm } from "@/components/site/booking-form"
@@ -74,13 +73,6 @@ export async function TourPageContent({
   // Никаких дефолтных групп из tour.included/excluded — иначе секция
   // «наполняется сама» и показывается на пустом туре (баг 5.2/5.4).
   const whatIncluded: IncludedGroup[] = tour.whatIncluded.filter((g) => g.items.length)
-
-  const infoItems = [
-    { icon: Calendar, label: "Длительность", value: tour.duration },
-    { icon: Bus, label: "Отправление", value: tour.departure },
-    { icon: MapPin, label: "Страна", value: tour.country },
-    { icon: Moon, label: "Ночей", value: String(tour.nights) },
-  ].filter((i) => i.value && i.value !== "0")
 
   const layout = resolveTourLayout(tour.layout)
   const hasDates = hasDatesTable(tour.datesTable)
@@ -187,19 +179,6 @@ export async function TourPageContent({
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0 space-y-6">
             {galleryVisible ? <TourGallery slides={gallerySlides} /> : null}
-            {infoItems.length ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {infoItems.map((item) => (
-                  <div key={item.label} className="flex min-w-0 items-center gap-2 rounded bg-cream p-3 sm:gap-3">
-                    <item.icon className="h-5 w-5 shrink-0 text-brand sm:h-6 sm:w-6" strokeWidth={1.75} />
-                    <div className="min-w-0 leading-tight">
-                      <div className="truncate text-xs text-ink-muted">{item.label}</div>
-                      <div className="break-words text-sm font-semibold text-ink">{item.value}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
           </div>
           <aside className="hidden self-start lg:sticky lg:top-6 lg:block">
             <BookingForm
