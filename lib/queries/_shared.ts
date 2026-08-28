@@ -95,7 +95,7 @@ export async function assembleDatesTables(tourRows: DatesTourMeta[]): Promise<Ma
       description: date.description,
       extraPriceAmount: date.extraPriceAmount,
       extraPriceCurrency: date.extraPriceCurrency,
-      tags: (tagsByDate.get(date.id) ?? []).map((tag) => ({ id: tag.id, icon: tag.icon, label: tag.label })),
+      tags: (tagsByDate.get(date.id) ?? []).map((tag) => ({ id: tag.id, icon: tag.icon, label: tag.label, image: tag.image ?? undefined })),
       rooms: (roomsByDate.get(date.id) ?? []).map((room) => ({ id: room.id, name: room.name, price: room.price, discount: room.discount })),
     })
   }

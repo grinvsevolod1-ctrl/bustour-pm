@@ -1,0 +1,1 @@
+ALTER TABLE "tour_date_tags" ADD COLUMN "image" text;

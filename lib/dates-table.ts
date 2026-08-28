@@ -41,7 +41,8 @@ function toNumber(value: unknown): number {
 
 function coerceTag(raw: unknown): DatesTableTag {
   const r = (raw ?? {}) as Record<string, unknown>
-  return { icon: String(r.icon ?? "flag"), label: String(r.label ?? "") }
+  const image = typeof r.image === "string" ? r.image.trim() : ""
+  return { icon: String(r.icon ?? "flag"), label: String(r.label ?? ""), ...(image ? { image } : {}) }
 }
 
 function coerceRoom(raw: unknown): DatesTableRoom {
@@ -162,8 +163,11 @@ export function isUpcomingDeparture(startDate: string, today = todayIso()): bool
   return isIsoDate(startDate) && startDate >= today
 }
 
+/** Upcoming departures, sorted chronologically by start date (earliest first). */
 export function upcomingRows(rows: DatesTableRow[], today = todayIso()): DatesTableRow[] {
-  return rows.filter((row) => isUpcomingDeparture(row.startDate, today))
+  return rows
+    .filter((row) => isUpcomingDeparture(row.startDate, today))
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
 }
 
 export const ALL_PERIODS_LABEL = "Любой период"

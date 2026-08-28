@@ -336,6 +336,7 @@ async function seedCatalog() {
             dateId: inserted.id,
             icon: String(tag.icon ?? "flag"),
             label: String(tag.label ?? ""),
+            image: tag.image ? String(tag.image) : null,
             sortOrder: tagIndex,
           })
         }

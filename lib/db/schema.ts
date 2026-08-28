@@ -177,6 +177,8 @@ export const tourDateTags = pgTable(
     dateId: integer("dateId").notNull().references(() => tourDates.id, { onDelete: "cascade" }),
     icon: text("icon").notNull().default("flag"),
     label: text("label").notNull().default(""),
+    // Кастомная загруженная картинка тега — если задана, подменяет встроенную иконку.
+    image: text("image"),
     sortOrder: integer("sortOrder").notNull().default(0),
   },
   (t) => [index("tour_date_tags_date_id_idx").on(t.dateId)],

@@ -15,8 +15,9 @@ export type AlertKind = "info" | "warning"
 export type TourAlert = { text: string; type: AlertKind }
 
 // A short labelled tag with an icon shown above the tour description
-// (e.g. "На День России").
-export type DatesTableTag = { icon: string; label: string }
+// (e.g. "На День России"). `image`, when set, overrides the built-in icon
+// with a custom uploaded picture.
+export type DatesTableTag = { icon: string; label: string; image?: string }
 
 // A bookable room option for a dates row. Final price is derived from
 // `price` and `discount` (percent, 0 = no discount).

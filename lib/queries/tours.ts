@@ -425,8 +425,9 @@ export async function saveTourDatesTable(tourId: number, table: DatesTable): Pro
       for (const tag of row.tags) {
         const icon = tag.icon.trim()
         const label = tag.label.trim()
-        if (!icon && !label) continue
-        await tx.insert(tourDateTags).values({ dateId, icon: icon || "flag", label, sortOrder: tagOrder++ })
+        const image = (tag.image ?? "").trim()
+        if (!icon && !label && !image) continue
+        await tx.insert(tourDateTags).values({ dateId, icon: icon || "flag", label, image: image || null, sortOrder: tagOrder++ })
       }
       let roomOrder = 0
       for (const room of row.rooms) {
