@@ -28,7 +28,7 @@ const mustUse = [
   "hot/page.tsx",
   "hot/[countrySlug]/page.tsx",
   "hot/[countrySlug]/[citySlug]/page.tsx",
-  "bus-rental/[slug]/page.tsx",
+  "arenda-avtobusov-v-minske/[slug]/page.tsx",
 ]
 for (const rel of mustUse) {
   const src = readFileSync(join(siteRoot, rel), "utf8")

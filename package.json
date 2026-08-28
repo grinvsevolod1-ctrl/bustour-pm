@@ -77,7 +77,6 @@
     "flatpickr": "^4.6.13",
     "libphonenumber-js": "^1.13.10",
     "lucide-react": "^1.16.0",
-    "mammoth": "^1.12.1",
     "motion": "^12.42.2",
     "next": "^16.2.0",
     "node-html-parser": "^9.0.0",
