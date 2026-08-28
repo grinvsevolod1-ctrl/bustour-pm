@@ -167,6 +167,7 @@ export default async function BusCityPage({
         sectionDescription={get("searchDescription") || undefined}
         defaultSort={get("search.defaultSort") || undefined}
         hideResultsHeading={get("search.hideHeading") || "0"}
+        showSearch={isOn(settings, `${p}.section.search`)}
       />
     </main>
   )

@@ -112,6 +112,7 @@ export function ToursListing({
   sectionDescription,
   defaultSort,
   hideResultsHeading = "0",
+  showSearch = true,
 }: {
   tours: Tour[]
   category: "bus" | "avia" | "hot"
@@ -148,6 +149,8 @@ export function ToursListing({
   defaultSort?: string
   /** CMS: "1" — hide the inner «Результаты поиска» H2 above cards. */
   hideResultsHeading?: "0" | "1" | string
+  /** CMS: when false («Фильтр и результаты поиска» off) — скрываем панель фильтров и список туров. */
+  showSearch?: boolean
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -414,6 +417,8 @@ export function ToursListing({
           </Fragment>
         ) : (
           <Fragment key="tours-bus-stack">
+            {showSearch && (
+            <>
             {/* Filter bar */}
             <div className="flex flex-col items-stretch gap-4 rounded bg-cyan-accent p-6 md:flex-row md:flex-wrap md:items-end">
               <label className="flex min-w-[180px] flex-1 flex-col gap-2">
@@ -504,10 +509,12 @@ export function ToursListing({
                 </button>
               </div>
             </div>
+            </>
+            )}
 
             {callUs}
 
-            {/* Results */}
+            {showSearch && (
             <div id={TOUR_SEARCH_RESULTS_ID} className="scroll-mt-24 space-y-6">
               <p className="sr-only" aria-live="polite" aria-atomic="true">
                 {announce}
@@ -577,6 +584,7 @@ export function ToursListing({
                 </p>
               )}
             </div>
+            )}
 
             {seoContent != null ? <Fragment key="tours-seo">{seoContent}</Fragment> : null}
 

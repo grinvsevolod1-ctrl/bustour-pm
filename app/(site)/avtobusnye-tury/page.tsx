@@ -134,6 +134,7 @@ export default async function BusToursPage() {
         sectionDescription={get("searchDescription") || undefined}
         defaultSort={get("search.defaultSort") || undefined}
         hideResultsHeading={get("search.hideHeading") || "0"}
+        showSearch={isOn(settings, `${p}.section.search`)}
       />
     </main>
   )
