@@ -16,7 +16,7 @@ function parseDayLabel(raw: string): { num: string; word: string; fullTitle: str
   const mRange = s.match(/^Дни?\s+(\d+)\s*[–—-]\s*(\d+)\s*$/i)
   if (mRange) {
     const [, a, b] = mRange
-    return { num: `${a}–${b}`, word: Number(b) - Number(a) + 1 === 1 ? "день" : "дни", fullTitle: s }
+    return { num: `${a}–${b}`, word: "день", fullTitle: s }
   }
   const mSingle = s.match(/^День\s+(\d+)\s*$/i)
   if (mSingle) {
@@ -50,7 +50,7 @@ function dayColumnLabel(
   if (dayStart != null && Number.isFinite(dayStart)) {
     if (dayEnd != null && Number.isFinite(dayEnd) && dayEnd !== dayStart) {
       const [a, b] = dayStart < dayEnd ? [dayStart, dayEnd] : [dayEnd, dayStart]
-      return { num: `${a}–${b}`, word: "дни" }
+      return { num: `${a}–${b}`, word: "день" }
     }
     return { num: String(dayStart), word: pluralDay(dayStart) }
   }
