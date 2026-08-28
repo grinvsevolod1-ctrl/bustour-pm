@@ -4,12 +4,12 @@ export const navItems = [
   { label: "Горящие туры", href: "/hot/", icon: "fire" },
   { label: "Авиатуры", href: "/aviatury/" },
   { label: "Автобусные туры", href: "/avtobusnye-tury/" },
-  { label: "Аренда автобусов", href: "/bus-rental" },
+  { label: "Аренда автобусов", href: "/arenda-avtobusov-v-minske" },
   {
     label: "Компания",
     href: "/company",
     children: [
-      { label: "Отзывы", href: "/testimonials" },
+      { label: "Отзывы", href: "/reviews" },
       { label: "Сотрудники", href: "/company/staff" },
       { label: "Лицензии и сертификаты", href: "/company/licenses" },
     ],
@@ -18,7 +18,7 @@ export const navItems = [
     label: "Полезная информация",
     href: "/helpful",
     children: [
-      { label: "Трансферы", href: "/helpful/transfers" },
+      { label: "Трансферы", href: "/helpful/transfery-v-aeroport" },
       { label: "Памятки туристу", href: "/helpful/memos" },
       { label: "Туристический словарь", href: "/helpful/dictionary" },
     ],

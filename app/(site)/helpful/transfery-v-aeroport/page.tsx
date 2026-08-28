@@ -16,7 +16,7 @@ import { isCallusSectionKey } from "@/lib/multipliable-sections"
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings()
   return metadataFromSettings(settings, "transfers", "Трансферы в аэропорт — БасТур", "Комфортный и надёжный трансфер в аэропорты Москвы из Минска. Шереметьево, Внуково, Домодедово и другие направления.", {
-    path: "/helpful/transfers",
+    path: "/helpful/transfery-v-aeroport",
   })
 }
 
@@ -143,7 +143,7 @@ export default async function TransfersPage() {
                   key={transfer.id}
                   title={transfer.title}
                   image={transfer.image || "/images/transfers/sheremetyevo.png"}
-                  href={`/helpful/transfers/${transfer.slug}`}
+                  href={`/helpful/transfery-v-aeroport/${transfer.slug}`}
                 />
               ))}
             </div>
@@ -170,7 +170,7 @@ export default async function TransfersPage() {
                   key={transfer.id}
                   title={transfer.title}
                   image={transfer.image || "/images/transfers/individual.png"}
-                  href={`/helpful/transfers/${transfer.slug}`}
+                  href={`/helpful/transfery-v-aeroport/${transfer.slug}`}
                 />
               ))}
             </div>

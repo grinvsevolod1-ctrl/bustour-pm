@@ -56,7 +56,7 @@ function revalidateSite() {
   revalidatePath("/", "layout")
   revalidatePath("/")
   revalidatePath("/contacts")
-  revalidatePath("/testimonials")
+  revalidatePath("/reviews")
 }
 
 function revalidateCollectionAdmin(collection: string) {

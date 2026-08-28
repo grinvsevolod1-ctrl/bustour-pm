@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic"
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getPublicSettings()
-  return metadataFromSettings(s, "rental", "Аренда автобусов — БасТур", "Аренда комфортабельных автобусов и микроавтобусов с водителем для любых поездок.", { path: "/bus-rental" })
+  return metadataFromSettings(s, "rental", "Аренда автобусов — БасТур", "Аренда комфортабельных автобусов и микроавтобусов с водителем для любых поездок.", { path: "/arenda-avtobusov-v-minske" })
 }
 
 export default async function BusRentalPage() {
@@ -62,7 +62,7 @@ export default async function BusRentalPage() {
               ].filter(Boolean)
               return (
                 <Link
-                  href={`/bus-rental/${bus.slug}`}
+                  href={`/arenda-avtobusov-v-minske/${bus.slug}`}
                   key={bus.id}
                   className="relative h-[280px] w-full min-w-[280px] max-w-[400px] flex-1 overflow-hidden rounded"
                 >

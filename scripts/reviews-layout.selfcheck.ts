@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
 const root = process.cwd()
-const testimonials = readFileSync(join(root, "app/(site)/testimonials/page.tsx"), "utf8")
+const testimonials = readFileSync(join(root, "app/(site)/reviews/page.tsx"), "utf8")
 const staff = readFileSync(join(root, "app/(site)/company/staff/page.tsx"), "utf8")
 const reviewsSection = readFileSync(join(root, "components/site/reviews-section.tsx"), "utf8")
 const reviewCardPublic = readFileSync(join(root, "components/site/review-card-public.tsx"), "utf8")
@@ -25,9 +25,9 @@ assert.match(
   /className="w-full text-base leading-relaxed text-ink/,
   "#52: testimonials intro uses full content width",
 )
-assert.doesNotMatch(testimonials, /holiday\.by/i, "no holiday.by CTA on /testimonials")
+assert.doesNotMatch(testimonials, /holiday\.by/i, "no holiday.by CTA on /reviews")
 assert.doesNotMatch(homeTestimonials, /holiday\.by/i, "no holiday.by on homepage block")
-assert.match(homeTestimonials, /href="\/testimonials"/, "home CTA links to /testimonials")
+assert.match(homeTestimonials, /href="\/reviews"/, "home CTA links to /reviews")
 assert.match(homeTestimonials, /AllReviewsCta|Все отзывы/, "home all-reviews CTA")
 assert.doesNotMatch(staff, /staff\.intro[\s\S]{0,120}max-w-2xl|className="max-w-2xl/, "#52 audit: staff intro uncapped")
 

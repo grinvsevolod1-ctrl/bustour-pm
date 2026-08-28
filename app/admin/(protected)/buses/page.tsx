@@ -70,7 +70,7 @@ export default async function AdminBusesPage() {
                   <Td className="text-admin-fg-muted">{bus.busClass || "—"}</Td>
                   <Td actions>
                     <div className="flex items-center justify-end gap-1">
-                      <IconLink href={`/bus-rental/${bus.slug}`} target="_blank" aria-label="Открыть на сайте">
+                      <IconLink href={`/arenda-avtobusov-v-minske/${bus.slug}`} target="_blank" aria-label="Открыть на сайте">
                         <ExternalLink className="h-4 w-4" />
                       </IconLink>
                       <IconLink href={`/admin/buses/${bus.id}`} aria-label="Редактировать">

@@ -70,7 +70,7 @@ export default async function AdminReviewsPage() {
   const seoWorkspace = buildSeoWorkspace({
     groups: pageSettingsGroups.reviews.groups,
     settings,
-    pagePath: "/testimonials",
+    pagePath: "/reviews",
     fallbackTitle: "Отзывы",
   })
   const mainGroups = seoWorkspace?.groupsWithoutSeo ?? pageSettingsGroups.reviews.groups
@@ -89,7 +89,7 @@ export default async function AdminReviewsPage() {
     <PageSettingsForm
       title="Отзывы"
       description={`Всего: ${reviews.length} · На проверке: ${pendingCount}`}
-      pageHref="/testimonials"
+      pageHref="/reviews"
       workspaceGroups={workspaceGroups}
       workspaceBeforeForm={
         <div className="space-y-6">

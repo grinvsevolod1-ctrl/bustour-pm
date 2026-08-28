@@ -134,18 +134,18 @@ async function main() {
   const home = readFileSync(join(process.cwd(), "app/(site)/page.tsx"), "utf8")
   assert.match(home, /PublicFeaturedTours/)
 
-  const busList = readFileSync(join(process.cwd(), "app/(site)/bus-rental/page.tsx"), "utf8")
+  const busList = readFileSync(join(process.cwd(), "app/(site)/arenda-avtobusov-v-minske/page.tsx"), "utf8")
   assert.match(busList, /expandPublicList/)
 
-  const busDetail = readFileSync(join(process.cwd(), "app/(site)/bus-rental/[slug]/page.tsx"), "utf8")
+  const busDetail = readFileSync(join(process.cwd(), "app/(site)/arenda-avtobusov-v-minske/[slug]/page.tsx"), "utf8")
   assert.match(busDetail, /expandPublicDeep/)
 
   const info = readFileSync(join(process.cwd(), "app/(site)/helpful/page.tsx"), "utf8")
   assert.match(info, /expandPublicList/)
 
-  const testimonials = readFileSync(join(process.cwd(), "app/(site)/testimonials/page.tsx"), "utf8")
+  const testimonials = readFileSync(join(process.cwd(), "app/(site)/reviews/page.tsx"), "utf8")
   assert.match(testimonials, /expandPublicList/)
-  assert.match(testimonials, /path:\s*["']\/testimonials["']/)
+  assert.match(testimonials, /path:\s*["']\/reviews["']/)
 
   console.log("public-shortcodes-coverage.selfcheck: ok")
 }

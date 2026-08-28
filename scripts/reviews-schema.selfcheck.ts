@@ -129,7 +129,7 @@ assert.equal(
 
 // ── Wiring ─────────────────────────────────────────────────────────────
 assert.match(readFileSync(join(root, "components/site/reviews-json-ld.tsx"), "utf8"), /buildReviewsPageJsonLd/)
-assert.match(readFileSync(join(root, "app/(site)/testimonials/page.tsx"), "utf8"), /ReviewsJsonLd/)
+assert.match(readFileSync(join(root, "app/(site)/reviews/page.tsx"), "utf8"), /ReviewsJsonLd/)
 assert.match(readFileSync(join(root, "components/site/tour-page-content.tsx"), "utf8"), /withProductReviews/)
 assert.match(readFileSync(join(root, "components/site/review-card-public.tsx"), "utf8"), /datePublished/)
 

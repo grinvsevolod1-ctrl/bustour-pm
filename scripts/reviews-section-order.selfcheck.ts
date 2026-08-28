@@ -56,7 +56,7 @@ assert.equal(
   REVIEWS_PAGE_LEGACY_CMS_KEY,
 )
 
-const page = read("app/(site)/testimonials/page.tsx")
+const page = read("app/(site)/reviews/page.tsx")
 assert.ok(page.includes("OrderedCallUs"), "public: OrderedCallUs in section order")
 assert.ok(page.includes("OrderedFaqSection"), "public: OrderedFaqSection in section order")
 assert.ok(page.includes("resolveReviewsPageSectionOrder"), "public: dual-key order resolver")
@@ -67,7 +67,7 @@ assert.ok(admin.includes("REVIEWS_PAGE_LEGACY_CMS_KEY"), "admin: reads legacy or
 assert.ok(admin.includes("REVIEWS_PAGE_DEFAULT_SECTION_ORDER"), "admin: shared default order")
 
 const cms = read("app/admin/cms-actions.ts")
-assert.ok(cms.includes('revalidatePath("/testimonials")'), "revalidate /testimonials on CMS save")
+assert.ok(cms.includes('revalidatePath("/reviews")'), "revalidate /reviews on CMS save")
 
 const slug = read("app/admin/(protected)/pages/[slug]/page.tsx")
 assert.ok(

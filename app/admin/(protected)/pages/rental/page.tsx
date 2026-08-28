@@ -43,7 +43,7 @@ export default async function RentalAdminPage() {
   const seoWorkspace = buildSeoWorkspace({
     groups: page.groups,
     settings,
-    pagePath: page.url ?? "/bus-rental",
+    pagePath: page.url ?? "/arenda-avtobusov-v-minske",
     fallbackTitle: page.heading,
   })
   const mainGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups

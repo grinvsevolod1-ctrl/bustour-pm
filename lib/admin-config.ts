@@ -167,7 +167,7 @@ export const pageSettingsGroups: Record<string, {
   },
   reviews: {
     heading: "Страница «Отзывы»",
-    url: "/testimonials",
+    url: "/reviews",
     groups: [
       {
         heading: "SEO и мета",
@@ -211,7 +211,7 @@ export const pageSettingsGroups: Record<string, {
   },
   rental: {
     heading: "Страница «Аренда автобусов»",
-    url: "/bus-rental",
+    url: "/arenda-avtobusov-v-minske",
     groups: [
       {
         heading: "SEO и мета",
@@ -328,7 +328,7 @@ export const pageSettingsGroups: Record<string, {
   },
   testimonials: {
     heading: "Страница «Отзывы»",
-    url: "/testimonials",
+    url: "/reviews",
     groups: [
       {
         heading: "Тексты страницы",
@@ -343,7 +343,7 @@ export const pageSettingsGroups: Record<string, {
   },
   transfers: {
     heading: "Страница «Трансферы»",
-    url: "/helpful/transfers",
+    url: "/helpful/transfery-v-aeroport",
     groups: [
       {
         heading: "SEO и мета",
@@ -370,7 +370,7 @@ export const pageSettingsGroups: Record<string, {
           },
           {
             key: "transfers.outro",
-            label: "Нижний текстовый блок",
+            label: "Нижний текстовый ��лок",
             type: "richtext",
           },
         ],

@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url"
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 const read = (rel: string) => fs.readFileSync(path.join(root, rel), "utf8")
 
-const rental = read("app/(site)/bus-rental/page.tsx")
+const rental = read("app/(site)/arenda-avtobusov-v-minske/page.tsx")
 assert.ok(rental.includes("OrderedCallUs"), "rental: OrderedCallUs in section order")
 assert.ok(rental.includes("OrderedFaqSection"), "rental: OrderedFaqSection in section order")
 assert.ok(rental.includes("isCallusSectionKey"), "rental: matches numbered callus")

@@ -57,15 +57,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/avtobusnye-tury/",
     `${aviaPrefix}/`,
     "/hot/",
-    "/bus-rental",
+    "/arenda-avtobusov-v-minske",
     "/company",
     "/company/staff",
     "/company/licenses",
     "/helpful",
-    "/helpful/transfers",
+    "/helpful/transfery-v-aeroport",
     "/helpful/dictionary",
     "/contacts",
-    "/testimonials",
+    "/reviews",
     ...LEGAL_SLUGS.map((slug) => legalPages[slug].path),
   ]
 
@@ -142,7 +142,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const busEntries: MetadataRoute.Sitemap = buses.map((bus) => ({
-    url: absoluteUrl(`/bus-rental/${bus.slug}`),
+    url: absoluteUrl(`/arenda-avtobusov-v-minske/${bus.slug}`),
     changeFrequency: "weekly",
     priority: 0.65,
   }))

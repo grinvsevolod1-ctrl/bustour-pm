@@ -20,6 +20,7 @@ const RESERVED_SLUGS = new Set([
   "hot",
   "tours",
   "testimonials",
+  "reviews",
   "company",
   "contacts",
   "legal",
@@ -37,6 +38,7 @@ const RESERVED_SLUGS = new Set([
   "helpful",
   "info",
   "bus-rental",
+  "arenda-avtobusov-v-minske",
   "tour",
   // Каталоги public/: matcher middleware не исключает их, слаг "images"
   // сломал бы раздачу всех статических картинок сайта.

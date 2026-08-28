@@ -99,10 +99,10 @@ export async function saveBusAction(_prev: unknown, formData: FormData) {
   }
 
   revalidatePath("/admin/buses")
-  revalidatePath("/bus-rental")
-  revalidatePath(`/bus-rental/${input.slug}`)
+  revalidatePath("/arenda-avtobusov-v-minske")
+  revalidatePath(`/arenda-avtobusov-v-minske/${input.slug}`)
   if (existing && existing.slug !== input.slug) {
-    revalidatePath(`/bus-rental/${existing.slug}`)
+    revalidatePath(`/arenda-avtobusov-v-minske/${existing.slug}`)
   }
   // redirect() throws — must stay outside try/catch (same as tours / #55 reviews)
   if (!id) redirect(`/admin/buses/${newId}`)
@@ -126,7 +126,7 @@ export async function moveBusAction(formData: FormData) {
     after: { direction },
   })
   revalidatePath("/admin/buses")
-  revalidatePath("/bus-rental")
+  revalidatePath("/arenda-avtobusov-v-minske")
 }
 
 export async function deleteBusAction(formData: FormData) {
@@ -146,7 +146,7 @@ export async function deleteBusAction(formData: FormData) {
       })
       revalidatePath("/admin/buses")
       revalidatePath("/admin/archive")
-      revalidatePath("/bus-rental")
+      revalidatePath("/arenda-avtobusov-v-minske")
     },
     "/admin/buses?notice=archived",
     "/admin/buses",
@@ -168,7 +168,7 @@ export async function restoreBusAction(formData: FormData) {
       })
       revalidatePath("/admin/buses")
       revalidatePath("/admin/archive")
-      revalidatePath("/bus-rental")
+      revalidatePath("/arenda-avtobusov-v-minske")
     },
     "/admin/archive?notice=restored",
     "/admin/archive",
@@ -190,7 +190,7 @@ export async function purgeBusAction(formData: FormData) {
       })
       revalidatePath("/admin/buses")
       revalidatePath("/admin/archive")
-      revalidatePath("/bus-rental")
+      revalidatePath("/arenda-avtobusov-v-minske")
     },
     "/admin/archive?notice=purged",
     "/admin/archive",

@@ -35,7 +35,7 @@ assert.deepEqual(
   ["specs", "seating", "documents", "seo", "faq"],
 )
 
-const publicPage = fs.readFileSync(path.join(root, "app/(site)/bus-rental/[slug]/page.tsx"), "utf8")
+const publicPage = fs.readFileSync(path.join(root, "app/(site)/arenda-avtobusov-v-minske/[slug]/page.tsx"), "utf8")
 assert.ok(publicPage.includes('key === "specs"'), "public renders specs from order")
 assert.ok(publicPage.includes('key === "documents"'), "public renders documents from order")
 assert.ok(publicPage.includes('key === "seating"'), "public renders seating from order")

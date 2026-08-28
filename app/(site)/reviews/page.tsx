@@ -27,7 +27,7 @@ const REVIEWS_META_FALLBACK_DESC =
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSettings()
   return metadataFromSettings(settings, "reviews", "Отзывы — БасТур", REVIEWS_META_FALLBACK_DESC, {
-    path: "/testimonials",
+    path: "/reviews",
   })
 }
 
@@ -52,7 +52,7 @@ export default async function ReviewsPage() {
       <ReviewsJsonLd
         reviews={reviews}
         brandName={settings["site.brand"] || "БасТур"}
-        url={`${siteUrl}/testimonials`}
+        url={`${siteUrl}/reviews`}
         itemReviewed={{
           "@type": "TravelAgency",
           name: settings["site.brand"] || "БасТур",

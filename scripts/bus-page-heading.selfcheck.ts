@@ -38,11 +38,11 @@ assert.doesNotMatch(
 const admin = readFileSync(join(process.cwd(), "app/admin/(protected)/buses/[id]/page.tsx"), "utf8")
 assert.match(admin, /pageHeadingKey=\{`\$\{pageKey\}\.h1`\}/, "edit page passes h1 into base form")
 
-const detail = readFileSync(join(process.cwd(), "app/(site)/bus-rental/[slug]/page.tsx"), "utf8")
+const detail = readFileSync(join(process.cwd(), "app/(site)/arenda-avtobusov-v-minske/[slug]/page.tsx"), "utf8")
 assert.match(detail, /busPageHeading/, "detail page uses dual-title helper")
 assert.match(detail, /label:\s*bus\.title/, "breadcrumb uses short title")
 
-const list = readFileSync(join(process.cwd(), "app/(site)/bus-rental/page.tsx"), "utf8")
+const list = readFileSync(join(process.cwd(), "app/(site)/arenda-avtobusov-v-minske/page.tsx"), "utf8")
 assert.match(list, /\{bus\.title\}/, "listing cards use short title")
 
 console.log("bus-page-heading.selfcheck: ok")

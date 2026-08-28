@@ -63,14 +63,14 @@ assert.match(admin, /id:\s*["']order["']/)
 assert.match(admin, /seoHtml\$\{suffix\}/, "seo slots like buses")
 assert.doesNotMatch(admin, /contentTitle|contentHtml|sec-content/, "no legacy content section")
 
-const detail = readFileSync(join(process.cwd(), "app/(site)/helpful/transfers/[slug]/page.tsx"), "utf8")
+const detail = readFileSync(join(process.cwd(), "app/(site)/helpful/transfery-v-aeroport/[slug]/page.tsx"), "utf8")
 assert.match(detail, /transferPageHeading/, "detail page uses dual-title helper")
 assert.match(detail, /withTransferSeoAlias/, "public page aliases legacy content→seo")
 assert.match(detail, /label:\s*transfer\.title/, "breadcrumb uses short title")
 assert.match(detail, /key === "seo"/, "public renders seo section")
 assert.doesNotMatch(detail, /contentTitle|key === "content"/, "no legacy content keys on public")
 
-const list = readFileSync(join(process.cwd(), "app/(site)/helpful/transfers/page.tsx"), "utf8")
+const list = readFileSync(join(process.cwd(), "app/(site)/helpful/transfery-v-aeroport/page.tsx"), "utf8")
 assert.match(list, /title=\{transfer\.title\}/, "listing cards use short title")
 
 console.log("transfer-page-heading.selfcheck: ok")

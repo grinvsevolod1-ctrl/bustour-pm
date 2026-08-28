@@ -129,7 +129,7 @@ const articlePage = readFileSync(join(root, "app/(site)/helpful/article-page.tsx
 assert.match(articlePage, /buildArticleJsonLd/)
 assert.match(articlePage, /articleUrl/)
 
-const busPage = readFileSync(join(root, "app/(site)/bus-rental/[slug]/page.tsx"), "utf8")
+const busPage = readFileSync(join(root, "app/(site)/arenda-avtobusov-v-minske/[slug]/page.tsx"), "utf8")
 assert.match(busPage, /metadataFromSettings|Breadcrumb/)
 assert.doesNotMatch(busPage, /NEXT_PUBLIC_SITE_URL/)
 assert.doesNotMatch(busPage, /buildProductOfferJsonLd/, "bus rental has no price — no Product Offer")

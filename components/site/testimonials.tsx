@@ -25,7 +25,7 @@ function AllReviewsCta({ label }: { label: string }) {
         Все отзывы наших туристов
       </p>
       <Link
-        href="/testimonials"
+        href="/reviews"
         className="inline-flex min-h-11 items-center justify-center rounded bg-brand px-4 py-3 text-base text-brand-foreground transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       >
         {label}

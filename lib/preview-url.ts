@@ -64,7 +64,7 @@ export async function generatePreviewUrl(
     case "bus": {
       const bus = await getBusById(entityId)
       if (!bus) return null
-      return withPreview(`/bus-rental/${stripArchivedSuffix(bus.slug)}`, "bus", bus.id)
+      return withPreview(`/arenda-avtobusov-v-minske/${stripArchivedSuffix(bus.slug)}`, "bus", bus.id)
     }
     case "article": {
       const article = await getArticleById(entityId)
@@ -79,7 +79,7 @@ export async function generatePreviewUrl(
       const transfer = await getTransferById(entityId)
       if (!transfer) return null
       return withPreview(
-        `/helpful/transfers/${stripArchivedSuffix(transfer.slug)}`,
+        `/helpful/transfery-v-aeroport/${stripArchivedSuffix(transfer.slug)}`,
         "transfer",
         transfer.id,
       )

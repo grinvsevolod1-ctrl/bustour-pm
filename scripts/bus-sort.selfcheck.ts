@@ -30,7 +30,7 @@ mustHave("lib/queries.ts", ["export async function moveBus", "orderBy(asc(buses.
 mustHave("app/admin/bus-actions.ts", ["moveBusAction", "bus_move"])
 mustHave("components/admin/sort-order-buttons.tsx", ["SortOrderButtons", "Выше", "Ниже"])
 mustHave("app/admin/(protected)/buses/page.tsx", ["SortOrderButtons", "moveBusAction"])
-mustHave("app/(site)/bus-rental/page.tsx", ["getBuses"])
+mustHave("app/(site)/arenda-avtobusov-v-minske/page.tsx", ["getBuses"])
 
 async function main() {
   const dbFile = path.join(os.tmpdir(), `bustour-bus-sort-${Date.now()}.db`)

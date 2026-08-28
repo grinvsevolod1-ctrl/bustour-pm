@@ -103,7 +103,7 @@ export async function logoutAction() {
 function revalidateReviewsPublic() {
   revalidatePath("/admin/reviews")
   revalidatePath("/")
-  revalidatePath("/testimonials")
+  revalidatePath("/reviews")
 }
 
 export async function saveReviewAction(_prev: unknown, formData: FormData) {

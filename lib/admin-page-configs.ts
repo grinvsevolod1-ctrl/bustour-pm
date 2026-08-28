@@ -140,7 +140,7 @@ export function busPageConfig(slug: string, busTitle?: string): {
   const title = busTitle ?? slug
   return {
     heading: `Аренда автобусов > ${title}`,
-    url: `/bus-rental/${slug}`,
+    url: `/arenda-avtobusov-v-minske/${slug}`,
     sections: [
       { key: `${p}.section.specs`, label: "Характеристики" },
       { key: `${p}.section.documents`, label: "Документы" },
@@ -173,7 +173,7 @@ export function transferPageConfig(slug: string, transferTitle?: string): {
   const title = transferTitle ?? slug
   return {
     heading: `Трансферы в аэропорт > ${title}`,
-    url: `/helpful/transfers/${slug}`,
+    url: `/helpful/transfery-v-aeroport/${slug}`,
     sections: [
       { key: `${p}.section.seo`, label: "Расширенный текст" },
       { key: `${p}.section.schedules`, label: "Расписания" },

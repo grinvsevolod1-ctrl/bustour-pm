@@ -55,17 +55,17 @@ async function main() {
     "reviews",
     "Fallback",
     "Fallback desc",
-    { path: "/testimonials" },
+    { path: "/reviews" },
   )
   assert.equal(meta.title, `Отзывы ${YEAR} — БасТур`)
   assert.equal(meta.description, `Превью отзывов ${YEAR}`)
-  assert.deepEqual(meta.alternates, { canonical: absoluteUrl("/testimonials") })
+  assert.deepEqual(meta.alternates, { canonical: absoluteUrl("/reviews") })
   assert.equal((meta.openGraph as { description?: string }).description, `Превью отзывов ${YEAR}`)
-  assert.equal((meta.openGraph as { url?: string }).url, absoluteUrl("/testimonials"))
+  assert.equal((meta.openGraph as { url?: string }).url, absoluteUrl("/reviews"))
 
-  const page = readFileSync(join(process.cwd(), "app/(site)/testimonials/page.tsx"), "utf8")
+  const page = readFileSync(join(process.cwd(), "app/(site)/reviews/page.tsx"), "utf8")
   assert.match(page, /expandPublicList/)
-  assert.match(page, /path:\s*["']\/testimonials["']/)
+  assert.match(page, /path:\s*["']\/reviews["']/)
   assert.match(page, /metadataFromSettings\([\s\S]*["']reviews["']/)
 
   const home = readFileSync(join(process.cwd(), "app/(site)/page.tsx"), "utf8")

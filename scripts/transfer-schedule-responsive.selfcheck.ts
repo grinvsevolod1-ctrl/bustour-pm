@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
 const src = readFileSync(join(process.cwd(), "components/site/transfer-schedule-table.tsx"), "utf8")
-const page = readFileSync(join(process.cwd(), "app/(site)/helpful/transfers/[slug]/page.tsx"), "utf8")
+const page = readFileSync(join(process.cwd(), "app/(site)/helpful/transfery-v-aeroport/[slug]/page.tsx"), "utf8")
 
 assert.match(src, /hidden[\s\S]{0,40}lg:block/, "desktop table from lg")
 assert.match(src, /lg:hidden/, "mobile cards below lg")

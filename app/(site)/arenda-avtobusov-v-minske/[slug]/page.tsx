@@ -41,7 +41,7 @@ export async function generateMetadata({
     expandPlainText(`${heading}: аренда автобуса на ${bus.seats || "комфортное"} места.`),
   ])
   return metadataFromSettings(settings, pageKey, fallbackTitle, fallbackDesc, {
-    path: `/bus-rental/${bus.slug}`,
+    path: `/arenda-avtobusov-v-minske/${bus.slug}`,
   })
 }
 
@@ -102,7 +102,7 @@ export default async function BusDetailPage({
         <Breadcrumb
           items={[
             { label: "Главная", href: "/" },
-            { label: "Аренда автобусов", href: "/bus-rental" },
+            { label: "Аренда автобусов", href: "/arenda-avtobusov-v-minske" },
             { label: bus.title },
           ]}
         />

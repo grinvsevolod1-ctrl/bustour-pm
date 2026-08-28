@@ -8,22 +8,22 @@ import { readQueriesSource } from "./lib/read-queries-source"
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")
 
-const testimonialsPage = fs.readFileSync(path.join(root, "app/(site)/testimonials/page.tsx"), "utf8")
+const testimonialsPage = fs.readFileSync(path.join(root, "app/(site)/reviews/page.tsx"), "utf8")
 assert.ok(
   testimonialsPage.includes('getApprovedReviews("testimonials")'),
-  "/testimonials must filter by showOn key testimonials",
+  "/reviews must filter by showOn key testimonials",
 )
 assert.match(
   testimonialsPage,
   /export const dynamic\s*=\s*["']force-dynamic["']/,
-  "/testimonials must be force-dynamic (Docker build has no DB; static empty reviews)",
+  "/reviews must be force-dynamic (Docker build has no DB; static empty reviews)",
 )
 
 const actions = fs.readFileSync(path.join(root, "app/admin/actions.ts"), "utf8")
 assert.ok(actions.includes("revalidateReviewsPublic"), "review mutations must share public revalidate helper")
 assert.ok(
-  /function revalidateReviewsPublic\(\)[\s\S]*?revalidatePath\("\/testimonials"\)/.test(actions),
-  "revalidateReviewsPublic must revalidate /testimonials",
+  /function revalidateReviewsPublic\(\)[\s\S]*?revalidatePath\("\/reviews"\)/.test(actions),
+  "revalidateReviewsPublic must revalidate /reviews",
 )
 
 const section = fs.readFileSync(path.join(root, "components/site/reviews-section.tsx"), "utf8")

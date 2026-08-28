@@ -120,7 +120,7 @@ async function main() {
     "Short preview text",
   )
 
-  // #62: reviews page uses reviews.* keys + /testimonials canonical
+  // #62: reviews page uses reviews.* keys + /reviews canonical
   const reviewsMeta = await metadataFromSettings(
     {
       "reviews.metaTitle": "Отзывы — БасТур",
@@ -130,10 +130,10 @@ async function main() {
     "reviews",
     "Fallback",
     "Fallback desc",
-    { path: "/testimonials" },
+    { path: "/reviews" },
   )
   assert.equal(reviewsMeta.description, "Превью отзывов")
-  assert.deepEqual(reviewsMeta.alternates, { canonical: absoluteUrl("/testimonials") })
+  assert.deepEqual(reviewsMeta.alternates, { canonical: absoluteUrl("/reviews") })
 
   const descFallback = await metadataFromSettings(
     {

@@ -54,7 +54,7 @@ export default async function EditBusPage({
   const seoWorkspace = buildSeoWorkspace({
     groups: page.groups,
     settings,
-    pagePath: page.url ?? `/bus-rental/${bus.slug}/`,
+    pagePath: page.url ?? `/arenda-avtobusov-v-minske/${bus.slug}/`,
     fallbackTitle: bus.title || page.heading,
   })
 
