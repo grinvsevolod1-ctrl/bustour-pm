@@ -205,7 +205,22 @@ export async function saveTourAction(_prev: unknown, formData: FormData): Promis
       [`tour:${savedTourId}.metaImage`]: String(formData.get("metaImage") || "").trim(),
       [`tour:${savedTourId}.metaImageAlt`]: String(formData.get("metaImageAlt") || "").trim(),
     })
-    await replacePageFaqs(`tour:${input.slug}`, parseFaqGroups(formData))
+    // FAQ трогаем только если блок реально был на форме (маркер __faqPresent).
+    // Иначе скрытая/отключённая секция уходит как «пустой FAQ» и стирает вопросы.
+    if (String(formData.get("__faqPresent") || "") === "1") {
+      const groups = parseFaqGroups(formData)
+      // Незаполненная пара «вопрос+ответ» не должна молча удалять сохранённый FAQ:
+      // если пользователь что-то ввёл, но пара неполная (groups пусто), сохранение
+      // FAQ пропускаем и оставляем прежние вопросы. Полное очищение возможно только
+      // когда в редакторе действительно пусто.
+      const rawHadContent =
+        formData.getAll("faqGroupTitle").some((v) => String(v).trim()) ||
+        formData.getAll("faqQuestion").some((v) => String(v).trim()) ||
+        formData.getAll("faqAnswer").some((v) => String(v).replace(/<[^>]*>/g, "").trim())
+      if (groups.length || !rawHadContent) {
+        await replacePageFaqs(`tour:${input.slug}`, groups)
+      }
+    }
   } catch (err) {
     return {
       error: mapDbError(err, "Тур сохранён, но не удалось сохранить SEO-мета или FAQ — сохраните форму ещё раз"),

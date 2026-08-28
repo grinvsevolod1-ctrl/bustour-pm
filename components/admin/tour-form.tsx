@@ -374,6 +374,10 @@ export function TourForm({
         </FormSection>
       </fieldset>
 
+      {/* Маркер «блок FAQ был на форме»: живёт вне disabled-fieldset, потому что
+          отключённые поля не отправляются. Без него скрытая секция FAQ уходила
+          на сервер как «пустой FAQ» и стирала сохранённые вопросы. */}
+      {showSection("faq") ? <input type="hidden" name="__faqPresent" value="1" /> : null}
       <fieldset disabled={!showSection("faq")} className={showSection("faq") ? undefined : "hidden"} aria-hidden={!showSection("faq")}>
         <FormSection id="s-faq" title="Частые вопросы (для этой страницы)">
           <FaqEditor items={faqs} groups={faqGroups} mode="groups" />

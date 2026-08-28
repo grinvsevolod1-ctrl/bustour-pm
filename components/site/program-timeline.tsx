@@ -28,6 +28,35 @@ function parseDayLabel(raw: string): { num: string; word: string; fullTitle: str
   return { num: "", word: "", fullTitle: s }
 }
 
+/** Склонение слова «день» по числу: 1 день, 2–4 дня, 5–20 дней. */
+function pluralDay(x: number): string {
+  return x % 10 === 1 && x % 100 !== 11
+    ? "день"
+    : x % 10 >= 2 && x % 10 <= 4 && (x % 100 < 10 || x % 100 >= 20)
+      ? "дня"
+      : "дней"
+}
+
+/**
+ * Число в левой колонке. Структурные dayStart/dayEnd — источник истины: они
+ * работают даже когда у блока задан свой заголовок (тогда парсинг `day` даёт
+ * пусто и раньше терялся диапазон). Иначе — откат к разбору строки `day`.
+ */
+function dayColumnLabel(
+  dayStart: number | undefined,
+  dayEnd: number | undefined,
+  parsed: { num: string; word: string },
+): { num: string; word: string } {
+  if (dayStart != null && Number.isFinite(dayStart)) {
+    if (dayEnd != null && Number.isFinite(dayEnd) && dayEnd !== dayStart) {
+      const [a, b] = dayStart < dayEnd ? [dayStart, dayEnd] : [dayEnd, dayStart]
+      return { num: `${a}–${b}`, word: "дни" }
+    }
+    return { num: String(dayStart), word: pluralDay(dayStart) }
+  }
+  return { num: parsed.num, word: parsed.word }
+}
+
 /** Rich or plain? Legacy tour text was plain; new program saves HTML. Render via dangerouslySetInnerHTML if tags present. */
 function renderProgramText(text: string) {
   const t = text ?? ""
@@ -45,7 +74,11 @@ function renderProgramText(text: string) {
   return <div className="whitespace-pre-wrap text-base leading-relaxed text-ink">{t}</div>
 }
 
-export function ProgramTimeline({ items }: { items: { day: string; text: string }[] }) {
+export function ProgramTimeline({
+  items,
+}: {
+  items: { day: string; text: string; dayStart?: number; dayEnd?: number }[]
+}) {
   const [open, setOpen] = useState<number | null>(0)
   if (!items.length) return null
   const lastIdx = items.length - 1
@@ -55,7 +88,9 @@ export function ProgramTimeline({ items }: { items: { day: string; text: string 
       {items.map((p, i) => {
         const isOpen = open === i
         const isLast = i === lastIdx
-        const label = parseDayLabel(p.day)
+        const parsed = parseDayLabel(p.day)
+        const col = dayColumnLabel(p.dayStart, p.dayEnd, parsed)
+        const label = { num: col.num, word: col.word, fullTitle: parsed.fullTitle }
         return (
           <div
             key={`${p.day}::${p.text.slice(0, 48)}`}

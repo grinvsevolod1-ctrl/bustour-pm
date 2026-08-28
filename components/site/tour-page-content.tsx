@@ -36,32 +36,6 @@ import type { Tour, IncludedGroup, Review, TourSectionKey } from "@/lib/types"
 type BreadcrumbItem = { label: string; href?: string }
 type SlugMaps = { countrySlugById: Record<number, string>; citySlugById: Record<number, string> }
 
-const defaultProgram = [
-  { day: "День 1", text: "Выезд из Минска. Трансфер до места назначения, размещение в отеле, свободное время." },
-  { day: "День 2", text: "Завтрак. Обзорная экскурсия по городу с посещением главных достопримечательностей." },
-  { day: "День 3", text: "Свободный день или дополнительные экскурсии по желанию. Прогулки и шопинг." },
-  { day: "День 4", text: "Завтрак, освобождение номеров. Обратный трансфер в Минск." },
-]
-
-const defaultWhatIncluded: IncludedGroup[] = [
-  {
-    title: "В стоимость включено",
-    marker: "check",
-    items: [
-      "Проезд комфортабельным автобусом",
-      "Проживание в отеле выбранной категории",
-      "Завтраки в отеле",
-      "Сопровождение гида на всём маршруте",
-      "Экскурсионная программа",
-    ],
-  },
-  {
-    title: "Оплачивается отдельно",
-    marker: "cross",
-    items: ["Личные расходы", "Дополнительные экскурсии", "Обеды и ужины", "Медицинская страховка"],
-  },
-]
-
 export async function TourPageContent({
   tour: rawTour,
   related: rawRelated,
@@ -91,15 +65,15 @@ export async function TourPageContent({
   const galleryNodes = tour.gallery.length ? tour.gallery : [tour.cover]
   const defaultAlts = await getDefaultAltsByMediaIds(collectMediaIds(galleryNodes))
   const gallerySlides = buildGallerySlides(galleryNodes, defaultAlts, tour.title)
-  const program = tour.program.length ? tour.program : defaultProgram
+  // Никаких «дефолтных» заглушек: пустые блоки не должны появляться сами по себе
+  // и уж тем более отображаться на сайте, если админ их не заполнял.
+  const program = tour.program
   const whatIncluded: IncludedGroup[] = tour.whatIncluded.length
     ? tour.whatIncluded
-    : tour.included.length || tour.excluded.length
-      ? ([
-          { title: "В стоимость включено", marker: "check", items: tour.included },
-          { title: "Оплачивается отдельно", marker: "cross", items: tour.excluded },
-        ] as IncludedGroup[]).filter((g) => g.items.length)
-      : defaultWhatIncluded
+    : ([
+        { title: "В стоимость включено", marker: "check", items: tour.included },
+        { title: "Оплачивается отдельно", marker: "cross", items: tour.excluded },
+      ] as IncludedGroup[]).filter((g) => g.items.length)
 
   const infoItems = [
     { icon: Calendar, label: "Длительность", value: tour.duration },
@@ -125,8 +99,8 @@ export async function TourPageContent({
             ),
           }
         : null,
-    program: { title: "Программа тура", node: <ProgramTimeline items={program} /> },
-    included: { title: "Что входит в тур", node: <WhatIncluded groups={whatIncluded} /> },
+    program: program.length ? { title: "Программа тура", node: <ProgramTimeline items={program} /> } : null,
+    included: whatIncluded.length ? { title: "Что входит в тур", node: <WhatIncluded groups={whatIncluded} /> } : null,
     gallery: { node: <TourGallery slides={gallerySlides} /> },
     seo: tour.seoHtml.trim()
       ? {
@@ -233,20 +207,22 @@ export async function TourPageContent({
           )
         })}
 
-        <section className="space-y-6 pt-4">
-          <SectionTitle>Похожие направления</SectionTitle>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((t) => (
-              <TourCard
-                key={t.slug}
-                tour={t}
-                currencies={currencies}
-                countrySlug={slugMaps.countrySlugById[t.countryId]}
-                citySlug={slugMaps.citySlugById[t.arrivalCityId]}
-              />
-            ))}
-          </div>
-        </section>
+        {related.length ? (
+          <section className="space-y-6 pt-4">
+            <SectionTitle>Похожие направления</SectionTitle>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {related.map((t) => (
+                <TourCard
+                  key={t.slug}
+                  tour={t}
+                  currencies={currencies}
+                  countrySlug={slugMaps.countrySlugById[t.countryId]}
+                  citySlug={slugMaps.citySlugById[t.arrivalCityId]}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
       </main>
     </>
   )
