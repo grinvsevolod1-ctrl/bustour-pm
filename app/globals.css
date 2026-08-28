@@ -213,6 +213,28 @@
 .animate-slide-out-left  { animation: slide-out-left  0.32s cubic-bezier(0.4,0,0.2,1) both; }
 .animate-slide-out-right { animation: slide-out-right 0.32s cubic-bezier(0.4,0,0.2,1) both; }
 
+/* Gallery crossfade (no horizontal translate) */
+@keyframes gallery-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gallery-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* On touch/narrow screens use a crossfade instead of a horizontal slide:
+   translateX(±100%) combined with an early fallback timer makes the image
+   "fly off" and reappear on mobile browsers. Fade never moves the image. */
+@media (max-width: 767px) {
+  .animate-slide-in-left,
+  .animate-slide-in-right  { animation: gallery-fade-in  0.28s ease both; }
+  .animate-slide-out-left,
+  .animate-slide-out-right { animation: gallery-fade-out 0.28s ease both; }
+}
+
+/* Respect reduced-motion: no transforms, just a quick fade everywhere */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-in-left,
+  .animate-slide-in-right  { animation: gallery-fade-in  0.15s ease both; }
+  .animate-slide-out-left,
+  .animate-slide-out-right { animation: gallery-fade-out 0.15s ease both; }
+}
+
 /* Hide scrollbar for thumbnail strip */
 .scrollbar-none {
   scrollbar-width: none;
