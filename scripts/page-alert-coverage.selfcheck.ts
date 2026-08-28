@@ -46,7 +46,7 @@ const PAGE_ALERTS: {
   { file: "hot/page.tsx", expect: /prefix=\{p\}/, note: "hot home" },
   { file: "hot/[countrySlug]/page.tsx", expect: /prefix=\{p\}/, note: "hot country" },
   { file: "hot/[countrySlug]/[citySlug]/page.tsx", expect: /prefix=\{p\}/, note: "hot city" },
-  { file: "bus-rental/page.tsx", expect: /prefix="rental"/, note: "rental" },
+  { file: "arenda-avtobusov-v-minske/page.tsx", expect: /prefix="rental"/, note: "rental" },
 ]
 
 for (const { file, expect, note } of PAGE_ALERTS) {

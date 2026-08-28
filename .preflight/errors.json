@@ -1,21 +1,142 @@
 {
-  "startedAt": "2026-08-28T08:59:00.507Z",
-  "finishedAt": "2026-08-28T09:00:04.594Z",
-  "errors": [],
+  "startedAt": "2026-08-28T09:57:52.504Z",
+  "finishedAt": "2026-08-28T09:58:25.094Z",
+  "errors": [
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/media-grid-cell-extension.tsx",
+      "line": 354,
+      "column": 3,
+      "code": "TS2322",
+      "message": "Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ((this: ...) => NodeViewRenderer | null) | null | undefined; }) => NodeViewRenderer' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ... | null | undefined; }) => NodeViewRenderer | null'.",
+      "raw": "components/admin/editor/media-grid-cell-extension.tsx(354,3): error TS2322: Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ((this: ...) => NodeViewRenderer | null) | null | undefined; }) => NodeViewRenderer' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ... | null | undefined; }) => NodeViewRenderer | null'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/media-grid-extension.tsx",
+      "line": 196,
+      "column": 3,
+      "code": "TS2322",
+      "message": "Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ((this: ...) => NodeViewRenderer | null) | null | undefined; }) => NodeViewRenderer' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ... | null | undefined; }) => NodeViewRenderer | null'.",
+      "raw": "components/admin/editor/media-grid-extension.tsx(196,3): error TS2322: Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ((this: ...) => NodeViewRenderer | null) | null | undefined; }) => NodeViewRenderer' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ... | null | undefined; }) => NodeViewRenderer | null'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/shared-extensions.ts",
+      "line": 17,
+      "column": 5,
+      "code": "TS2322",
+      "message": "Type 'Extension<StarterKitOptions, any>' is not assignable to type 'AnyExtension'.",
+      "raw": "components/admin/editor/shared-extensions.ts(17,5): error TS2322: Type 'Extension<StarterKitOptions, any>' is not assignable to type 'AnyExtension'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/shared-extensions.ts",
+      "line": 18,
+      "column": 5,
+      "code": "TS2322",
+      "message": "Type 'Mark<LinkOptions, any>' is not assignable to type 'AnyExtension'.",
+      "raw": "components/admin/editor/shared-extensions.ts(18,5): error TS2322: Type 'Mark<LinkOptions, any>' is not assignable to type 'AnyExtension'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/shared-extensions.ts",
+      "line": 19,
+      "column": 5,
+      "code": "TS2322",
+      "message": "Type 'Extension<TableKitOptions, any>' is not assignable to type 'AnyExtension'.",
+      "raw": "components/admin/editor/shared-extensions.ts(19,5): error TS2322: Type 'Extension<TableKitOptions, any>' is not assignable to type 'AnyExtension'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/shared-extensions.ts",
+      "line": 22,
+      "column": 5,
+      "code": "TS2322",
+      "message": "Type 'Node<ImageOptions, any>' is not assignable to type 'AnyExtension'.",
+      "raw": "components/admin/editor/shared-extensions.ts(22,5): error TS2322: Type 'Node<ImageOptions, any>' is not assignable to type 'AnyExtension'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/shared-extensions.ts",
+      "line": 26,
+      "column": 5,
+      "code": "TS2322",
+      "message": "Type 'Node<YoutubeOptions, any>' is not assignable to type 'AnyExtension'.",
+      "raw": "components/admin/editor/shared-extensions.ts(26,5): error TS2322: Type 'Node<YoutubeOptions, any>' is not assignable to type 'AnyExtension'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/shared-extensions.ts",
+      "line": 32,
+      "column": 7,
+      "code": "TS2345",
+      "message": "Argument of type 'Extension<PlaceholderOptions, any>' is not assignable to parameter of type 'AnyExtension'.",
+      "raw": "components/admin/editor/shared-extensions.ts(32,7): error TS2345: Argument of type 'Extension<PlaceholderOptions, any>' is not assignable to parameter of type 'AnyExtension'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/editor/video-extension.ts",
+      "line": 80,
+      "column": 3,
+      "code": "TS2322",
+      "message": "Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ((this: ...) => NodeViewRenderer | null) | null | undefined; }) => NodeViewRenderer' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ... | null | undefined; }) => NodeViewRenderer | null'.",
+      "raw": "components/admin/editor/video-extension.ts(80,3): error TS2322: Type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ((this: ...) => NodeViewRenderer | null) | null | undefined; }) => NodeViewRenderer' is not assignable to type '(this: { name: string; options: any; storage: any; editor: Editor; type: NodeType; parent: ... | null | undefined; }) => NodeViewRenderer | null'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/rich-editor.tsx",
+      "line": 137,
+      "column": 30,
+      "code": "TS2339",
+      "message": "Property 'setUploadedVideo' does not exist on type 'ChainedCommands'.",
+      "raw": "components/admin/rich-editor.tsx(137,30): error TS2339: Property 'setUploadedVideo' does not exist on type 'ChainedCommands'."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/rich-editor.tsx",
+      "line": 492,
+      "column": 7,
+      "code": "TS2769",
+      "message": "No overload matches this call.",
+      "raw": "components/admin/rich-editor.tsx(492,7): error TS2769: No overload matches this call."
+    },
+    {
+      "stage": "tsc",
+      "severity": "error",
+      "file": "/vercel/share/v0-project/components/admin/shortcode-input.tsx",
+      "line": 49,
+      "column": 18,
+      "code": "TS2769",
+      "message": "No overload matches this call.",
+      "raw": "components/admin/shortcode-input.tsx(49,18): error TS2769: No overload matches this call."
+    }
+  ],
   "warnings": [
     {
       "stage": "selfcheck",
       "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/tour-reviews-block.selfcheck.ts",
+      "file": "/vercel/share/v0-project/scripts/page-alert-coverage.selfcheck.ts",
       "line": null,
       "column": null,
       "code": "SELFCHECK_FAIL",
-      "message": " | [SmartTest] Selfcheck failed: scripts/tour-reviews-block.selfcheck.ts (exit 1) | ",
-      "raw": "    '        open={Boolean(modalReview)}\\n' +\n    '        onClose={() => setModalReview(null)}\\n' +\n    '      />\\n' +\n    '    </div>\\n' +\n    '  )\\n' +\n    '}\\n',\n  expected: /md:grid/,\n  operator: 'match',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/tour-reviews-block.selfcheck.ts (exit 1)\n"
+      "message": " | [SmartTest] Selfcheck failed: scripts/page-alert-coverage.selfcheck.ts (exit 1) | ",
+      "raw": "    at Object.transformer (/vercel/share/v0-project/node_modules/.pnpm/tsx@4.23.12/node_modules/tsx/dist/register-C557imBs.cjs:9:3619)\n    at Module.load (node:internal/modules/cjs/loader:1577:32)\n    at Module._load (node:internal/modules/cjs/loader:1379:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:326:3) {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'open',\n  path: '/vercel/share/v0-project/app/(site)/bus-rental/page.tsx'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/page-alert-coverage.selfcheck.ts (exit 1)\n"
     }
   ],
   "totals": {
-    "errors": 0,
+    "errors": 12,
     "warnings": 1
   }
 }
