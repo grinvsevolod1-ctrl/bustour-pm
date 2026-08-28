@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createLead } from "@/lib/queries"
 import { notifyLead } from "@/lib/notify"
+import { sendLeadToUon } from "@/lib/u-on"
 import { verifyRecaptchaToken } from "@/lib/recaptcha"
 import type { LeadType } from "@/lib/types"
 import { formatPhoneIfComplete, isSupportedPhone, PHONE_RE } from "@/lib/lead"
@@ -91,14 +92,18 @@ export async function POST(request: Request) {
 
   // Best-effort notifications (email / Telegram) — fire-and-forget, never block the response.
   // Long-lived pm2 process keeps the event loop alive, so `void` is safe here.
-  void notifyLead({
+  const leadData = {
     name: data.name,
     phone: data.phone,
     email: data.email || null,
     message: data.message || null,
     tour: data.tour || null,
     type: data.type,
-  })
+  }
+  void notifyLead(leadData)
+  // Отправка в CRM U-ON — тоже best-effort, независимо от Telegram/e-mail.
+  // Если U_ON_API_KEY не задан — вызов молча ничего не делает (см. lib/u-on.ts).
+  void sendLeadToUon(leadData)
 
   return NextResponse.json({ ok: true })
 }
