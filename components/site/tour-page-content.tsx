@@ -186,6 +186,7 @@ export async function TourPageContent({
 
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0 space-y-6">
+            {galleryVisible ? <TourGallery slides={gallerySlides} /> : null}
             {infoItems.length ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {infoItems.map((item) => (
@@ -199,7 +200,6 @@ export async function TourPageContent({
                 ))}
               </div>
             ) : null}
-            {galleryVisible ? <TourGallery slides={gallerySlides} /> : null}
           </div>
           <aside className="hidden self-start lg:sticky lg:top-6 lg:block">
             <BookingForm
