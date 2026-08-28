@@ -185,6 +185,51 @@ export function buildArticleJsonLd(input: {
   }
 }
 
+export type ItemListJsonLd = {
+  "@context": "https://schema.org"
+  "@type": "ItemList"
+  name: string
+  itemListElement: {
+    "@type": "ListItem"
+    position: number
+    name: string
+    description?: string
+  }[]
+}
+
+/**
+ * Разметка программы тура как ItemList (по дням). Google понимает ItemList
+ * для карусели/структурированного превью. Заголовок дня → name, описание дня
+ * (без HTML) → description. Пустые дни пропускаем; если ничего не осталось —
+ * не эмитим разметку вовсе.
+ */
+export function buildTourProgramJsonLd(input: {
+  tourTitle: string
+  items: { day: string; text: string; dayStart?: number; dayEnd?: number }[]
+}): ItemListJsonLd | null {
+  const title = stripFaqHtml(input.tourTitle) || "Программа тура"
+  const elements = input.items
+    .map((p, i) => {
+      const name = stripFaqHtml(p.day) || `День ${i + 1}`
+      const description = p.text ? stripFaqHtml(p.text) : undefined
+      return { name, description, position: i + 1 }
+    })
+    .filter((e) => e.name)
+  if (!elements.length) return null
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `Программа тура «${title}»`,
+    itemListElement: elements.map((e) => ({
+      "@type": "ListItem" as const,
+      position: e.position,
+      name: e.name,
+      ...(e.description ? { description: e.description } : {}),
+    })),
+  }
+}
+
 export type ProductOfferJsonLd = {
   "@context": "https://schema.org"
   "@type": "Product"

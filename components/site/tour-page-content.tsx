@@ -28,6 +28,7 @@ import { getCanonicalOrigin } from "@/lib/canonical-origin"
 import {
   absoluteUrl,
   buildProductOfferJsonLd,
+  buildTourProgramJsonLd,
   serializeJsonLd,
 } from "@/lib/site-schema"
 import { reviewsToSchemaItems } from "@/components/site/reviews-json-ld"
@@ -156,6 +157,11 @@ export async function TourPageContent({
   const productWithReviews = productSchema
     ? withProductReviews(productSchema, reviewsToSchemaItems(reviewsExpanded))
     : null
+  // SEO-разметка программы тура (ItemList по дням). Эмитим только если
+  // программа реально заполнена — пустой тур не порождает пустую разметку.
+  const programSchema = program.length
+    ? buildTourProgramJsonLd({ tourTitle: tour.title, items: program })
+    : null
 
   return (
     <>
@@ -164,6 +170,12 @@ export async function TourPageContent({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: serializeJsonLd(productWithReviews) }}
+          />
+        ) : null}
+        {programSchema ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(programSchema) }}
           />
         ) : null}
         <Breadcrumb items={breadcrumbItems} />
