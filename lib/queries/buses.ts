@@ -2,6 +2,7 @@ import { and, asc, count as countRows, desc, eq, inArray, like, ne, notInArray, 
 import { db, type DbExecutor } from "@/lib/db"
 import { tours, buses, transfers, transferSchedules, reviews, articles, leads, countries, cityDestinations, staff, certSections, certificates, contentBlocks, tourDates, tourDateTags, tourDateRooms, settings } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
+import { escapeLike } from "@/lib/sql-like"
 import { isArticleCategory, type Bus, type Transfer, type TransferCategory, type TransferDirection, type TransferSchedule, type Tour, type Review, type Article, type ArticleCategory, type Lead, type StaffMember, type DatesTable, type CertSection, type Certificate, type CertSectionWithItems } from "@/lib/types"
 import { parseAlertKind } from "@/lib/alert-kind"
 import { getArchivedCities } from "@/lib/cities"
@@ -167,7 +168,7 @@ export async function purgeBus(id: number) {
   if (!row) return
   const baseSlug = stripArchivedSuffix(row.slug)
   const pageKey = `bus:${baseSlug}`
-  await db.delete(settings).where(like(settings.key, `${pageKey}%`))
+  await db.delete(settings).where(like(settings.key, `${escapeLike(pageKey)}%`))
   await db.delete(contentBlocks).where(eq(contentBlocks.page, pageKey))
   await db.delete(buses).where(eq(buses.id, id))
 }

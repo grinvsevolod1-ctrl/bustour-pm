@@ -8,6 +8,7 @@ import { defaultSettings } from "@/lib/db/cms-seed"
 import { expandSettingsValues } from "@/lib/expand-content-blocks"
 import type { BlockCollection, ContentBlock, SiteSettings } from "@/lib/types"
 import { computeSwapUpdates, type MoveDirection } from "@/lib/queries/move"
+import { escapeLike } from "@/lib/sql-like"
 
 /* ---------------- Settings ---------------- */
 
@@ -188,7 +189,7 @@ export async function getFaqBlocksForPage(
     .where(
       and(
         eq(contentBlocks.collection, "faq"),
-        or(eq(contentBlocks.page, pageKey), like(contentBlocks.page, `${pageKey}::faq%`)),
+        or(eq(contentBlocks.page, pageKey), like(contentBlocks.page, `${escapeLike(pageKey)}::faq%`)),
       ),
     )
     .orderBy(asc(contentBlocks.page), asc(contentBlocks.sortOrder), asc(contentBlocks.id))

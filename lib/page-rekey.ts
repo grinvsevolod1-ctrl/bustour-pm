@@ -2,6 +2,7 @@ import { eq, like, or, sql } from "drizzle-orm"
 import { db, type DbExecutor } from "@/lib/db"
 import { settings, contentBlocks } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
+import { escapeLike } from "@/lib/sql-like"
 
 /**
  * Remap one settings key when a page scope slug changes.
@@ -27,12 +28,12 @@ export function remapPageScopedSettingKey(
 export async function rekeyPageScopedContent(oldPageKey: string, newPageKey: string, executor: DbExecutor = db): Promise<void> {
   if (!oldPageKey || !newPageKey || oldPageKey === newPageKey) return
   if (executor === db) await ensureDb()
-  const [settingsCollision] = await executor.select({ key: settings.key }).from(settings).where(or(eq(settings.key, newPageKey), like(settings.key, `${newPageKey}.%`))).limit(1)
+  const [settingsCollision] = await executor.select({ key: settings.key }).from(settings).where(or(eq(settings.key, newPageKey), like(settings.key, `${escapeLike(newPageKey)}.%`))).limit(1)
   const [blocksCollision] = await executor.select({ id: contentBlocks.id }).from(contentBlocks).where(eq(contentBlocks.page, newPageKey)).limit(1)
   if (settingsCollision || blocksCollision) {
     throw new Error(`Область страницы «${newPageKey}» уже содержит настройки или контент. Выберите другой slug.`)
   }
-  await executor.update(settings).set({ key: sql`${newPageKey} || substr(${settings.key}, ${oldPageKey.length + 1})` }).where(or(eq(settings.key, oldPageKey), like(settings.key, `${oldPageKey}.%`)))
+  await executor.update(settings).set({ key: sql`${newPageKey} || substr(${settings.key}, ${oldPageKey.length + 1})` }).where(or(eq(settings.key, oldPageKey), like(settings.key, `${escapeLike(oldPageKey)}.%`)))
   await executor.update(contentBlocks).set({ page: newPageKey }).where(eq(contentBlocks.page, oldPageKey))
 }
 /** Delete settings + blocks for a page scope (orphan leftover after rename/delete). */
@@ -41,6 +42,6 @@ export async function deletePageScopedContent(pageKey: string): Promise<void> {
   await ensureDb()
   await db
     .delete(settings)
-    .where(or(eq(settings.key, pageKey), like(settings.key, `${pageKey}.%`)))
+    .where(or(eq(settings.key, pageKey), like(settings.key, `${escapeLike(pageKey)}.%`)))
   await db.delete(contentBlocks).where(eq(contentBlocks.page, pageKey))
 }

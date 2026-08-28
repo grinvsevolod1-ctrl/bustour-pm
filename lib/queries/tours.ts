@@ -18,6 +18,7 @@ import {
 import { getHiddenTourSlugs } from "@/lib/cms"
 import { formatMoney } from "@/lib/currencies"
 import { toArchivedSlug, stripArchivedSuffix } from "@/lib/archive-slug"
+import { escapeLike } from "@/lib/sql-like"
 import {
   coerceMediaNode,
   coerceMediaNodeList,
@@ -342,7 +343,7 @@ export async function purgeTour(id: number) {
   const [row] = await db.select({ slug: tours.slug }).from(tours).where(eq(tours.id, id)).limit(1)
   if (row) {
     const baseSlug = stripArchivedSuffix(row.slug)
-    await db.delete(settings).where(like(settings.key, `tour:${baseSlug}%`))
+    await db.delete(settings).where(like(settings.key, `tour:${escapeLike(baseSlug)}%`))
   }
   await db.delete(tours).where(eq(tours.id, id))
 }
