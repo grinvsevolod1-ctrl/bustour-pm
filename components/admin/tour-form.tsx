@@ -73,9 +73,22 @@ export function TourForm({
     id: tour ? `tour-${tour.id}` : "tour-new",
     label: tour ? `Тур: ${tour.title || `#${tour.id}`}` : "Новый тур",
   })
+  // После успешного сохранения форму нужно пометить чистой. Одного markClean()
+  // на переход state.success мало: билдеры (RichEditor программы, layout) в тот
+  // же цикл ре-рендера дёргают onUpdate/markDirty и заново «пачкают» форму уже
+  // ПОСЛЕ markClean(). Поэтому чистим и синхронно, и отложенно (в микро- и
+  // макрозадаче), когда дочерние эффекты уже отработали. state.success остаётся
+  // true между рендерами, поэтому завязываемся на идентичность объекта state.
   useEffect(() => {
-    if (state?.success) markClean()
-  }, [state?.success, markClean])
+    if (!state?.success) return
+    markClean()
+    const raf = requestAnimationFrame(() => markClean())
+    const timer = setTimeout(() => markClean(), 0)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(timer)
+    }
+  }, [state, markClean])
   const [layout, setLayout] = useState<TourSection[]>(() => resolveTourLayout(tour?.layout))
   const layoutKeys = new Set(layout.map((s) => s.key))
   const showSection = (key: TourSectionKey) => layoutKeys.has(key)

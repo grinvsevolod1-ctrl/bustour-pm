@@ -21,6 +21,7 @@ import { getCurrencies } from "@/lib/currencies-server"
 import { getPublicSettings, isOn } from "@/lib/cms"
 import { expandPlainText, expandPublicDeep, expandPublicList } from "@/lib/expand-content-blocks"
 import { resolveTourLayout, anchoredSectionKeys } from "@/lib/tour-sections"
+import { stripHtmlToText } from "@/lib/seo-auto"
 import { buildGallerySlides, collectMediaIds } from "@/lib/media/node"
 import { getDefaultAltsByMediaIds } from "@/lib/media/service"
 import { getCanonicalOrigin } from "@/lib/canonical-origin"
@@ -68,12 +69,10 @@ export async function TourPageContent({
   // Никаких «дефолтных» заглушек: пустые блоки не должны появляться сами по себе
   // и уж тем более отображаться на сайте, если админ их не заполнял.
   const program = tour.program
-  const whatIncluded: IncludedGroup[] = tour.whatIncluded.length
-    ? tour.whatIncluded
-    : ([
-        { title: "В стоимость включено", marker: "check", items: tour.included },
-        { title: "Оплачивается отдельно", marker: "cross", items: tour.excluded },
-      ] as IncludedGroup[]).filter((g) => g.items.length)
+  // Только то, что админ реально заполнил в билдере «Что входит в тур».
+  // Никаких дефолтных групп из tour.included/excluded — иначе секция
+  // «наполняется сама» и показывается на пустом туре (баг 5.2/5.4).
+  const whatIncluded: IncludedGroup[] = tour.whatIncluded.filter((g) => g.items.length)
 
   const infoItems = [
     { icon: Calendar, label: "Длительность", value: tour.duration },
@@ -102,7 +101,9 @@ export async function TourPageContent({
     program: program.length ? { title: "Программа тура", node: <ProgramTimeline items={program} /> } : null,
     included: whatIncluded.length ? { title: "Что входит в тур", node: <WhatIncluded groups={whatIncluded} /> } : null,
     gallery: { node: <TourGallery slides={gallerySlides} /> },
-    seo: tour.seoHtml.trim()
+    // Пустой rich-текст (например «<p></p>» или «<p><br></p>») не должен
+    // порождать пустую секцию. Проверяем именно текст, а не наличие тегов.
+    seo: stripHtmlToText(tour.seoHtml).length
       ? {
           node: (
             <>
