@@ -129,6 +129,11 @@ export async function TourPageContent({
   const navItems = sections
     .filter((s) => anchoredSectionKeys.includes(s.key))
     .map((s) => ({ id: s.key, label: s.label }))
+  // Галерея живёт в hero-блоке слева (~75% ширины), рядом с карточкой цены
+  // справа — как было исторически. Поэтому не рендерим её ещё раз ниже,
+  // но учитываем её видимость из настроек раздела.
+  const galleryVisible = sections.some((s) => s.key === "gallery")
+  const bodySections = sections.filter((s) => s.key !== "gallery")
 
   const origin = getCanonicalOrigin()
   const tourPath =
@@ -182,6 +187,7 @@ export async function TourPageContent({
                 ))}
               </div>
             ) : null}
+            {galleryVisible ? <TourGallery slides={gallerySlides} /> : null}
           </div>
           <aside className="hidden lg:sticky lg:top-6 lg:block lg:h-fit">
             <BookingForm
@@ -198,7 +204,7 @@ export async function TourPageContent({
 
         <TourNav items={navItems} />
 
-        {sections.map((s) => {
+        {bodySections.map((s) => {
           const content = sectionNodes[s.key]!
           const anchored = anchoredSectionKeys.includes(s.key)
           return (

@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-08-28T09:57:52.504Z",
-  "finishedAt": "2026-08-28T09:58:25.094Z",
+  "startedAt": "2026-08-28T10:47:26.120Z",
+  "finishedAt": "2026-08-28T10:47:59.846Z",
   "errors": [
     {
       "stage": "tsc",
@@ -127,12 +127,12 @@
     {
       "stage": "selfcheck",
       "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/page-alert-coverage.selfcheck.ts",
+      "file": "/vercel/share/v0-project/scripts/resort-blocks-page.selfcheck.ts",
       "line": null,
       "column": null,
       "code": "SELFCHECK_FAIL",
-      "message": " | [SmartTest] Selfcheck failed: scripts/page-alert-coverage.selfcheck.ts (exit 1) | ",
-      "raw": "    at Object.transformer (/vercel/share/v0-project/node_modules/.pnpm/tsx@4.23.12/node_modules/tsx/dist/register-C557imBs.cjs:9:3619)\n    at Module.load (node:internal/modules/cjs/loader:1577:32)\n    at Module._load (node:internal/modules/cjs/loader:1379:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:326:3) {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'open',\n  path: '/vercel/share/v0-project/app/(site)/bus-rental/page.tsx'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/page-alert-coverage.selfcheck.ts (exit 1)\n"
+      "message": " | [SmartTest] Selfcheck failed: scripts/resort-blocks-page.selfcheck.ts (exit 1) | ",
+      "raw": "    at Module.load (node:internal/modules/cjs/loader:1577:32)\n    at Module._load (node:internal/modules/cjs/loader:1379:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:326:3)\n    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:231:7) {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'open',\n  path: '/vercel/share/v0-project/app/(site)/bus-rental/[slug]/page.tsx'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/resort-blocks-page.selfcheck.ts (exit 1)\n"
     }
   ],
   "totals": {
