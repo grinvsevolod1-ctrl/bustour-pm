@@ -201,7 +201,7 @@ export async function TourPageContent({
             ) : null}
             {galleryVisible ? <TourGallery slides={gallerySlides} /> : null}
           </div>
-          <aside className="hidden lg:sticky lg:top-6 lg:block lg:h-fit">
+          <aside className="hidden self-start lg:sticky lg:top-6 lg:block">
             <BookingForm
               price={tour.price}
               amount={tour.priceAmount}
