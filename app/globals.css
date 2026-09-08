@@ -436,6 +436,15 @@ span.flatpickr-weekday {
   line-height: 1.35;
   margin: 1.3em 0 0.5em;
 }
+/* Заголовки уже полужирные (700). Вложенный <strong>/<b> давал «двойную»
+   жирность в редакторе, из-за чего H2 в редакторе выглядел жирнее, чем H2 на
+   сайте. Приравниваем вес такого strong к весу самого заголовка, чтобы они
+   совпадали. На публичном сайте strong внутри заголовков дополнительно
+   вырезается санитайзером (lib/sanitize-html.ts). */
+.prose-content :is(h1, h2, h3, h4, h5, h6) :is(strong, b),
+.prose-editor :is(h1, h2, h3, h4, h5, h6) :is(strong, b) {
+  font-weight: inherit;
+}
 .prose-content p,
 .prose-editor p {
   margin: 0.75em 0;
