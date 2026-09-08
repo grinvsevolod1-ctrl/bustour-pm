@@ -269,7 +269,11 @@ function ResortTable({ data }: { data: ResortTableData }) {
             .map((col, ci) => ({ col, value: row[ci]?.trim() || "", ci }))
             .filter((f) => f.ci > 0 && stripHtml(f.value))
           return (
-            <ResortMobileCard key={ri} title={title} fields={fields} defaultOpen={ri === 0} />
+            // Раскрываем все видимые карточки по умолчанию: свёрнутое превью на
+            // мобильном должно показывать содержимое строк так же, как строки в
+            // десктопной таблице (иначе превью — пустые полоски-заголовки).
+            // Аккордеон (chevron) остаётся для ручного сворачивания.
+            <ResortMobileCard key={ri} title={title} fields={fields} defaultOpen />
           )
         })}
       </div>

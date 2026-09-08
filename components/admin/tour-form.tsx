@@ -185,7 +185,7 @@ export function TourForm({
         className="space-y-4"
         // Почему: обязательные поля могут лежать внутри свёрнутого <details>
         // (например, цена в блоке «Дополнительно»). Браузер не может сфокусировать
-        // скрытый контрол при нативной валидации — submit мо��ча обрывается.
+        // скрытый контрол при нативной валидации — submit молча обрывается.
         // Раскрываем все details-предки невалидного поля до фокусировки.
         onInvalidCapture={(e) => {
           let details = (e.target as HTMLElement).closest("details")
@@ -240,7 +240,7 @@ export function TourForm({
             <ShortcodeInput
               id="description"
               name="description"
-              label="Описа��ие"
+              label="Описание"
               defaultValue={tour?.description}
               rows={3}
               multiline
@@ -402,7 +402,7 @@ export function TourForm({
 
       {/* Маркер «блок FAQ был на форме»: живёт вне disabled-fieldset, потому что
           отключённые поля не отправляются. Без него скрытая секция FAQ уходила
-          на серве�� как «пустой FAQ» и стирала сохранённые вопросы. */}
+          на сервер как «пустой FAQ» и стирала сохранённые вопросы. */}
       {showSection("faq") ? <input type="hidden" name="__faqPresent" value="1" /> : null}
       <fieldset disabled={!showSection("faq")} className={showSection("faq") ? undefined : "hidden"} aria-hidden={!showSection("faq")}>
         <FormSection id="s-faq" title="Частые вопросы (для этой страницы)">

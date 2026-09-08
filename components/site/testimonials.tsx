@@ -5,6 +5,7 @@ import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import type { Review } from "@/lib/types"
 import { VideoCard } from "@/components/site/video-card"
+import { SectionTitle } from "@/components/site/section-title"
 
 function InfoCard({ title, body }: { title?: string; body?: string }) {
   return (
@@ -62,6 +63,12 @@ export function Testimonials({
       className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-6"
       aria-label={title}
     >
+      {title ? (
+        <div className="mb-6">
+          <SectionTitle>{title}</SectionTitle>
+        </div>
+      ) : null}
+
       <div className="space-y-6 sm:hidden">
         <InfoCard title={infoTitle || title} body={infoBody} />
 

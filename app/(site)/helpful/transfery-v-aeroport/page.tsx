@@ -114,17 +114,16 @@ export default async function TransfersPage() {
   for (const key of sectionOrder) {
     if (!sectionVisible(key)) continue
     if (key === "intro") {
+      // `??` (не `||`): очищенный в админке текст (пустая строка) прячет блок,
+      // а полностью не заданный (undefined) показывает дефолт для свежей установки.
+      const introText =
+        settings["transfers.intro"] ??
+        "Если вы хотя бы раз в жизни летали на самолете из другого города, а то и страны, то вы, наверняка, столкнулись с проблемой трансфера в аэропорт и обратно."
+      if (!introText.trim()) continue
       flow.push({
         type: "block",
         key,
-        node: (
-          <TextBlock
-            text={
-              settings["transfers.intro"] ||
-              "Если вы хотя бы раз в жизни летали на самолете из другого города, а то и страны, то вы, наверняка, столкнулись с проблемой трансфера в аэропорт и обратно."
-            }
-          />
-        ),
+        node: <TextBlock text={introText} />,
       })
     } else if (key === "airports" && airportTransfers.length) {
       flow.push({
@@ -178,17 +177,15 @@ export default async function TransfersPage() {
         ),
       })
     } else if (key === "outro") {
+      // `??` (не `||`): очищенный текст прячет блок, полностью не заданный — дефолт.
+      const outroText =
+        settings["transfers.outro"] ??
+        "Мы предлагаем удобный и надежный трансфер в аэропорт.\nОт назначенного места вас забирает комфортабельный автобус."
+      if (!outroText.trim()) continue
       flow.push({
         type: "block",
         key,
-        node: (
-          <TextBlock
-            text={
-              settings["transfers.outro"] ||
-              "Мы предлагаем удобный и надежный трансфер в аэропорт.\nОт назначенного места вас забирает комфортабельный автобус."
-            }
-          />
-        ),
+        node: <TextBlock text={outroText} />,
       })
     } else if (/^seo\d*$/.test(key)) {
       const suffix = key === "seo" ? "" : key.replace("seo", "")

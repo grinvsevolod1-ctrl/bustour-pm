@@ -380,7 +380,7 @@ export function DatesTable({ data, tourTitle = "" }: { data: DatesTableData; tou
                 {!expanded ? <div className="pointer-events-none absolute bottom-[52px] left-0 h-40 w-full bg-gradient-to-b from-transparent via-white/70 to-white" /> : null}
                 <div className={`relative bg-white p-4 text-center ${expanded ? "border-t border-line" : ""}`}>
                   <button type="button" onClick={() => setExpanded((v) => !v)} className="inline-flex items-center gap-2 rounded border border-cyan-accent bg-white px-6 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-cream">
-                    {expanded ? "Скрыт�� даты" : "Показать все доступные даты"}
+                    {expanded ? "Скрыть даты" : "Показать все доступные даты"}
                     <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
                   </button>
                 </div>

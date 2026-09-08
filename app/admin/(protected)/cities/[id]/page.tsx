@@ -293,7 +293,7 @@ export default async function EditCityPage({
               search: searchGroup ? (
                 <div className="space-y-4">
                   <p className="text-sm text-admin-fg-muted">
-                    Фильтры и каталог туров в выбранном городе. Перетащи��е секцию, чтобы
+                    Фильтры и каталог туров в выбранном городе. Перетащите секцию, чтобы
                     разместить блоки выше или ниже каталога.
                   </p>
                   <SectionFieldsForm fields={searchGroup.fields} settings={settings} hideSubmit />

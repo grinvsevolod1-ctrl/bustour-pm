@@ -370,7 +370,7 @@ export const pageSettingsGroups: Record<string, {
           },
           {
             key: "transfers.outro",
-            label: "Нижний текстовый ��лок",
+            label: "Нижний текстовый блок",
             type: "richtext",
           },
         ],
@@ -540,7 +540,7 @@ export const settingsGroups: SettingsGroup[] = [
   {
     heading: "Уведомления о заявках",
     description:
-      "Куда отправлять новые заявки с сайта (бронирования, звонки, аренд��). E-mail работает через Resend (ключ RESEND_API_KEY в окружении), Telegram — через бота (TELEGRAM_BOT_TOKEN).",
+      "Куда отправлять новые заявки с сайта (бронирования, звонки, аренда). E-mail работает через Resend (ключ RESEND_API_KEY в окружении), Telegram — через бота (TELEGRAM_BOT_TOKEN).",
     fields: [
       {
         key: "notify.emailTo",

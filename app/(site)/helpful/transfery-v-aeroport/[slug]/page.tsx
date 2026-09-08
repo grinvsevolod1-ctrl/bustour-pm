@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { callusSlotsFromOrder, isCallusSectionKey } from "@/lib/multipliable-sections"
+import type { ReactNode } from "react"
+import { isCallusSectionKey } from "@/lib/multipliable-sections"
 import { notFound } from "next/navigation"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { TitleUnderline } from "@/components/site/title-underline"
@@ -78,6 +79,73 @@ export default async function TransferDetailPage({
   const outbound = schedules.filter((row) => row.direction === "outbound")
   const returning = schedules.filter((row) => row.direction === "return")
 
+  // Единый поток секций: schedules/seo и faq/callus идут в порядке из админки,
+  // чтобы «Есть вопросы?»/FAQ можно было поднять над расписанием, а «расширенный
+  // текст» — опустить под них. Раньше faq/callus всегда рендерились внизу страницы.
+  type FlowItem =
+    | { type: "node"; key: string; node: ReactNode }
+    | { type: "extras"; keys: string[]; hasFaq: boolean }
+  const flow: FlowItem[] = []
+  let faqTaken = false
+  const pushExtras = (key: string, isFaq: boolean) => {
+    const last = flow[flow.length - 1]
+    if (last?.type === "extras") {
+      last.keys.push(key)
+      if (isFaq) last.hasFaq = true
+    } else {
+      flow.push({ type: "extras", keys: [key], hasFaq: isFaq })
+    }
+  }
+  for (const key of sectionOrder) {
+    if (key === "schedules") {
+      if (!isOn(settings, `${pageKey}.section.schedules`)) continue
+      flow.push({
+        type: "node",
+        key,
+        node: (
+          <div className="space-y-8">
+            {(["outbound", "return"] as const).map((direction) => {
+              const keys = transferScheduleCmsKeys(pageKey, direction)
+              const rows = direction === "outbound" ? outbound : returning
+              return (
+                <TransferScheduleBlock
+                  key={direction}
+                  rows={rows}
+                  title={resolveTransferScheduleTitle(settings, pageKey, direction)}
+                  bookingTitle={transfer.title}
+                  beforeHtml={settings[keys.beforeHtml]}
+                  afterTitle={settings[keys.afterTitle]}
+                  afterHtml={settings[keys.afterHtml]}
+                  colWidths={settings[keys.colWidths]}
+                />
+              )
+            })}
+          </div>
+        ),
+      })
+    } else if (key === "seo" || /^seo\d+$/.test(key)) {
+      const suffix = key === "seo" ? "" : key.replace("seo", "")
+      const title = settings[`${pageKey}.seoTitle${suffix}`] ?? ""
+      const html = settings[`${pageKey}.seoHtml${suffix}`] ?? ""
+      if (!html || !isOn(settings, `${pageKey}.section.${key}`)) continue
+      flow.push({
+        type: "node",
+        key,
+        node: (
+          <section className="space-y-4">
+            {title ? <TitleUnderline as="h2">{title}</TitleUnderline> : null}
+            <RichContent html={html} />
+          </section>
+        ),
+      })
+    } else if ((key === "faq" || /^faq\d+$/.test(key)) && !faqTaken) {
+      faqTaken = true
+      pushExtras(key, true)
+    } else if (isCallusSectionKey(key)) {
+      pushExtras(key, false)
+    }
+  }
+
   return (
     <>
       <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
@@ -100,57 +168,23 @@ export default async function TransferDetailPage({
             </section>
           ) : null}
 
-          {sectionOrder.map((key) => {
-            if (key === "schedules") {
-              return (
-                <div key={key} className="space-y-8">
-                  {isOn(settings, `${pageKey}.section.${key}`) ? (
-                    <>
-                      {(["outbound", "return"] as const).map((direction) => {
-                        const keys = transferScheduleCmsKeys(pageKey, direction)
-                        const rows = direction === "outbound" ? outbound : returning
-                        return (
-                          <TransferScheduleBlock
-                            key={direction}
-                            rows={rows}
-                            title={resolveTransferScheduleTitle(settings, pageKey, direction)}
-                            bookingTitle={transfer.title}
-                            beforeHtml={settings[keys.beforeHtml]}
-                            afterTitle={settings[keys.afterTitle]}
-                            afterHtml={settings[keys.afterHtml]}
-                            colWidths={settings[keys.colWidths]}
-                          />
-                        )
-                      })}
-                    </>
-                  ) : null}
-                </div>
-              )
-            }
-            if (key === "seo" || /^seo\d+$/.test(key)) {
-              const suffix = key === "seo" ? "" : key.replace("seo", "")
-              const title = settings[`${pageKey}.seoTitle${suffix}`] ?? ""
-              const html = settings[`${pageKey}.seoHtml${suffix}`] ?? ""
-              if (!html || !isOn(settings, `${pageKey}.section.${key}`)) return null
-              return (
-                <section key={key} className="space-y-4">
-                  {title ? <TitleUnderline as="h2">{title}</TitleUnderline> : null}
-                  <RichContent html={html} />
-                </section>
-              )
-            }
-            return null
-          })}
+          {flow.map((item) =>
+            item.type === "node" ? (
+              <div key={item.key}>{item.node}</div>
+            ) : (
+              <PageExtras
+                key={`extras-${item.keys.join("-")}`}
+                pageKey="transfer"
+                faqScope={pageKey}
+                sectionPrefix={pageKey}
+                callusSlots={item.keys.filter(isCallusSectionKey)}
+                showFaq={item.hasFaq}
+                bare
+              />
+            ),
+          )}
         </div>
       </main>
-      <PageExtras
-        pageKey="transfer"
-        faqScope={pageKey}
-        sectionPrefix={pageKey}
-        callusSlots={callusSlotsFromOrder(sectionOrder)}
-        showCallUs={callusSlotsFromOrder(sectionOrder).length > 0}
-        showFaq={sectionOrder.includes("faq")}
-      />
     </>
   )
 }
