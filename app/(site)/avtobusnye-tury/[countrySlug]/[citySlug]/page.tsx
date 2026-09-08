@@ -168,6 +168,7 @@ export default async function BusCityPage({
         defaultSort={get("search.defaultSort") || undefined}
         hideResultsHeading={get("search.hideHeading") || "0"}
         showSearch={isOn(settings, `${p}.section.search`)}
+        restrictToCitySlug={liveCitySlug}
       />
     </main>
   )

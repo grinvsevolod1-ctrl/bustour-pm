@@ -110,9 +110,10 @@ export async function getFeaturedTours(limit = 4): Promise<Tour[]> {
   return [...featured, ...fill]
 }
 
-/** Featured first, then other visible tours — for home expand grid. */
+/** Только туры с галочкой «Показывать на главной», в порядке админки — для блока
+ *  «Лучшие предложения». Снятая галочка убирает тур с главной. */
 export async function getHomeTourOffers(): Promise<Tour[]> {
-  return listTours({ excludeHidden: true, featuredFirst: true })
+  return listTours({ featured: true, excludeHidden: true })
 }
 
 export async function getBusToursWithDates(): Promise<Tour[]> {

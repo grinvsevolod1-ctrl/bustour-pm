@@ -23,6 +23,11 @@ const ALLOWED_TAGS = new Set([
 
 const SELF_CLOSING = new Set(["br", "hr", "img", "input", "source"])
 
+// Заголовки уже полужирные по стилю. Вложенный <strong>/<b> даёт «двойную»
+// жирность и визуальный шум — вырезаем его внутри h1-h6 (текст сохраняется).
+const HEADING_TAGS = new Set(["h1", "h2", "h3", "h4", "h5", "h6"])
+const STRIP_INSIDE_HEADING = new Set(["strong", "b"])
+
 const MEDIA_TAGS_ALLOW_STYLE = new Set(["img", "video", "iframe", "figure", "div"])
 const ALLOWED_MEDIA_CSS_PROPS = new Set([
   "width", "height", "max-width", "max-height", "min-width", "min-height",
@@ -209,6 +214,8 @@ export function sanitizeCmsHtml(rawHtml: unknown): string {
 
   const out: string[] = []
   let i = 0
+  // Глубина вложенности в заголовок h1-h6 — пока > 0, вырезаем <strong>/<b>.
+  let headingDepth = 0
   while (i < src.length) {
     const ch = src[i]
     if (ch !== "<") {
@@ -237,9 +244,16 @@ export function sanitizeCmsHtml(rawHtml: unknown): string {
     if (!tag) { out.push(ch); i++; continue }
     i += tag.raw.length
     if (!ALLOWED_TAGS.has(tag.name)) continue
-    if (tag.close) { out.push(`</${tag.name}>`); continue }
+    // Внутри заголовка вырезаем сам тег <strong>/<b>, оставляя текст.
+    if (headingDepth > 0 && STRIP_INSIDE_HEADING.has(tag.name)) continue
+    if (tag.close) {
+      if (HEADING_TAGS.has(tag.name) && headingDepth > 0) headingDepth--
+      out.push(`</${tag.name}>`)
+      continue
+    }
     const cleanAttrs = sanitizeAttrs(tag.name, tag.attrs)
     const selfClose = SELF_CLOSING.has(tag.name) || tag.selfClose
+    if (HEADING_TAGS.has(tag.name) && !selfClose) headingDepth++
     out.push(`<${tag.name}${renderAttrs(cleanAttrs)}${selfClose ? " /" : ""}>`)
   }
   return out.join("")

@@ -14,6 +14,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "db:migrate:prod": "node scripts/migrate.mjs",
+    "admin:password": "npx tsx scripts/admin-password.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "check": "npx tsx scripts/preflight.ts",

@@ -113,6 +113,7 @@ export function ToursListing({
   defaultSort,
   hideResultsHeading = "0",
   showSearch = true,
+  restrictToCitySlug,
 }: {
   tours: Tour[]
   category: "bus" | "avia" | "hot"
@@ -151,6 +152,8 @@ export function ToursListing({
   hideResultsHeading?: "0" | "1" | string
   /** CMS: when false («Фильтр и результаты поиска» off) — скрываем панель фильтров и список туров. */
   showSearch?: boolean
+  /** Страница конкретного города: скрыть панель фильтров и показать только туры этого города. */
+  restrictToCitySlug?: string
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -243,7 +246,13 @@ export function ToursListing({
       }),
     )
 
-    if (destination !== ALL_DESTINATIONS) {
+    // Страница конкретного города — жёстко ограничиваем список этим городом
+    // (фильтр «Куда» на такой странице скрыт).
+    if (restrictToCitySlug) {
+      list = list.filter(
+        (t) => (slugMaps?.citySlugById[t.arrivalCityId] ?? t.citySlug) === restrictToCitySlug,
+      )
+    } else if (destination !== ALL_DESTINATIONS) {
       list = list.filter((t) => t.country === destination)
     }
 
@@ -284,7 +293,7 @@ export function ToursListing({
     }
 
     return list
-  }, [tours, destination, type, period, priceRange, priceBounds, sort, showTypeFilter, slugMaps, aviaMode, departureRange, activeCurrency.rate])
+  }, [tours, destination, type, period, priceRange, priceBounds, sort, showTypeFilter, slugMaps, aviaMode, departureRange, activeCurrency.rate, restrictToCitySlug])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -417,7 +426,7 @@ export function ToursListing({
           </Fragment>
         ) : (
           <Fragment key="tours-bus-stack">
-            {showSearch && (
+            {showSearch && !restrictToCitySlug && (
             <>
             {/* Filter bar */}
             <div className="flex flex-col items-stretch gap-4 rounded bg-cyan-accent p-6 md:flex-row md:flex-wrap md:items-end">
