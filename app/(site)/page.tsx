@@ -79,7 +79,7 @@ export default async function HomePage() {
         <Testimonials
           key={key}
           reviews={reviews}
-          title={settings["title.testimonials"]}
+          title={settings["title.testimonials"] || "Тёплые слова наших туристов"}
           infoTitle={settings["testimonials.infoTitle"]}
           infoBody={settings["testimonials.infoBody"]}
           ctaLabel={settings["testimonials.homeCta"] || "Все отзывы"}

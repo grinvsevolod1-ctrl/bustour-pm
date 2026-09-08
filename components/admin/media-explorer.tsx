@@ -18,6 +18,7 @@ import {
   flattenFolderTree,
   folderPath,
   type MediaFolder,
+  type MediaFolderNode,
 } from "@/lib/media/folders"
 import type { MediaItem, MediaType, UploadedFile } from "@/components/admin/media-uploader"
 import { MediaUploader, startUploadFileApi } from "@/components/admin/media-uploader"
@@ -64,6 +65,8 @@ export function MediaExplorer({
   const [pendingFolderDelete, setPendingFolderDelete] = useState<MediaFolder | null>(null)
   const [newFolderName, setNewFolderName] = useState("")
   const [creatingFolder, setCreatingFolder] = useState(false)
+  // id свёрнутых папок — их потомки скрыты в сайдбаре (только отображение).
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set())
   const [movingId, setMovingId] = useState<string | null>(null)
   const deferredQuery = useDeferredValue(query.trim())
   const isMountedRef = useRef(true)
@@ -200,6 +203,15 @@ export function MediaExplorer({
         [...current, folder].sort((a, b) => a.name.localeCompare(b.name, "ru")),
       )
       setNewFolderName("")
+      // Развернём родителя, чтобы новая вложенная папка была видна в сайдбаре.
+      if (folder.parentId) {
+        setCollapsedFolders((current) => {
+          if (!current.has(folder.parentId!)) return current
+          const next = new Set(current)
+          next.delete(folder.parentId!)
+          return next
+        })
+      }
       setFolderScope(folder.id)
       toast.success(`Папка «${folder.name}» создана`)
     } catch (error: unknown) {
@@ -317,11 +329,30 @@ export function MediaExplorer({
 
   const uploadTarget = uploadFolderId(folderScope)
 
-  // Плоский список папок в порядке дерева (с глубиной) — для сайдбара и select'а перемещения.
-  const flatFolders = useMemo(
-    () => flattenFolderTree(buildFolderTree(folders)),
-    [folders],
-  )
+  const folderTree = useMemo(() => buildFolderTree(folders), [folders])
+  // Полный плоский список (с глубиной) — для select'а перемещения файлов в сетке.
+  const flatFolders = useMemo(() => flattenFolderTree(folderTree), [folderTree])
+  // Видимый список для сайдбара: потомки свёрнутых папок скрыты.
+  const visibleFolders = useMemo(() => {
+    const out: MediaFolderNode[] = []
+    const walk = (nodes: MediaFolderNode[]) => {
+      for (const node of nodes) {
+        out.push(node)
+        if (node.children.length && !collapsedFolders.has(node.id)) walk(node.children)
+      }
+    }
+    walk(folderTree)
+    return out
+  }, [folderTree, collapsedFolders])
+
+  function toggleFolderCollapse(id: string) {
+    setCollapsedFolders((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
   // Хлебные крошки текущей папки.
   const breadcrumbs = useMemo(
     () => folderPath(folders, currentFolderId),
@@ -334,7 +365,9 @@ export function MediaExplorer({
         folderScope={folderScope}
         onScopeChange={setFolderScope}
         foldersLoading={foldersLoading}
-        flatFolders={flatFolders}
+        flatFolders={visibleFolders}
+        collapsedFolders={collapsedFolders}
+        onToggleFolder={toggleFolderCollapse}
         folders={folders}
         currentFolderId={currentFolderId}
         newFolderName={newFolderName}

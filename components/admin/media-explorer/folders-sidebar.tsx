@@ -1,9 +1,9 @@
 "use client"
 
-import { Folder, FolderPlus, LoaderCircle, Pencil, Trash2 } from "lucide-react"
+import { ChevronRight, Folder, FolderPlus, LoaderCircle, Pencil, Trash2 } from "lucide-react"
 import { isImeComposing } from "@/lib/ime"
 import type { MediaFolderScope } from "@/lib/media"
-import type { MediaFolder } from "@/lib/media/folders"
+import type { MediaFolder, MediaFolderNode } from "@/lib/media/folders"
 import { IconButton, Input } from "@/components/admin/ui"
 import { cn } from "@/lib/utils"
 
@@ -18,6 +18,8 @@ export function FoldersSidebar({
   onScopeChange,
   foldersLoading,
   flatFolders,
+  collapsedFolders,
+  onToggleFolder,
   folders,
   currentFolderId,
   newFolderName,
@@ -30,7 +32,9 @@ export function FoldersSidebar({
   folderScope: MediaFolderScope
   onScopeChange: (scope: MediaFolderScope) => void
   foldersLoading: boolean
-  flatFolders: Array<MediaFolder & { depth: number }>
+  flatFolders: MediaFolderNode[]
+  collapsedFolders: Set<string>
+  onToggleFolder: (id: string) => void
   folders: MediaFolder[]
   currentFolderId: string | null
   newFolderName: string
@@ -60,13 +64,34 @@ export function FoldersSidebar({
             Загрузка…
           </p>
         ) : (
-          flatFolders.map((folder) => (
-            <div key={folder.id} className="group flex items-center gap-1">
+          flatFolders.map((folder) => {
+            const hasChildren = folder.children.length > 0
+            const collapsed = collapsedFolders.has(folder.id)
+            return (
+            <div
+              key={folder.id}
+              className="group flex items-center gap-1"
+              style={folder.depth ? { paddingLeft: `${folder.depth * 0.85}rem` } : undefined}
+            >
+              {hasChildren ? (
+                <button
+                  type="button"
+                  onClick={() => onToggleFolder(folder.id)}
+                  aria-label={collapsed ? `Развернуть папку ${folder.name}` : `Свернуть папку ${folder.name}`}
+                  aria-expanded={!collapsed}
+                  className="grid h-6 w-5 shrink-0 place-items-center rounded text-admin-fg-subtle hover:text-admin-fg"
+                >
+                  <ChevronRight
+                    className={cn("h-3.5 w-3.5 transition-transform", !collapsed && "rotate-90")}
+                  />
+                </button>
+              ) : (
+                <span className="w-5 shrink-0" aria-hidden />
+              )}
               <FolderNavButton
                 active={folderScope === folder.id}
                 onClick={() => onScopeChange(folder.id)}
                 label={folder.name}
-                depth={folder.depth}
                 className="min-w-0 flex-1"
               />
               <IconButton
@@ -87,7 +112,8 @@ export function FoldersSidebar({
                 <Trash2 className="h-3.5 w-3.5" />
               </IconButton>
             </div>
-          ))
+            )
+          })
         )}
       </nav>
       <div className="space-y-1.5">
