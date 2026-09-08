@@ -69,7 +69,7 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     // Оптимизированные версии кешируются на диске (.next/cache/images) на 31 день.
     minimumCacheTTL: 2678400,
-    // Раньше стоял hostname: "**" — это открытый image-proxy: любой мог гонять
+    // Открытый image-proxy (hostname: "**") недопустим: любой мог бы гонять
     // чужой трафик и CPU оптимизатора через /_next/image?url=... Сужаем до
     // хостов, которые реально встречаются в контенте. Новый внешний источник
     // картинок в админке = добавить хост сюда.
@@ -80,9 +80,8 @@ const nextConfig = {
       { protocol: "https", hostname: "**.holiday.by" },         // импорт отзывов holiday.by
       { protocol: "https", hostname: "bastur.by" },
       { protocol: "https", hostname: "**.bastur.by" },
-      { protocol: "https", hostname: "bus-tour.by" },           // будущий боевой домен
+      { protocol: "https", hostname: "bus-tour.by" },           // прод-домен
       { protocol: "https", hostname: "**.bus-tour.by" },
-      { protocol: "https", hostname: "bus-tour.by" },       // текущий прод-домен
     ],
   },
   async redirects() {
