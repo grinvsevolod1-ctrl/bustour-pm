@@ -11,10 +11,12 @@ import { join } from "node:path"
 import {
   absoluteUrl,
   buildArticleJsonLd,
+  buildOpeningHours,
   buildProductOfferJsonLd,
   buildTravelAgencyJsonLd,
   buildWebSiteJsonLd,
   organizationId,
+  parseHoursFull,
   serializeJsonLd,
 } from "../lib/site-schema"
 import type { SiteSettings } from "../lib/types"
@@ -70,6 +72,42 @@ const orgJson = serializeJsonLd(org)
 assert.ok(!orgJson.includes("<") || orgJson.includes("\\u003c"), "safe serialize")
 assert.match(orgJson, /bastur\.by\/#organization/)
 assert.match(orgJson, /OpeningHoursSpecification/)
+
+// ── Часы работы: полный режим (site.hoursFull) с субботой ────────────────
+const hoursFull = parseHoursFull("пн–пт: 10:00–18:00\nсб: 9:00–15:00\nвс — выходной")
+assert.equal(hoursFull.length, 2, "два рабочих блока (вс пропущен как выходной)")
+assert.deepEqual(hoursFull[0].dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+assert.equal(hoursFull[0].opens, "10:00")
+assert.equal(hoursFull[0].closes, "18:00")
+assert.deepEqual(hoursFull[1].dayOfWeek, ["Saturday"])
+assert.equal(hoursFull[1].opens, "09:00", "время дополняется ведущим нулём")
+assert.equal(hoursFull[1].closes, "15:00")
+
+// «ежедневно» → все 7 дней
+const daily = parseHoursFull("ежедневно 9:00–21:00")
+assert.equal(daily.length, 1)
+assert.equal(daily[0].dayOfWeek.length, 7)
+
+// Список дней через запятую
+const listDays = parseHoursFull("пн, ср, пт: 11:00–19:00")
+assert.deepEqual(listDays[0].dayOfWeek, ["Monday", "Wednesday", "Friday"])
+
+// Строки без времени игнорируются целиком
+assert.equal(parseHoursFull("сб и вс — выходной").length, 0)
+assert.equal(parseHoursFull("").length, 0)
+
+// buildOpeningHours: hoursFull имеет приоритет, иначе фолбэк Пн–Пт из site.hours
+const ohFull = buildOpeningHours({ "site.hoursFull": "пн–сб: 10:00–20:00" })
+assert.deepEqual(ohFull[0].dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
+const ohFallback = buildOpeningHours({ "site.hours": "9:00–17:00" })
+assert.deepEqual(ohFallback[0].dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+assert.equal(ohFallback[0].opens, "09:00")
+assert.equal(ohFallback[0].closes, "17:00")
+
+// TravelAgency отражает субботу, когда задан полный режим
+const orgWithSat = buildTravelAgencyJsonLd({ ...settings, "site.hoursFull": "пн–пт: 10:00–18:00\nсб: 10:00–15:00" })
+assert.equal(orgWithSat.openingHoursSpecification.length, 2)
+assert.deepEqual(orgWithSat.openingHoursSpecification[1].dayOfWeek, ["Saturday"])
 
 // ── WebSite (no SearchAction — Tourvisor is not a first-party search URL) ─
 const site = buildWebSiteJsonLd(settings)
