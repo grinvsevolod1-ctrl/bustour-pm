@@ -112,6 +112,7 @@ export function ToursListing({
   sectionDescription,
   defaultSort,
   hideResultsHeading = "0",
+  resultsHeading,
   showSearch = true,
   restrictToCitySlug,
 }: {
@@ -150,6 +151,8 @@ export function ToursListing({
   defaultSort?: string
   /** CMS: "1" — hide the inner «Результаты поиска» H2 above cards. */
   hideResultsHeading?: "0" | "1" | string
+  /** CMS: custom text for the heading above cards. Empty → «Результаты поиска». */
+  resultsHeading?: string
   /** CMS: when false («Фильтр и результаты поиска» off) — скрываем панель фильтров и список туров. */
   showSearch?: boolean
   /** Страница конкретного города: скрыть панель фильтров и показать только туры этого города. */
@@ -531,11 +534,11 @@ export function ToursListing({
               <div className="flex flex-wrap items-end justify-between gap-3">
                 {hideResultsHeading !== "1" ? (
                   <TitleUnderline tabIndex={-1} headingRef={resultsHeadingRef}>
-                    Результаты поиска
+                    {resultsHeading?.trim() || "Результаты поиска"}
                   </TitleUnderline>
                 ) : (
                   <div className="sr-only" ref={resultsHeadingRef as React.RefObject<HTMLDivElement>} tabIndex={-1}>
-                    Результаты поиска
+                    {resultsHeading?.trim() || "Результаты поиска"}
                   </div>
                 )}
                 <label className="flex shrink-0 items-center gap-2">
