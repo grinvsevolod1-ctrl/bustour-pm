@@ -142,7 +142,9 @@ export function ProgramTimeline({
                 )}
               </div>
               {isOpen && p.text ? (
-                <div className="mt-3 rounded bg-[#FFF9ED] px-3 py-4 text-base leading-relaxed text-ink md:px-4">
+                // На телефоне тянем жёлтую плашку под колонку с номером дня,
+                // чтобы текст занимал всю ширину карточки (#5). На md — как есть.
+                <div className="mt-3 -ml-10 rounded bg-[#FFF9ED] px-3 py-4 text-base leading-relaxed text-ink md:ml-0 md:px-4">
                   {renderProgramText(p.text)}
                 </div>
               ) : null}
