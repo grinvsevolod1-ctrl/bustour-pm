@@ -26,9 +26,11 @@ assert.ok(listing.includes("onClick={onFind}"))
 assert.ok(listing.includes("resultsHeadingRef.current?.focus"))
 
 const datesTable = read("components/site/dates-table.tsx")
-assert.ok(datesTable.includes("function onFindDate"))
-assert.ok(datesTable.includes("onClick={onFindDate}"))
-assert.ok(datesTable.includes("scrollIntoView"))
+// Фильтр дат на странице тура — диапазон с мгновенным применением (без кнопки
+// «Найти»): выбор диапазона сразу фильтрует строки (#7).
+assert.ok(datesTable.includes("DateRangePicker"))
+assert.ok(datesTable.includes("rangeRows"))
+assert.ok(datesTable.includes("Найдено дат"))
 assert.ok(!/\buseEffect\b/.test(datesTable), "dates-table must not use useEffect (scroll magnet)")
 
 console.log("catalog-filter-scroll.selfcheck: ok")
