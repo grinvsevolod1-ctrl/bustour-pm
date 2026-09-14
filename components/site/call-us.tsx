@@ -28,7 +28,7 @@ export function CallUs({
       <button
         type="button"
         onClick={open}
-        className="h-12 shrink-0 rounded-lg border border-ink px-6 text-base font-semibold text-ink transition-colors hover:bg-white"
+        className="h-12 w-full shrink-0 rounded-lg border border-ink px-6 text-base font-semibold text-ink transition-colors hover:bg-white sm:w-auto"
       >
         {button}
       </button>

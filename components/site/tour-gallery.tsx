@@ -424,7 +424,7 @@ export function TourGallery({
               type="button"
               onClick={() => scrollThumbnails("up")}
               disabled={!canScrollUp}
-              aria-label="Предыдущие миниатюры"
+              aria-label="Предыдущие ��иниатюры"
               className="flex h-20 w-8 shrink-0 items-center justify-center rounded bg-cream text-ink transition-colors hover:bg-brand/20 disabled:opacity-40 md:h-8 md:w-full"
             >
               <ChevronLeft className="h-5 w-5 md:hidden" />
@@ -432,7 +432,7 @@ export function TourGallery({
             </button>
             <div
               ref={thumbnailsRef}
-              className="flex min-w-0 gap-2 overflow-x-auto scrollbar-none md:min-h-0 md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto"
+              className="flex min-w-0 gap-2 overflow-x-auto scrollbar-none [touch-action:pan-x] [overscroll-behavior:contain] [-webkit-overflow-scrolling:touch] md:min-h-0 md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto md:[touch-action:pan-y]"
               style={{ scrollbarWidth: "none" } as React.CSSProperties}
             >
               {slides.map((slide, i) => {

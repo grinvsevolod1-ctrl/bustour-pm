@@ -25,9 +25,9 @@ import {
   upcomingRows,
 } from "@/lib/dates-table"
 import { formatMoney } from "@/lib/currencies"
-import { scrollBehavior } from "@/lib/scroll-to-id"
 import { Alert } from "./alert"
 import { ModalTourOrder } from "@/components/site/modals"
+import { DateRangePicker, type DateRangePickerValue } from "@/components/ui/date-range-picker"
 
 function DatesFootnotes({
   lines,
@@ -124,10 +124,6 @@ function PriceCard({
   )
 }
 
-function nearestDate(rows: DatesTableRow[]): string {
-  return upcomingRows(rows)[0]?.startDate ?? ""
-}
-
 function Tags({ row, className = "flex flex-wrap gap-x-3 gap-y-1" }: { row: DatesTableRow; className?: string }) {
   return row.tags.length ? (
     <div className={className}>
@@ -192,10 +188,11 @@ function DatesCard({
               <span className="block text-base font-semibold text-ink">{formatDateRange(row.startDate, row.endDate)}</span>
               {deriveDuration(row.startDate, row.endDate) ? <span className="mt-0.5 block text-sm text-ink-muted">{deriveDuration(row.startDate, row.endDate)}</span> : null}
             </span>
-            <span className="flex shrink-0 items-center gap-2 text-right md:hidden">
-              <span className="text-sm text-ink-muted">
-                от <strong className="block text-base text-ink">{minPrice} {currency}</strong>
-                <RowExtraPrice row={row} />
+            <span className="flex shrink-0 items-center gap-1.5 text-right md:hidden">
+              {/* Одна строка «от 1000 BYN ∨» — раньше цена была block и уходила
+                  в отдельную плоскость (#9). Доп.цена показывается внутри карточки. */}
+              <span className="whitespace-nowrap text-sm text-ink-muted">
+                от <strong className="text-base text-ink">{minPrice} {currency}</strong>
               </span>
               <ChevronDown className="h-5 w-5 text-ink-muted transition-transform group-open:rotate-180" aria-hidden />
             </span>
@@ -274,8 +271,9 @@ export function DatesTable({ data, tourTitle = "" }: { data: DatesTableData; tou
   const rows = upcomingRows(data.rows)
   const [expanded, setExpanded] = useState(false)
   const [selected, setSelected] = useState<Record<number, string>>({})
-  const [selectedDate, setSelectedDate] = useState(() => nearestDate(rows))
-  const [activeDate, setActiveDate] = useState<string | null>(null)
+  // Фильтр по диапазону дат на самой странице тура (моб. версия): как в фильтре
+  // страны/курорта — выбор диапазона применяется сразу, без кнопки «Найти» (#7).
+  const [range, setRange] = useState<DateRangePickerValue>({ start: "", end: "" })
   const [openCards, setOpenCards] = useState<Record<number, boolean>>({})
   const [orderOpen, setOrderOpen] = useState(false)
   const [orderDate, setOrderDate] = useState("")
@@ -286,25 +284,23 @@ export function DatesTable({ data, tourTitle = "" }: { data: DatesTableData; tou
     setOrderOpen(true)
   }
 
-  /** One-shot scroll on find — never from render-driven effect (rows is a new array each render → scroll magnet). */
-  function onFindDate() {
-    const date = selectedDate
-    setActiveDate(date)
-    const index = rows.findIndex((row) => row.startDate === date)
-    if (index < 0) return
-    setOpenCards((cards) => ({ ...cards, [index]: true }))
-    requestAnimationFrame(() => {
-      cardRefs.current[index]?.scrollIntoView({ behavior: scrollBehavior(), block: "start" })
-    })
-  }
-
   if (!hasDatesTable({ ...data, rows })) return null
 
   const footnoteLines = formatDatesFootnotes(data)
   const allRoomNames = Array.from(new Set(rows.flatMap((row) => row.rooms.map((r) => r.name))))
   const collapsible = rows.length > DATES_COLLAPSED_ROWS
   const visibleRows = collapsible && !expanded ? rows.slice(0, DATES_COLLAPSED_ROWS) : rows
-  const mobileRows = activeDate ? rows.filter((row) => row.startDate === activeDate) : visibleRows
+  // Диапазон дат сравниваем по ISO-строкам startDate (YYYY-MM-DD упорядочен лексикографически).
+  const rangeActive = Boolean(range.start || range.end)
+  const rangeRows = rangeActive
+    ? rows.filter((row) => {
+        if (range.start && row.startDate < range.start) return false
+        if (range.end && row.startDate > range.end) return false
+        return true
+      })
+    : null
+  // Пока фильтр активен — показываем все совпавшие даты (сворачивание не действует).
+  const mobileRows = rangeRows ?? visibleRows
 
   return (
     <div className="space-y-4">
@@ -390,27 +386,21 @@ export function DatesTable({ data, tourTitle = "" }: { data: DatesTableData; tou
 
           <div className="space-y-4 lg:hidden">
             <div className="rounded-lg bg-cyan-accent p-4 text-white">
-              <label htmlFor="dates-table-search" className="block text-sm font-semibold">
-                Выберите удобные даты выезда:
-              </label>
-              <div className="mt-3 flex flex-col gap-2 min-[480px]:flex-row">
-                <select
-                  id="dates-table-search"
-                  value={selectedDate}
-                  onChange={(event) => setSelectedDate(event.target.value)}
-                  className="min-w-0 flex-1 rounded border-0 bg-white px-3 py-3 text-sm text-ink outline-none"
-                >
-                  {rows.map((row) => <option key={`${row.startDate}-${row.endDate}`} value={row.startDate}>{formatDateRange(row.startDate, row.endDate)}</option>)}
-                </select>
-                <button
-                  type="button"
-                  onClick={onFindDate}
-                  className="rounded bg-white px-5 py-3 text-sm font-bold text-ink transition-colors hover:bg-cream"
-                >
-                  НАЙТИ
-                </button>
+              <span className="block text-sm font-semibold">Выберите удобные даты выезда:</span>
+              <div className="mt-3">
+                {/* Диапазон дат применяется сразу при выборе; крестик очищает фильтр (#7). */}
+                <DateRangePicker
+                  value={range}
+                  onChange={setRange}
+                  ariaLabel="Диапазон дат выезда"
+                  placeholder="Любые даты"
+                />
               </div>
-              <p className="mt-2 text-xs text-white/90">Доступных дат: {rows.length}</p>
+              <p className="mt-2 text-xs text-white/90">
+                {rangeActive
+                  ? `Найдено дат: ${mobileRows.length} из ${rows.length}`
+                  : `Доступных дат: ${rows.length}`}
+              </p>
             </div>
 
             <div className="space-y-3">
@@ -434,19 +424,12 @@ export function DatesTable({ data, tourTitle = "" }: { data: DatesTableData; tou
               })}
             </div>
 
-            {collapsible ? (
+            {collapsible && !rangeActive ? (
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!expanded) {
-                      setExpanded(true)
-                      setActiveDate(null)
-                    } else {
-                      setExpanded(false)
-                    }
-                  }}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded border border-brand bg-white px-6 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-cream md:w-auto md:border-cyan-accent"
+                  onClick={() => setExpanded((v) => !v)}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded bg-brand px-6 py-3 text-base font-bold text-brand-foreground transition-colors hover:bg-brand-dark md:w-auto"
                 >
                   {expanded ? "Скрыть даты" : "Показать все доступные даты"}
                   <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />

@@ -147,7 +147,17 @@ export async function findTourIdBySlug(slug: string): Promise<number | undefined
 }
 
 export async function getRelatedTours(slug: string, limit = 4): Promise<Tour[]> {
-  return listTours({ excludeHidden: true, excludeSlugs: [slug], limit })
+  // «Похожие направления» должны быть действительно похожими, а не случайной
+  // выдачей (#13): сначала автобусные туры той же страны, затем добираем
+  // остальными автобусными турами. Берём только категорию bus — раздел живёт
+  // на странице автобусного тура.
+  const current = await getTour(slug)
+  const pool = await listTours({ category: "bus", excludeHidden: true, excludeSlugs: [slug] })
+  if (!current) return pool.slice(0, limit)
+
+  const sameCountry = pool.filter((t) => t.countryId === current.countryId)
+  const rest = pool.filter((t) => t.countryId !== current.countryId)
+  return [...sameCountry, ...rest].slice(0, limit)
 }
 
 /* ---------- Reviews ---------- */
@@ -442,6 +452,23 @@ export async function saveTourDatesTable(tourId: number, table: DatesTable): Pro
       }
     }
   })
+}
+
+/**
+ * Точечное обновление только программы и/или блока «что входит» — для массового
+ * импорта из Excel (#11). Не трогает остальные поля тура, чтобы импорт программы
+ * не затирал цены, галерею и прочее.
+ */
+export async function saveTourContent(
+  tourId: number,
+  content: { program?: Tour["program"]; whatIncluded?: Tour["whatIncluded"] },
+): Promise<void> {
+  await ensureDb()
+  const set: Record<string, unknown> = {}
+  if (content.program) set.program = JSON.stringify(content.program)
+  if (content.whatIncluded) set.whatIncluded = JSON.stringify(content.whatIncluded)
+  if (Object.keys(set).length === 0) return
+  await db.update(tours).set(set).where(eq(tours.id, tourId))
 }
 
 /* ---------- Admin mutations: Reviews ---------- */

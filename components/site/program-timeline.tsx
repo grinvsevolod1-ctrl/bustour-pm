@@ -64,7 +64,7 @@ function renderProgramText(text: string) {
   if (hasHtml) {
     return (
       <div
-        className="prose prose-sm max-w-none prose-a:text-brand prose-strong:text-ink prose-headings:text-ink prose-ul:list-disc prose-ol:list-decimal prose-li:marker:text-brand"
+        className="prose-content text-ink"
         // Программа тура набирается в админке, но рендер обязан проходить санитайз:
         // угнанная сессия редактора не должна давать stored XSS у посетителей.
         dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(t) }}
@@ -94,11 +94,11 @@ export function ProgramTimeline({
         return (
           <div
             key={`${p.day}::${p.text.slice(0, 48)}`}
-            className="flex cursor-pointer items-stretch gap-6 rounded-xl px-6 py-3 transition-colors hover:bg-[#fafafa]"
+            className="flex cursor-pointer items-stretch gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#fafafa] md:gap-6 md:px-6"
             onClick={() => setOpen(isOpen ? null : i)}
           >
             {/* Left: day number + дней label + dashed connector */}
-            <div className="flex w-14 shrink-0 flex-col items-center">
+            <div className="flex w-10 shrink-0 flex-col items-center md:w-14">
               <span
                 className={`whitespace-nowrap text-2xl font-semibold leading-tight tabular-nums transition-colors ${
                   isOpen ? "text-brand" : "text-ink-muted"
@@ -114,9 +114,11 @@ export function ProgramTimeline({
                 {label.word || "день"}
               </span>
               {/* Dashed amber line — visible only when expanded and not the last item */}
+              {/* Пунктирный соединитель между днями: на телефоне (320–768px)
+                  он съедает ширину узкой программы — прячем его до md (#5). */}
               {isOpen && !isLast && (
                 <div
-                  className="mt-2 w-0.5 flex-1"
+                  className="mt-2 hidden w-0.5 flex-1 md:block"
                   style={{
                     marginBottom: "-12px",
                     backgroundImage:

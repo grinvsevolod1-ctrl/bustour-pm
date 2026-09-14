@@ -95,8 +95,9 @@ export async function TourPageContent({
     included: whatIncluded.length ? { title: "Что входит в тур", node: <WhatIncluded groups={whatIncluded} /> } : null,
     gallery: { node: <TourGallery slides={gallerySlides} /> },
     // Пустой rich-текст (например «<p></p>» или «<p><br></p>») не должен
-    // порождать пустую секцию. Проверяем именно текст, а не наличие тегов.
-    seo: stripHtmlToText(tour.seoHtml).length
+    // порождать пустую секцию. Проверяем текст ИЛИ наличие встроенного медиа
+    // (видео/iframe/YouTube) — блок с одним видео без подписи тоже валиден (#4).
+    seo: stripHtmlToText(tour.seoHtml).length || /<(iframe|video)\b|data-youtube-video/i.test(tour.seoHtml)
       ? {
           node: (
             <>
@@ -120,7 +121,9 @@ export async function TourPageContent({
 
   const sections = layout.filter((s) => s.visible && sectionNodes[s.key])
   const navItems = sections
-    .filter((s) => anchoredSectionKeys.includes(s.key))
+    // Кнопка «Полезные документы» не должна попадать в блок быстрого доступа
+    // (сама секция документов ниже остаётся). Требование #12.
+    .filter((s) => anchoredSectionKeys.includes(s.key) && s.key !== "documents")
     .map((s) => ({ id: s.key, label: s.label }))
   // Галерея живёт в hero-блоке слева (~75% ширины), рядом с карточкой цены
   // справа — как было исторически. Поэтому не рендерим её ещё раз ниже,
