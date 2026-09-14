@@ -360,8 +360,18 @@ export type ProductOfferJsonLd = {
     price: string
     priceCurrency: string
     availability: string
+    priceValidUntil?: string
     url?: string
   }
+}
+
+/**
+ * Дата, до которой действует цена (schema.org рекомендует priceValidUntil,
+ * иначе Search Console показывает предупреждение). По умолчанию — конец
+ * следующего года от текущей даты, т.е. предложение считается актуальным.
+ */
+export function defaultPriceValidUntil(now: Date = new Date()): string {
+  return `${now.getUTCFullYear() + 1}-12-31`
 }
 
 export function buildProductOfferJsonLd(input: {
@@ -376,6 +386,8 @@ export function buildProductOfferJsonLd(input: {
   /** If seats/available dates known, flag availability. Default conservative = OutOfStock. */
   availableSeats?: number | null
   hasAvailability?: boolean
+  /** Дата актуальности цены (YYYY-MM-DD). По умолчанию — конец следующего года. */
+  priceValidUntil?: string
 }): ProductOfferJsonLd | null {
   const name = stripFaqHtml(input.name)
   if (!name) return null
@@ -407,6 +419,7 @@ export function buildProductOfferJsonLd(input: {
       price: String(priceNum),
       priceCurrency: input.priceCurrency || "BYN",
       availability,
+      priceValidUntil: input.priceValidUntil || defaultPriceValidUntil(),
       ...(input.url ? { url: input.url } : {}),
     },
   }

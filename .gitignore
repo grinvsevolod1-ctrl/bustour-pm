@@ -64,3 +64,4 @@ public/uploads/
 # файлы в .github/workflows/. Держим workflow в корне как ci-workflow.yml;
 # перенос в .github/workflows/ci.yml делает владелец руками (см. шапку файла).
 .github/
+.v0/

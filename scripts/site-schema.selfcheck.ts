@@ -153,6 +153,19 @@ assert.equal(product!.name, "Тур A")
 assert.equal(product!.offers.price, "199.5")
 assert.equal(product!.offers.priceCurrency, "BYN")
 assert.equal(product!.brand?.name, "БасТур")
+// priceValidUntil: по умолчанию конец следующего года (YYYY-12-31), формат ISO-даты.
+assert.match(product!.offers.priceValidUntil ?? "", /^\d{4}-12-31$/)
+assert.ok(
+  Number((product!.offers.priceValidUntil ?? "0").slice(0, 4)) > new Date().getUTCFullYear(),
+  "priceValidUntil должен быть в будущем",
+)
+// Явно переданный priceValidUntil должен использоваться как есть.
+const productFixedDate = buildProductOfferJsonLd({
+  name: "Тур B",
+  price: 500,
+  priceValidUntil: "2030-01-15",
+})
+assert.equal(productFixedDate!.offers.priceValidUntil, "2030-01-15")
 
 // ── Wiring ─────────────────────────────────────────────────────────────
 const layout = readFileSync(join(root, "app/(site)/layout.tsx"), "utf8")

@@ -135,11 +135,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]
   })
 
-  const articleEntries: MetadataRoute.Sitemap = articles.map((a) => ({
-    url: absoluteUrl(articleUrl(a)),
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }))
+  const articleEntries: MetadataRoute.Sitemap = articles.map((a) => {
+    // `date` в CMS — строка вида «YYYY-MM-DD»; отдаём в lastModified только
+    // валидную дату, иначе поле пропускаем (некорректная дата хуже отсутствия).
+    const parsed = a.date ? new Date(a.date) : null
+    const lastModified = parsed && !Number.isNaN(parsed.getTime()) ? parsed : undefined
+    return {
+      url: absoluteUrl(articleUrl(a)),
+      ...(lastModified ? { lastModified } : {}),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }
+  })
 
   const busEntries: MetadataRoute.Sitemap = buses.map((bus) => ({
     url: absoluteUrl(`/arenda-avtobusov-v-minske/${bus.slug}`),
