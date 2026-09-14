@@ -52,7 +52,7 @@ function ResortCard({
       className={cn(
         "group relative h-[280px] overflow-hidden rounded",
         mobileSnap
-          ? "w-[min(100%,280px)] min-w-[280px] shrink-0 snap-start"
+          ? "w-[85vw] max-w-[360px] min-w-[260px] shrink-0 snap-start"
           : "w-full",
       )}
     >
