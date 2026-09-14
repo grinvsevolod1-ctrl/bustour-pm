@@ -119,7 +119,7 @@ function MobileSnapCarousel({ items }: { items: ResortCardItem[] }) {
         ref={scrollerRef}
         aria-roledescription="carousel"
         aria-label="Курорты"
-        className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [touch-action:pan-x] [overscroll-behavior-x:contain] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((city, i) => (
           <ResortCard
