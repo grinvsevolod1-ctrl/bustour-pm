@@ -424,8 +424,8 @@ export function TourGallery({
               type="button"
               onClick={() => scrollThumbnails("up")}
               disabled={!canScrollUp}
-              aria-label="Предыдущие ��иниатюры"
-              className="flex h-20 w-8 shrink-0 items-center justify-center rounded bg-cream text-ink transition-colors hover:bg-brand/20 disabled:opacity-40 md:h-8 md:w-full"
+              aria-label="Предыдущие миниатюры"
+              className="hidden h-20 w-8 shrink-0 items-center justify-center rounded bg-cream text-ink transition-colors hover:bg-brand/20 disabled:opacity-40 md:flex md:h-8 md:w-full"
             >
               <ChevronLeft className="h-5 w-5 md:hidden" />
               <ChevronUp className="hidden h-5 w-5 md:block" />
@@ -473,7 +473,7 @@ export function TourGallery({
               onClick={() => scrollThumbnails("down")}
               disabled={!canScrollDown}
               aria-label="Следующие миниатюры"
-              className="flex h-20 w-8 shrink-0 items-center justify-center rounded bg-cream text-ink transition-colors hover:bg-brand/20 disabled:opacity-40 md:h-8 md:w-full"
+              className="hidden h-20 w-8 shrink-0 items-center justify-center rounded bg-cream text-ink transition-colors hover:bg-brand/20 disabled:opacity-40 md:flex md:h-8 md:w-full"
             >
               <ChevronRight className="h-5 w-5 md:hidden" />
               <ChevronDown className="hidden h-5 w-5 md:block" />

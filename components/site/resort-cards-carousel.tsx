@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useRef, useState, useSyncExternalStore } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { resortCardsPageSize, type ResortCardsLayout } from "@/lib/resort-cards-settings"
@@ -85,38 +85,12 @@ function ResortCard({
 
 /** Mobile: horizontal snap strip (no endless vertical stack). */
 function MobileSnapCarousel({ items }: { items: ResortCardItem[] }) {
-  const scrollerRef = useRef<HTMLDivElement>(null)
-
-  const scrollByCard = (dir: -1 | 1) => {
-    const el = scrollerRef.current
-    if (!el) return
-    el.scrollBy({ left: dir * Math.min(300, el.clientWidth * 0.85), behavior: "smooth" })
-  }
-
+  // Кнопки-стрелки на телефоне убраны: их scrollBy конфликтовал с нативным
+  // тач-скроллом и давал рывки на iOS (#6). Листаем свайпом — snap-x держит
+  // карточки по краю.
   return (
     <div className="relative">
-      {items.length > 1 ? (
-        <div className="mb-2 flex justify-end gap-2">
-          <button
-            type="button"
-            aria-label="Предыдущий курорт"
-            className="grid h-9 w-9 place-items-center rounded-full border border-line bg-white text-ink shadow-sm"
-            onClick={() => scrollByCard(-1)}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Следующий курорт"
-            className="grid h-9 w-9 place-items-center rounded-full border border-line bg-white text-ink shadow-sm"
-            onClick={() => scrollByCard(1)}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-      ) : null}
       <div
-        ref={scrollerRef}
         aria-roledescription="carousel"
         aria-label="Курорты"
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [touch-action:pan-x] [overscroll-behavior-x:contain] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden"
