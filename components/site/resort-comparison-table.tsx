@@ -106,7 +106,7 @@ function FooterHtml({ html }: { html: string }) {
   if (!html?.trim()) return null
   return (
     <div
-      className="prose prose-sm max-w-none text-ink"
+      className="prose-content text-ink"
       dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(html) }}
     />
   )
@@ -315,7 +315,7 @@ function ResortTableSection({
           {data.title ? <TitleUnderline as="h2">{data.title}</TitleUnderline> : null}
           {data.subtitle ? (
             <div
-              className="prose prose-sm max-w-none text-ink"
+              className="prose-content text-ink"
               dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(data.subtitle) }}
             />
           ) : null}

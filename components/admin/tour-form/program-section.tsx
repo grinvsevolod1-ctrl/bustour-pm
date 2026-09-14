@@ -9,7 +9,18 @@ import { RichEditor } from "@/components/admin/rich-editor-lazy"
 import { FormSection, Button, Input, Label, IconButton } from "@/components/admin/ui"
 import type { Tour } from "@/lib/types"
 
-type ProgramBlock = { dayStart?: number; dayEnd?: number; customTitle?: string; text: string }
+// uid — стабильный ключ блока в React. Раньше блоки рендерились по индексу
+// массива, из-за чего после добавления/удаления/переупорядочивания дней
+// RichEditor оставался привязан к старой позиции (его sync-эффект отрабатывает
+// только при монтировании), и текст «переезжал» не в тот день — это и был баг
+// «частично не работает редактор по дням».
+type ProgramBlock = { uid: string; dayStart?: number; dayEnd?: number; customTitle?: string; text: string }
+
+let programUidSeq = 0
+function nextProgramUid() {
+  programUidSeq += 1
+  return `pb-${programUidSeq}`
+}
 
 // Восстанавливаем структурные диапазоны из легаси-заголовков («День 2», «Дни 2–4»),
 // чтобы старые туры оставались редактируемыми без ручного переноса.
@@ -25,10 +36,10 @@ function parseInitialProgram(program: Tour["program"] | undefined): ProgramBlock
         : single
           ? { dayStart: Number(single[1]), dayEnd: undefined, customTitle: undefined }
           : { dayStart: undefined, dayEnd: undefined, customTitle: title }
-      return { dayStart: p.dayStart ?? legacy.dayStart, dayEnd: p.dayEnd ?? legacy.dayEnd, customTitle: legacy.customTitle, text: p.text }
+      return { uid: nextProgramUid(), dayStart: p.dayStart ?? legacy.dayStart, dayEnd: p.dayEnd ?? legacy.dayEnd, customTitle: legacy.customTitle, text: p.text }
     })
   }
-  return [{ dayStart: 1, dayEnd: undefined, customTitle: undefined, text: "" }]
+  return [{ uid: nextProgramUid(), dayStart: 1, dayEnd: undefined, customTitle: undefined, text: "" }]
 }
 
 function autoProgramTitle(b: { dayStart?: number; dayEnd?: number; customTitle?: string }) {
@@ -77,7 +88,7 @@ export function TourProgramSection({
                     ),
                   0,
                 )
-                return [...p, { dayStart: Math.max(maxDay + 1, 1), dayEnd: undefined, customTitle: undefined, text: "" }]
+                return [...p, { uid: nextProgramUid(), dayStart: Math.max(maxDay + 1, 1), dayEnd: undefined, customTitle: undefined, text: "" }]
               })
               markDirty()
             }}
@@ -102,7 +113,7 @@ export function TourProgramSection({
                 const start = Math.max(maxDay + 1, 1)
                 return [
                   ...p,
-                  { dayStart: start, dayEnd: start + 2, customTitle: undefined, text: "" },
+                  { uid: nextProgramUid(), dayStart: start, dayEnd: start + 2, customTitle: undefined, text: "" },
                 ]
               })
               markDirty()
@@ -114,7 +125,7 @@ export function TourProgramSection({
         <div className="rounded-lg bg-admin-muted p-3">
           {program.map((day, i) => (
             <details
-              key={i}
+              key={day.uid}
               open={i < 2}
               className="group mb-3 overflow-hidden rounded-md border border-admin-border bg-white last:mb-0"
             >

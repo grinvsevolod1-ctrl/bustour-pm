@@ -64,7 +64,7 @@ function renderProgramText(text: string) {
   if (hasHtml) {
     return (
       <div
-        className="prose prose-sm max-w-none prose-a:text-brand prose-strong:text-ink prose-headings:text-ink prose-ul:list-disc prose-ol:list-decimal prose-li:marker:text-brand"
+        className="prose-content text-ink"
         // Программа тура набирается в админке, но рендер обязан проходить санитайз:
         // угнанная сессия редактора не должна давать stored XSS у посетителей.
         dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(t) }}
