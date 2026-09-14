@@ -7,6 +7,9 @@ const nextConfig = {
   ],
   experimental: {
     cpus: 1,
+    // Тонкий импорт иконок/утилит: в бандл попадают только реально
+    // используемые иконки lucide-react, а не весь пакет — меньше JS на клиенте.
+    optimizePackageImports: ["lucide-react"],
   },
   typescript: {
     ignoreBuildErrors: false,

@@ -36,12 +36,33 @@ export function OfficeMap({
   onBlocked?: () => void
 }) {
   const ref = useRef<HTMLIFrameElement>(null)
+  const placeholderRef = useRef<HTMLDivElement>(null)
   const reported = useRef(false)
   const [ready, setReady] = useState(false)
   const [blocked, setBlocked] = useState(false)
 
+  // Тяжёлый iframe Яндекс.Карт грузим только при подходе к нему (а не сразу
+  // после гидратации) — его сторонний JS уходит с критического пути загрузки,
+  // что снижает Total Blocking Time на мобиле. UX не меняется: доскроллил до
+  // блока — карта появляется. rootMargin 400px = запас на предзагрузку.
   useEffect(() => {
-    setReady(true)
+    if (typeof IntersectionObserver === "undefined") {
+      setReady(true)
+      return
+    }
+    const el = placeholderRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setReady(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: "400px" },
+    )
+    io.observe(el)
+    return () => io.disconnect()
   }, [])
 
   useEffect(() => {
@@ -81,7 +102,7 @@ export function OfficeMap({
   const shellClass = cn("w-full border-0 bg-cream", heightClassName, className)
 
   if (!ready) {
-    return <div className={shellClass} aria-hidden role="presentation" />
+    return <div ref={placeholderRef} className={shellClass} aria-hidden role="presentation" />
   }
 
   return (
