@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-09-14T08:13:59.453Z",
-  "finishedAt": "2026-09-14T08:14:43.138Z",
+  "startedAt": "2026-09-14T08:29:11.677Z",
+  "finishedAt": "2026-09-14T08:29:21.848Z",
   "errors": [],
   "warnings": [
     {
       "stage": "selfcheck",
       "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/tour-page-overflow.selfcheck.ts",
+      "file": "/vercel/share/v0-project/scripts/catalog-filter-scroll.selfcheck.ts",
       "line": null,
       "column": null,
       "code": "SELFCHECK_FAIL",
-      "message": " | [SmartTest] Selfcheck failed: scripts/tour-page-overflow.selfcheck.ts (exit 1) | ",
-      "raw": "    '          </section>\\n' +\n    '        ) : null}\\n' +\n    '      </main>\\n' +\n    '    </>\\n' +\n    '  )\\n' +\n    '}\\n',\n  expected: /flex min-w-0 items-center/,\n  operator: 'match',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/tour-page-overflow.selfcheck.ts (exit 1)\n"
+      "message": " | [SmartTest] Selfcheck failed: scripts/catalog-filter-scroll.selfcheck.ts (exit 1) | ",
+      "raw": "    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:326:3)\n    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:231:7)\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/catalog-filter-scroll.selfcheck.ts (exit 1)\n"
     }
   ],
   "totals": {

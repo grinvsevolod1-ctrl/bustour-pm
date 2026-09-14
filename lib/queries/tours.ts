@@ -454,5 +454,22 @@ export async function saveTourDatesTable(tourId: number, table: DatesTable): Pro
   })
 }
 
+/**
+ * Точечное обновление только программы и/или блока «что входит» — для массового
+ * импорта из Excel (#11). Не трогает остальные поля тура, чтобы импорт программы
+ * не затирал цены, галерею и прочее.
+ */
+export async function saveTourContent(
+  tourId: number,
+  content: { program?: Tour["program"]; whatIncluded?: Tour["whatIncluded"] },
+): Promise<void> {
+  await ensureDb()
+  const set: Record<string, unknown> = {}
+  if (content.program) set.program = JSON.stringify(content.program)
+  if (content.whatIncluded) set.whatIncluded = JSON.stringify(content.whatIncluded)
+  if (Object.keys(set).length === 0) return
+  await db.update(tours).set(set).where(eq(tours.id, tourId))
+}
+
 /* ---------- Admin mutations: Reviews ---------- */
 
