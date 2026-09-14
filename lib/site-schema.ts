@@ -42,10 +42,126 @@ export function buildWeekdayOpeningHours(settings: SiteSettings): OpeningHoursSp
     {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens,
-      closes,
+      opens: padTime(opens),
+      closes: padTime(closes),
     },
   ]
+}
+
+// Порядок дней недели schema.org — нужен для разворота диапазонов «пн–пт».
+const WEEK_ORDER = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const
+
+// Русские сокращения/полные названия → канон schema.org.
+const RU_DAY_TO_SCHEMA: Record<string, (typeof WEEK_ORDER)[number]> = {
+  пн: "Monday",
+  понедельник: "Monday",
+  вт: "Tuesday",
+  вторник: "Tuesday",
+  ср: "Wednesday",
+  среда: "Wednesday",
+  чт: "Thursday",
+  четверг: "Thursday",
+  пт: "Friday",
+  пятница: "Friday",
+  сб: "Saturday",
+  суббота: "Saturday",
+  вс: "Sunday",
+  воскресенье: "Sunday",
+}
+
+/** Нормализуем время к HH:MM (schema.org требует ведущий ноль: «9:00» → «09:00»). */
+function padTime(time: string): string {
+  const m = time.match(/^(\d{1,2}):(\d{2})$/)
+  if (!m) return time
+  return `${m[1].padStart(2, "0")}:${m[2]}`
+}
+
+function ruDayToSchema(token: string): (typeof WEEK_ORDER)[number] | null {
+  return RU_DAY_TO_SCHEMA[token.trim().toLowerCase().replace(/\.$/, "")] ?? null
+}
+
+/** Развернуть диапазон дней «Monday..Friday» в массив. */
+function expandDayRange(from: string, to: string): (typeof WEEK_ORDER)[number][] {
+  const start = WEEK_ORDER.indexOf(from as (typeof WEEK_ORDER)[number])
+  const end = WEEK_ORDER.indexOf(to as (typeof WEEK_ORDER)[number])
+  if (start < 0 || end < 0) return []
+  // Поддержка «переноса через неделю» (напр. «пт–вт») на всякий случай.
+  const out: (typeof WEEK_ORDER)[number][] = []
+  for (let i = start; ; i = (i + 1) % 7) {
+    out.push(WEEK_ORDER[i])
+    if (i === end) break
+    if (out.length > 7) break
+  }
+  return out
+}
+
+/**
+ * Разобрать CMS-поле `site.hoursFull` («Полный режим работы», по пункту на строку)
+ * в OpeningHoursSpecification. Поддерживает:
+ *   «пн–пт: 10:00–18:00», «сб 10:00-15:00», «ежедневно 9:00–21:00»,
+ *   «пн, ср, пт: 10:00–18:00». Строки без времени («сб и вс — выходной») пропускаются.
+ * Возвращает [] если ничего осмысленного не распознано (тогда используется фолбэк).
+ */
+export function parseHoursFull(raw?: string): OpeningHoursSpecification[] {
+  const text = String(raw || "").trim()
+  if (!text) return []
+
+  const specs: OpeningHoursSpecification[] = []
+
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+
+    // Время обязательно — иначе это заметка про выходной, а не рабочий день.
+    const time = trimmed.match(/(\d{1,2}:\d{2})\s*[–\-—]\s*(\d{1,2}:\d{2})/)
+    if (!time) continue
+    const opens = padTime(time[1])
+    const closes = padTime(time[2])
+
+    // Часть строки до времени — там перечислены дни.
+    const daysPart = trimmed.slice(0, time.index ?? 0).toLowerCase()
+
+    let days: (typeof WEEK_ORDER)[number][] = []
+    if (/ежеднев|кажд\w*\s+день|пн\s*[–\-—]\s*вс|24\/7|без\s+выходн/.test(daysPart)) {
+      days = [...WEEK_ORDER]
+    } else {
+      // Диапазон «пн–пт».
+      const range = daysPart.match(/([а-яё]{2,})\s*[–\-—]\s*([а-яё]{2,})/i)
+      if (range) {
+        const from = ruDayToSchema(range[1])
+        const to = ruDayToSchema(range[2])
+        if (from && to) days = expandDayRange(from, to)
+      }
+      // Список «пн, ср, пт» (или единичный день).
+      if (!days.length) {
+        const tokens = daysPart.match(/[а-яё]{2,}/gi) || []
+        const mapped = tokens.map(ruDayToSchema).filter((d): d is (typeof WEEK_ORDER)[number] => d != null)
+        days = Array.from(new Set(mapped))
+      }
+    }
+
+    if (!days.length) continue
+    specs.push({ "@type": "OpeningHoursSpecification", dayOfWeek: days, opens, closes })
+  }
+
+  return specs
+}
+
+/**
+ * Итоговые часы работы для schema.org: сначала пытаемся разобрать полный режим
+ * (`site.hoursFull`, где могут быть суббота и т.п.), иначе — Пн–Пт из `site.hours`.
+ */
+export function buildOpeningHours(settings: SiteSettings): OpeningHoursSpecification[] {
+  const full = parseHoursFull(settings["site.hoursFull"])
+  return full.length ? full : buildWeekdayOpeningHours(settings)
 }
 
 export type TravelAgencyJsonLd = {
@@ -105,7 +221,7 @@ export function buildTravelAgencyJsonLd(
           },
         }
       : {}),
-    openingHoursSpecification: buildWeekdayOpeningHours(settings),
+    openingHoursSpecification: buildOpeningHours(settings),
   }
 }
 
