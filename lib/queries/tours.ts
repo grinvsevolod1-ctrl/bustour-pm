@@ -147,7 +147,17 @@ export async function findTourIdBySlug(slug: string): Promise<number | undefined
 }
 
 export async function getRelatedTours(slug: string, limit = 4): Promise<Tour[]> {
-  return listTours({ excludeHidden: true, excludeSlugs: [slug], limit })
+  // «Похожие направления» должны быть действительно похожими, а не случайной
+  // выдачей (#13): сначала автобусные туры той же страны, затем добираем
+  // остальными автобусными турами. Берём только категорию bus — раздел живёт
+  // на странице автобусного тура.
+  const current = await getTour(slug)
+  const pool = await listTours({ category: "bus", excludeHidden: true, excludeSlugs: [slug] })
+  if (!current) return pool.slice(0, limit)
+
+  const sameCountry = pool.filter((t) => t.countryId === current.countryId)
+  const rest = pool.filter((t) => t.countryId !== current.countryId)
+  return [...sameCountry, ...rest].slice(0, limit)
 }
 
 /* ---------- Reviews ---------- */

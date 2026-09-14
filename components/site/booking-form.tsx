@@ -27,8 +27,8 @@ export function BookingForm({
 
   return (
     <div className="rounded border border-line p-5">
-      <div className="mb-4 grid min-w-0 gap-2 sm:grid-cols-[auto_1fr] sm:items-start">
-        <span className="text-base text-ink-muted">Стоимость от</span>
+      <div className="mb-4 grid min-w-0 gap-x-2 gap-y-1 sm:grid-cols-[auto_1fr] sm:items-baseline">
+        <span className="text-base leading-none text-ink-muted">Стоимость от</span>
         {fallbackAmount > 0 ? (
           <PriceSwitcher
             amount={fallbackAmount}
