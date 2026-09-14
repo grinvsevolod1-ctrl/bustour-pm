@@ -31,6 +31,13 @@ export type MetadataFromSettingsOptions = {
   path?: string
   /** Override image alt (tests). Default: media library alt_text, then title. */
   imageAlt?: string
+  /**
+   * Fallback OG-картинка, когда в CMS не задан `metaImage`. Обычно это
+   * динамически сгенерированный баннер (`/api/og?...`) под конкретный тур/страну,
+   * чтобы в мессенджерах превью не были одинаковыми. Приоритет всё равно у
+   * CMS-картинки: если админ загрузил свою — используется она.
+   */
+  dynamicOgImage?: string
 }
 
 /**
@@ -60,7 +67,7 @@ export async function metadataFromSettings(
     expandShortcodes(rawDescription).then(clampMetaDescription),
     keywordsRaw ? expandShortcodes(keywordsRaw) : Promise.resolve(""),
   ])
-  const image = settings[`${prefix}.metaImage`] || FALLBACK_OG_IMAGE
+  const image = settings[`${prefix}.metaImage`] || options?.dynamicOgImage || FALLBACK_OG_IMAGE
   const imageAlt =
     options?.imageAlt?.trim() ||
     (image ? (await getAltTextByUrl(image)) : null) ||

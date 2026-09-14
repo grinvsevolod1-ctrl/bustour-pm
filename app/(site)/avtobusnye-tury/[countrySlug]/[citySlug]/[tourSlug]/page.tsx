@@ -43,7 +43,18 @@ export async function generateMetadata({
       countrySlug,
       citySlug,
     }) ?? undefined
-  return metadataFromSettings(settings, `tour:${tour.id}`, title, description, path ? { path: path } : undefined)
+  // Динамический OG-баннер под конкретный тур: название, страна+длительность и
+  // цена «от». Используется только если админ не загрузил свою metaImage.
+  const ogParams = new URLSearchParams({ title: tour.title })
+  const ogSubtitle = [tour.country, tour.duration].filter(Boolean).join(" · ")
+  if (ogSubtitle) ogParams.set("subtitle", ogSubtitle)
+  if (tour.price) ogParams.set("price", `от ${tour.price}`.trim())
+  if (tour.image) ogParams.set("img", tour.image)
+  const dynamicOgImage = `/api/og?${ogParams.toString()}`
+  return metadataFromSettings(settings, `tour:${tour.id}`, title, description, {
+    ...(path ? { path } : {}),
+    dynamicOgImage,
+  })
 }
 
 export default async function BusTourPage({
