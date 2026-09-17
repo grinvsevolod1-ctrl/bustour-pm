@@ -39,7 +39,7 @@ export function WhatIncluded({ groups }: { groups: IncludedGroup[] }) {
             {group.title ? <h3 className="text-lg font-semibold text-ink">{group.title}</h3> : null}
             <ul className="space-y-2">
               {group.items.map((item, ii) => (
-                <li key={ii} className="flex items-start gap-2 text-sm text-ink">
+                <li key={ii} className="flex items-start gap-2 text-base leading-relaxed text-ink">
                   <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${color}`} />
                   {item}
                 </li>

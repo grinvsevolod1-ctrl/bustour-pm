@@ -55,7 +55,7 @@ export function TourDocuments({ documents }: { documents: TourDocument[] }) {
               <Icon className="h-5 w-5" aria-hidden />
             </span>
             <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="text-sm font-medium text-ink">{doc.title || "Документ"}</span>
+              <span className="text-base font-medium text-ink">{doc.title || "Документ"}</span>
               <span className="rounded bg-cream px-1.5 py-0.5 text-[11px] font-semibold uppercase text-ink-muted">
                 {label}
               </span>
