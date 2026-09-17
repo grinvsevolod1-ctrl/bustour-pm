@@ -47,11 +47,16 @@ const nextConfig = {
               // collect-запросы GA4/Ads уходят на analytics.google.com и
               // *.doubleclick.net; Метрика открывает wss://mc.yandex.ru;
               // Яндекс.Карты тянут тайлы/данные с *.maps.yandex.net и yandex.ru.
-              "connect-src 'self' https://www.google.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://*.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://pagead2.googlesyndication.com https://connect.facebook.net https://www.facebook.com https://mc.yandex.ru https://mc.yandex.by wss://mc.yandex.ru https://api-maps.yandex.ru https://*.maps.yandex.net https://yandex.ru https://*.yandex.ru https://vk.com https://*.vk.com https://api.resend.com https://tourvisor.ru https://*.tourvisor.ru",
-              "frame-src 'self' https://www.google.com https://www.youtube.com https://www.youtube-nocookie.com https://*.doubleclick.net https://mc.yandex.ru https://mc.yandex.by https://yandex.ru https://*.yandex.ru https://yandex.by https://*.yandex.by https://vk.com https://*.vk.com https://tourvisor.ru https://*.tourvisor.ru",
+              // google.by/google.ru — страновые домены ремаркетинга Google Ads
+              // (ga-audiences); аудитория из Беларуси/России уходит именно туда,
+              // а не на www.google.com.
+              "connect-src 'self' https://www.google.com https://www.google.by https://www.google.ru https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://*.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://pagead2.googlesyndication.com https://connect.facebook.net https://www.facebook.com https://mc.yandex.ru https://mc.yandex.by wss://mc.yandex.ru https://api-maps.yandex.ru https://*.maps.yandex.net https://yandex.ru https://*.yandex.ru https://vk.com https://*.vk.com https://api.resend.com https://tourvisor.ru https://*.tourvisor.ru",
+              "frame-src 'self' https://www.google.com https://www.youtube.com https://www.youtube-nocookie.com https://*.doubleclick.net https://www.facebook.com https://*.facebook.com https://mc.yandex.ru https://mc.yandex.by https://yandex.ru https://*.yandex.ru https://yandex.by https://*.yandex.by https://vk.com https://*.vk.com https://tourvisor.ru https://*.tourvisor.ru",
               // 'self' (не 'none'): iframe-предпросмотр в админке — same-origin.
               "frame-ancestors 'self'",
-              "form-action 'self'",
+              // www.facebook.com — Facebook Pixel при большом payload шлёт POST
+              // формой на /tr, иначе конверсия режется form-action.
+              "form-action 'self' https://www.facebook.com",
               "base-uri 'self'",
               "object-src 'none'",
               "report-uri /api/csp-violation",
