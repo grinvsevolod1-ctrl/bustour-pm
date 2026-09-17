@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { formatPhoneIfComplete, isSupportedPhone, sanitizePhoneTyping, submitLead, validateLead } from "@/lib/lead"
+import { normalizeName, normalizeEmail, normalizeSingleLine, normalizeMultiline } from "@/lib/form-normalize"
 import { captchaClientError } from "@/lib/recaptcha-public"
 import {
   ModalCaptchaRow,
@@ -132,6 +133,7 @@ const [consent, setConsent] = useState(false)
                 autoComplete="name"
                 value={values.name}
                 onChange={(e) => set("name", e.target.value)}
+                onBlur={(e) => set("name", normalizeName(e.target.value))}
                 className={modalInputClass(!!errors.name)}
                 aria-invalid={!!errors.name}
               />
@@ -161,6 +163,7 @@ const [consent, setConsent] = useState(false)
                   spellCheck={false}
                   value={values.email}
                   onChange={(e) => set("email", e.target.value)}
+                  onBlur={(e) => set("email", normalizeEmail(e.target.value))}
                   className={modalInputClass(!!errors.email)}
                   aria-invalid={!!errors.email}
                 />
@@ -171,6 +174,7 @@ const [consent, setConsent] = useState(false)
                   autoComplete="off"
                   value={values.date}
                   onChange={(e) => set("date", e.target.value)}
+                  onBlur={(e) => set("date", normalizeSingleLine(e.target.value))}
                   placeholder="дд.мм.гггг…"
                   className={modalInputClass(!!errors.date)}
                   aria-invalid={!!errors.date}
@@ -184,6 +188,7 @@ const [consent, setConsent] = useState(false)
                 autoComplete="off"
                 value={values.date}
                 onChange={(e) => set("date", e.target.value)}
+                onBlur={(e) => set("date", normalizeSingleLine(e.target.value))}
                 placeholder="дд.мм.гггг…"
                 className={modalInputClass(!!errors.date)}
                 aria-invalid={!!errors.date}
@@ -196,6 +201,7 @@ const [consent, setConsent] = useState(false)
               name="message"
               value={values.message}
               onChange={(e) => set("message", e.target.value)}
+              onBlur={(e) => set("message", normalizeMultiline(e.target.value))}
               rows={2}
               className={modalTextareaClass}
             />

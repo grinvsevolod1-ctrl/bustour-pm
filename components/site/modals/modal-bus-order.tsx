@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { formatPhoneIfComplete, isSupportedPhone, sanitizePhoneTyping, submitLead, validateLead } from "@/lib/lead"
+import { normalizeName, normalizeMultiline } from "@/lib/form-normalize"
 import { captchaClientError } from "@/lib/recaptcha-public"
 import {
   ModalCaptchaRow,
@@ -113,6 +114,7 @@ export function ModalBusOrder({
               autoComplete="name"
               value={values.name}
               onChange={(e) => set("name", e.target.value)}
+              onBlur={(e) => set("name", normalizeName(e.target.value))}
               className={modalInputClass(!!errors.name)}
               aria-invalid={!!errors.name}
             />
@@ -136,6 +138,7 @@ export function ModalBusOrder({
             <textarea
               value={values.comment}
               onChange={(e) => set("comment", e.target.value)}
+              onBlur={(e) => set("comment", normalizeMultiline(e.target.value))}
               rows={3}
               className={modalTextareaClass}
             />

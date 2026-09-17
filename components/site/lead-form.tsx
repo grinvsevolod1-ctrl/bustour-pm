@@ -11,6 +11,7 @@ import {
   isSupportedPhone,
   type LeadType,
 } from "@/lib/lead"
+import { normalizeName, normalizeEmail, normalizeMultiline } from "@/lib/form-normalize"
 import { captchaClientError, isRecaptchaEnabled } from "@/lib/recaptcha-public"
 import { ModalCaptchaRow } from "@/components/site/modals/site-modal-shell"
 
@@ -98,6 +99,7 @@ export function LeadForm({
         <input
           value={values.name}
           onChange={(e) => set("name", e.target.value)}
+          onBlur={(e) => set("name", normalizeName(e.target.value))}
           placeholder="Ваше имя"
           aria-invalid={!!errors.name}
           className={inputClass("name")}
@@ -124,6 +126,7 @@ export function LeadForm({
           <input
             value={values.email}
             onChange={(e) => set("email", e.target.value)}
+            onBlur={(e) => set("email", normalizeEmail(e.target.value))}
             type="email"
             placeholder="E-mail"
             aria-invalid={!!errors.email}
@@ -137,6 +140,7 @@ export function LeadForm({
         <textarea
           value={values.message}
           onChange={(e) => set("message", e.target.value)}
+          onBlur={(e) => set("message", normalizeMultiline(e.target.value))}
           rows={4}
           placeholder="Сообщение"
           className="w-full rounded border border-line p-3 text-base text-ink outline-none focus:border-brand"

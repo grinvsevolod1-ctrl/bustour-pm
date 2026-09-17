@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { Paperclip, Trash2 } from "lucide-react"
 import { formatPhoneIfComplete, isSupportedPhone, sanitizePhoneTyping, validateLead } from "@/lib/lead"
+import { normalizeName, normalizeMultiline } from "@/lib/form-normalize"
 import { submitPublicReview } from "@/lib/public-review"
 import { stripReviewLinks } from "@/lib/review-utils"
 import { captchaRequiredClientError } from "@/lib/recaptcha-public"
@@ -161,6 +162,7 @@ export function ModalTestimonial({
               autoComplete="name"
               value={values.name}
               onChange={(e) => set("name", e.target.value)}
+              onBlur={(e) => set("name", normalizeName(e.target.value))}
               placeholder="Иванов Иван…"
               className={modalInputClass(!!errors.name)}
               aria-invalid={!!errors.name}
@@ -187,6 +189,7 @@ export function ModalTestimonial({
             <textarea
               value={values.text}
               onChange={(e) => set("text", e.target.value)}
+              onBlur={(e) => set("text", normalizeMultiline(e.target.value))}
               rows={3}
               className={modalTextareaClass}
               aria-invalid={!!errors.text}
