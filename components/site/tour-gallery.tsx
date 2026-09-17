@@ -322,10 +322,12 @@ export function TourGallery({
 
   return (
     <>
-      {/* Mobile: column. Desktop: row. Main slide's aspect-ratio drives the row height;
-          the thumbnail column must not exceed it (md:min-h-0) so it stays aligned and
-          scrolls its own overflow via the up/down buttons instead of stretching the row. */}
-      <div className="flex w-full min-w-0 select-none flex-col gap-3 md:flex-row md:items-stretch md:gap-3">
+      {/* Mobile: column. Desktop: row. Main slide's aspect-ratio is the ONLY source of
+          height — use md:items-start (NOT stretch) so the naturally taller thumbnail
+          column can't stretch the main slide past its 16:9 box (that caused letterboxing
+          + a ResizeObserver feedback loop). The column is pinned to the measured main
+          slide height below and scrolls its own overflow via the up/down buttons. */}
+      <div className="flex w-full min-w-0 select-none flex-col gap-3 md:flex-row md:items-start md:gap-3">
         <div
           ref={mainSlideRef}
           className="relative aspect-[16/9] w-full min-h-[180px] shrink-0 overflow-hidden rounded-xl bg-cream md:min-h-0 md:min-w-0 md:max-h-[70vh] md:flex-1"

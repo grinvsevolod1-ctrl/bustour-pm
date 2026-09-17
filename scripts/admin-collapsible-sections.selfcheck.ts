@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
-const sectionCard = readFileSync(join(process.cwd(), "components/admin/page-section-card.tsx"), "utf8")
+const sectionCard = readFileSync(join(process.cwd(), "components/admin/page-sections/section-card.tsx"), "utf8")
 const settingsForm = readFileSync(join(process.cwd(), "components/admin/settings-form.tsx"), "utf8")
 
 assert.ok(sectionCard.includes("aria-expanded={!collapsed}"), "page section card has disclosure aria-expanded")

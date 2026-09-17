@@ -42,6 +42,8 @@ export function PageSectionCardWrapper({
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
+          aria-expanded={!collapsed}
+          aria-controls={`sec-${sectionId}-body`}
           className="flex min-w-0 flex-1 items-center gap-2 text-left"
         >
           <ChevronDown className={cn(
@@ -109,7 +111,7 @@ export function PageSectionCardWrapper({
 
       {/* Тело — редактор доступен, даже когда секция выключена на сайте */}
       {!collapsed && (
-        <div className="p-4">
+        <div id={`sec-${sectionId}-body`} className="p-4">
           {!visible && (
             <p className="mb-3 text-xs italic text-admin-fg-muted">
               Секция будет скрыта на сайте после «Сохранить». Нажмите <Eye className="inline h-3 w-3" /> чтобы включить.
