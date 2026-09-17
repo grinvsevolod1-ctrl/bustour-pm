@@ -493,7 +493,7 @@ span.flatpickr-weekday {
   margin: 1em 0;
 }
 /* Подпись автора/источника под изображением (лицензии фотостоков).
-   Вставляется сервером сразу после <img>, поэтому убираем нижний отступ картинки. */
+   Вставляется сервером сразу после <img>, поэтому убираем ни��ний отступ картинки. */
 .prose-content .image-credit {
   display: block;
   margin-top: -0.75em;
@@ -1294,14 +1294,20 @@ span.flatpickr-weekday {
 
 /* Tourvisor search widget — адаптив под узкие экраны.
    Виджет приходит со стороннего сервера формой фиксированной ширины
-   (TVWideForm ~670px): на мобильных она растягивала страницу и давала
-   горизонтальный скролл всего body. Разметку виджета менять нельзя, поэтому
-   зажимаем его контейнеры по ширине родителя и разрешаем полям переноситься.
-   overflow на хосте НЕ ставим — иначе обрежутся выпадающие календарь/списки. */
+   (TVWideForm) с жёстким min-width: 670px на внутренних контейнерах — именно
+   min-width пробивал родителя и растягивал body в горизонтальный скролл на
+   мобильных. Разметку виджета менять нельзя, поэтому снимаем min-width и
+   зажимаем контейнеры по ширине родителя — виджет сам переносит поля в
+   вертикальную раскладку. overflow на хосте НЕ ставим, чтобы не обрезать
+   выпадающие календарь/списки (tourvisor рендерит их своими попапами). */
 .tv-search-form,
 .tv-search-form .TVWideForm,
 .tv-search-form .TVInterfaceWrapper,
-.tv-search-form .TVMainForm {
+.tv-search-form .TVMainForm,
+.tv-search-form [class*="TVWide"],
+.tv-search-form [class*="TVMain"],
+.tv-search-form [class*="TVInterface"] {
+  min-width: 0 !important;
   max-width: 100% !important;
   width: 100% !important;
   box-sizing: border-box;
