@@ -91,6 +91,9 @@ export function ProgramTimeline({
         const parsed = parseDayLabel(p.day)
         const col = dayColumnLabel(p.dayStart, p.dayEnd, parsed)
         const label = { num: col.num, word: col.word, fullTitle: parsed.fullTitle }
+        // Диапазон («3–13», «13–15») шире одиночной цифры — уменьшаем кегль,
+        // иначе крупный номер вылезает из узкой колонки и наезжает на заголовок.
+        const isRange = /[–—-]/.test(label.num)
         return (
           <div
             key={`${p.day}::${p.text.slice(0, 48)}`}
@@ -98,11 +101,11 @@ export function ProgramTimeline({
             onClick={() => setOpen(isOpen ? null : i)}
           >
             {/* Left: day number + дней label + dashed connector */}
-            <div className="flex w-8 shrink-0 flex-col items-center md:w-14">
+            <div className="flex w-14 shrink-0 flex-col items-center md:w-16">
               <span
-                className={`whitespace-nowrap text-2xl font-semibold leading-tight tabular-nums transition-colors ${
-                  isOpen ? "text-brand" : "text-ink-muted"
-                }`}
+                className={`whitespace-nowrap font-semibold leading-tight tabular-nums transition-colors ${
+                  isRange ? "text-lg md:text-xl" : "text-2xl"
+                } ${isOpen ? "text-brand" : "text-ink-muted"}`}
               >
                 {label.num || (i + 1)}
               </span>
@@ -144,7 +147,8 @@ export function ProgramTimeline({
               {isOpen && p.text ? (
                 // На телефоне тянем жёлтую плашку под колонку с номером дня,
                 // чтобы текст занимал всю ширину карточки (#5). На md — как есть.
-                <div className="mt-3 -ml-10 rounded bg-[#FFF9ED] px-3 py-4 text-base leading-relaxed text-ink md:ml-0 md:px-4">
+                // Сдвиг = ширина колонки (w-14=56px) + gap-2 (8px) = 64px → -ml-16.
+                <div className="mt-3 -ml-16 rounded bg-[#FFF9ED] px-3 py-4 text-base leading-relaxed text-ink md:ml-0 md:px-4">
                   {renderProgramText(p.text)}
                 </div>
               ) : null}
