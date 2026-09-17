@@ -155,13 +155,47 @@ export function parseHoursFull(raw?: string): OpeningHoursSpecification[] {
   return specs
 }
 
+/** Пн–Пт спека напрямую из `site.hours` (поле шапки). null, если не распознано. */
+function parseSiteHoursSpec(settings: SiteSettings): OpeningHoursSpecification | null {
+  const raw = String(settings["site.hours"] || "").trim()
+  const m = raw.match(/(\d{1,2}:\d{2})\s*[–\-—]\s*(\d{1,2}:\d{2})/)
+  if (!m) return null
+  return {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    opens: padTime(m[1]),
+    closes: padTime(m[2]),
+  }
+}
+
 /**
- * Итоговые часы работы для schema.org: сначала пытаемся разобрать полный режим
- * (`site.hoursFull`, где могут быть суббота и т.п.), иначе — Пн–Пт из `site.hours`.
+ * Итоговые часы работы для schema.org.
+ *
+ * Авторитетный источник для будних дней — `site.hours` (поле «Часы работы»),
+ * то же значение, что показывается в шапке сайта: именно его правит админ,
+ * поэтому схема обязана совпадать с шапкой. `site.hoursFull` («Полный режим
+ * работы») используется лишь чтобы ДОБАВИТЬ нестандартные дни (сб/вс), которых
+ * короткое поле выразить не может — его будние строки НЕ перекрывают `site.hours`.
+ * Так исключается расхождение «в шапке одно, в schema.org другое».
  */
 export function buildOpeningHours(settings: SiteSettings): OpeningHoursSpecification[] {
+  const weekdaySpec = parseSiteHoursSpec(settings)
   const full = parseHoursFull(settings["site.hoursFull"])
-  return full.length ? full : buildWeekdayOpeningHours(settings)
+
+  // Полный режим не задан — только короткие часы (или дефолтный фолбэк Пн–Пт).
+  if (!full.length) {
+    return weekdaySpec ? [weekdaySpec] : buildWeekdayOpeningHours(settings)
+  }
+  // Короткие часы не заданы/не распознаны — доверяем полному режиму как есть.
+  if (!weekdaySpec) {
+    return full
+  }
+  // Оба заданы: будни ← site.hours (шапка), доп. дни (сб/вс) ← полный режим.
+  const WEEKDAYS = new Set(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+  const extraDays = full
+    .map((spec) => ({ ...spec, dayOfWeek: spec.dayOfWeek.filter((d) => !WEEKDAYS.has(d)) }))
+    .filter((spec) => spec.dayOfWeek.length > 0)
+  return [weekdaySpec, ...extraDays]
 }
 
 export type TravelAgencyJsonLd = {

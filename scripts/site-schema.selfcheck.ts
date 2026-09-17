@@ -96,13 +96,28 @@ assert.deepEqual(listDays[0].dayOfWeek, ["Monday", "Wednesday", "Friday"])
 assert.equal(parseHoursFull("сб и вс — выходной").length, 0)
 assert.equal(parseHoursFull("").length, 0)
 
-// buildOpeningHours: hoursFull имеет приоритет, иначе фолбэк Пн–Пт из site.hours
+// buildOpeningHours: без site.hours полный режим используется как есть
 const ohFull = buildOpeningHours({ "site.hoursFull": "пн–сб: 10:00–20:00" })
 assert.deepEqual(ohFull[0].dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
+// Только site.hours (нет полного режима) → Пн–Пт из шапки
 const ohFallback = buildOpeningHours({ "site.hours": "9:00–17:00" })
 assert.deepEqual(ohFallback[0].dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
 assert.equal(ohFallback[0].opens, "09:00")
 assert.equal(ohFallback[0].closes, "17:00")
+
+// Расхождение шапки и полного режима: будни ← site.hours (как в шапке),
+// суббота ← полный режим. Будние часы hoursFull НЕ перекрывают site.hours.
+const ohMerged = buildOpeningHours({
+  "site.hours": "10:00–18:00",
+  "site.hoursFull": "пн–пт: 9:00–21:00\nсб: 10:00–15:00",
+})
+assert.equal(ohMerged.length, 2, "будни (одним блоком) + суббота")
+assert.deepEqual(ohMerged[0].dayOfWeek, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+assert.equal(ohMerged[0].opens, "10:00", "будни берутся из site.hours (шапка), не из hoursFull")
+assert.equal(ohMerged[0].closes, "18:00")
+assert.deepEqual(ohMerged[1].dayOfWeek, ["Saturday"])
+assert.equal(ohMerged[1].opens, "10:00")
+assert.equal(ohMerged[1].closes, "15:00")
 
 // TravelAgency отражает субботу, когда задан полный режим
 const orgWithSat = buildTravelAgencyJsonLd({ ...settings, "site.hoursFull": "пн–пт: 10:00–18:00\nсб: 10:00–15:00" })
