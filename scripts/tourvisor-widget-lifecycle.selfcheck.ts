@@ -37,7 +37,13 @@ for (const [label, src] of [
 }
 
 assert.ok(search.includes(TOURVISOR_INIT_SRC) || search.includes("tourvisor.ru/module/init.js"), "SearchForm still loads init.js")
-assert.ok(search.includes('from "next/script"') || search.includes("from 'next/script'"), "SearchForm imports next/script")
+// SearchForm грузит init.js собственным ленивым инжектом (createElement по
+// первому действию пользователя) — не через next/script. Ключевой инвариант:
+// её скрипт НЕ помечен inject-атрибутом, поэтому scoped-remover его не трогает.
+assert.ok(
+  search.includes('createElement("script")') || search.includes("createElement('script')"),
+  "SearchForm injects its own script node",
+)
 assert.ok(!search.includes(TOURVISOR_INJECT_ATTR), "SearchForm script is not marked as inject")
 
 assert.match(avia, /\[countryId,\s*cityId\]/, "avia effect deps include countryId/cityId")
