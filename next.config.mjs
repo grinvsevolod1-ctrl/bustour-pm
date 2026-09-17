@@ -34,14 +34,21 @@ const nextConfig = {
               // 'unsafe-eval' вынужденно включён и в production: tourvisor core.min.js
               // использует eval при загрузке модулей (TV.loadModules). Без него
               // поисковый виджет туров не работает.
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://mc.yandex.ru https://mc.yandex.by https://yastatic.net https://cdn.jsdelivr.net https://tourvisor.ru https://*.tourvisor.ru",
+              // script-src-elem не задан отдельно и наследуется отсюда, поэтому
+              // все внешние <script> перечислены тут: GTM/GA4, Google Ads,
+              // Яндекс.Метрика и Яндекс.Карты (api-maps — иначе карта офиса не
+              // грузится), VK-пиксель, tourvisor.
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://pagead2.googlesyndication.com https://connect.facebook.net https://mc.yandex.ru https://mc.yandex.by https://yastatic.net https://api-maps.yandex.ru https://*.maps.yandex.net https://vk.com https://*.vk.com https://cdn.jsdelivr.net https://tourvisor.ru https://*.tourvisor.ru",
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://tourvisor.ru https://*.tourvisor.ru",
               // Только https: mixed content (http-картинки) запрещён — браузеры
               // и так блокируют его на https-сайте, теперь это явно в политике.
               "img-src 'self' data: blob: https:",
               "font-src 'self' https://fonts.gstatic.com https://tourvisor.ru https://*.tourvisor.ru",
-              "connect-src 'self' https://www.google.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://mc.yandex.ru https://mc.yandex.by https://api.resend.com https://tourvisor.ru https://*.tourvisor.ru",
-              "frame-src 'self' https://www.google.com https://www.youtube.com https://www.youtube-nocookie.com https://mc.yandex.ru https://mc.yandex.by https://yandex.ru https://*.yandex.ru https://yandex.by https://*.yandex.by https://tourvisor.ru https://*.tourvisor.ru",
+              // collect-запросы GA4/Ads уходят на analytics.google.com и
+              // *.doubleclick.net; Метрика открывает wss://mc.yandex.ru;
+              // Яндекс.Карты тянут тайлы/данные с *.maps.yandex.net и yandex.ru.
+              "connect-src 'self' https://www.google.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.googletagmanager.com https://*.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://pagead2.googlesyndication.com https://connect.facebook.net https://www.facebook.com https://mc.yandex.ru https://mc.yandex.by wss://mc.yandex.ru https://api-maps.yandex.ru https://*.maps.yandex.net https://yandex.ru https://*.yandex.ru https://vk.com https://*.vk.com https://api.resend.com https://tourvisor.ru https://*.tourvisor.ru",
+              "frame-src 'self' https://www.google.com https://www.youtube.com https://www.youtube-nocookie.com https://*.doubleclick.net https://mc.yandex.ru https://mc.yandex.by https://yandex.ru https://*.yandex.ru https://yandex.by https://*.yandex.by https://vk.com https://*.vk.com https://tourvisor.ru https://*.tourvisor.ru",
               // 'self' (не 'none'): iframe-предпросмотр в админке — same-origin.
               "frame-ancestors 'self'",
               "form-action 'self'",
