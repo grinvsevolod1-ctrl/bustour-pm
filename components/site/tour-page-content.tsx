@@ -146,7 +146,10 @@ export async function TourPageContent({
     category: "Автобусные туры",
     brandName: settings["site.brand"] || "БасТур",
     price: String(tour.priceAmount || tour.price.replace(/[^\d.]/g, "") || "0"),
-    priceCurrency: tour.price.includes("$") ? "USD" : tour.price.includes("€") ? "EUR" : "BYN",
+    // Валюта разметки = валюта, в которой задано priceAmount (datesCurrency),
+    // а не угаданная по символу из форматированной строки. Иначе число и код
+    // валюты в Schema.org могли расходиться (напр. сумма в USD с кодом BYN).
+    priceCurrency: tour.datesCurrency || "BYN",
     hasAvailability: hasDates,
   })
   const productWithReviews = productSchema
