@@ -80,10 +80,10 @@ export function Hero({ blocks }: { blocks: ContentBlock[] }) {
                   {/* ⚠️ Промо-заголовки слайдов — это НЕ H1 страницы. Единственный <h1>
                       живёт на главной (app/(site)/page.tsx) и стабилен для SEO.
                       Заголовки слайдов — рекламные офферы, они «плавают» при
-                      перестановке в админке, поэтому это h2, а не h1. */}
-                  <h2 className="text-balance text-xl font-semibold text-white drop-shadow md:text-2xl">
+                      перестановке в админке, поэтому это h3, а не h1/h2. */}
+                  <h3 className="text-balance text-xl font-semibold text-white drop-shadow md:text-2xl">
                     {slide.title}
-                  </h2>
+                  </h3>
                   {slide.subtitle ? (
                     <p className="text-pretty text-sm text-white/90 drop-shadow md:text-base">
                       {slide.subtitle}
