@@ -38,6 +38,12 @@ export const pageSettingsGroups: Record<string, {
       {
         heading: "Заголовки секций",
         fields: [
+          {
+            key: "home.h1",
+            label: "H1 страницы (SEO, скрыт визуально)",
+            type: "shortcode-input",
+            hint: "Главный заголовок страницы для поисковиков. Один на страницу, стабильный (не привязан к слайдам). Впишите ключевые запросы: вид туров + город/страна отправления. Пример: «БасТур — автобусные и авиатуры из Минска по Беларуси, Европе и популярным курортам».",
+          },
           { key: "title.search", label: "Поиск туров — заголовок", type: "shortcode-input" },
           {
             key: "description.search",
@@ -548,7 +554,7 @@ export const settingsGroups: SettingsGroup[] = [
         type: "textarea",
         rows: 2,
         placeholder: "info@bastur.by\nmanager@bastur.by",
-        hint: "По одному адресу на строку (или через запятую). Пусто — использовать адрес из переменной окружения LEAD_EMAIL_TO.",
+        hint: "По одному адресу на ст��оку (или через запятую). Пусто — использовать адрес из переменной окружения LEAD_EMAIL_TO.",
       },
       {
         key: "notify.emailFrom",

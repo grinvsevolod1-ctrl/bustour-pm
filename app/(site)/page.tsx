@@ -119,6 +119,14 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildWebSiteJsonLd(settings)) }}
       />
+      {/* Единственный стабильный H1 страницы для SEO. Не зависит от порядка
+          слайдов, содержит ключевые запросы (автобусные туры, авиатуры, Минск,
+          Беларусь). Скрыт визуально (sr-only), чтобы не дублировать дизайн
+          hero-слайдера, но остаётся в DOM для поисковиков и скринридеров.
+          Редактируется из админки (Главная → Заголовки секций → «H1 страницы»). */}
+      <h1 className="sr-only">
+        {settings["home.h1"] || "БасТур — автобусные и авиатуры из Минска по Беларуси, Европе и популярным курортам"}
+      </h1>
       <Hero blocks={heroSlides} />
       {sectionOrder.map(renderSection)}
     </main>

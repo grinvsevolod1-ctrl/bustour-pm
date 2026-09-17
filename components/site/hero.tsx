@@ -77,16 +77,13 @@ export function Hero({ blocks }: { blocks: ContentBlock[] }) {
               <div className="absolute inset-0 bg-black/30" aria-hidden />
               <div className="absolute inset-0 flex items-center justify-center px-4">
                 <div className="w-full max-w-xl space-y-5 rounded bg-black/40 px-6 py-6 text-center backdrop-blur-sm">
-                  {/* ⚠️ Strictly ONE <h1> per page — only on slide #0. All other slides use a same-styled heading role element. */}
-                  {i === 0 ? (
-                    <h1 className="text-balance text-xl font-semibold text-white drop-shadow md:text-2xl">
-                      {slide.title}
-                    </h1>
-                  ) : (
-                    <h2 className="text-balance text-xl font-semibold text-white drop-shadow md:text-2xl">
-                      {slide.title}
-                    </h2>
-                  )}
+                  {/* ⚠️ Промо-заголовки слайдов — это НЕ H1 страницы. Единственный <h1>
+                      живёт на главной (app/(site)/page.tsx) и стабилен для SEO.
+                      Заголовки слайдов — рекламные офферы, они «плавают» при
+                      перестановке в админке, поэтому это h2, а не h1. */}
+                  <h2 className="text-balance text-xl font-semibold text-white drop-shadow md:text-2xl">
+                    {slide.title}
+                  </h2>
                   {slide.subtitle ? (
                     <p className="text-pretty text-sm text-white/90 drop-shadow md:text-base">
                       {slide.subtitle}
