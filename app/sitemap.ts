@@ -15,7 +15,10 @@ import {
 } from "@/lib/sitemap-visibility"
 
 const CANONICAL_BASE_URL = getCanonicalOrigin()
-export const dynamic = "force-dynamic"
+// Sitemap не обязан быть посекундно свежим: кэшируем на час вместо force-dynamic,
+// чтобы каждый заход робота не дёргал 9 параллельных запросов в БД. Новые
+// туры/статьи попадут в карту в течение часа (или сразу — при revalidatePath).
+export const revalidate = 3600
 
 function staticSitemapEntries(): MetadataRoute.Sitemap {
   return [

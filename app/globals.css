@@ -498,8 +498,8 @@ span.flatpickr-weekday {
   display: block;
   margin-top: -0.75em;
   margin-bottom: 1em;
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: 0.8125rem;
+  line-height: 1.45;
   color: var(--color-ink-muted, #6b7280);
 }
 /* Подпись повторяет выравнивание изображения: без этого блочный span
