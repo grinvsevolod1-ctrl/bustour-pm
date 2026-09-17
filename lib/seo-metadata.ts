@@ -56,15 +56,28 @@ export async function metadataFromSettings(
   options?: MetadataFromSettingsOptions,
 ): Promise<Metadata> {
   const rawTitle = resolvePublicCmsText(settings[`${prefix}.metaTitle`], fallbackTitle)
-  const rawDescription = resolvePublicCmsText(
+  // Разные тексты для разных мест:
+  // - <meta name="description"> (сниппет в поиске) — из `metaDescription`,
+  //   с запасным `metaShortDesc`, затем дефолт.
+  // - OG/Twitter description (карточка при шаринге в мессенджерах/соцсетях) —
+  //   из `metaShortDesc`, с запасным `metaDescription`, затем дефолт.
+  // Раньше оба брались из одного значения с приоритетом превью, из-за чего в
+  // поиск попадал короткий превью-текст вместо полного описания.
+  const rawSearchDescription = resolvePublicCmsText(
+    settings[`${prefix}.metaDescription`] || settings[`${prefix}.metaShortDesc`],
+    fallbackDescription,
+    { minLength: 3 },
+  )
+  const rawPreviewDescription = resolvePublicCmsText(
     settings[`${prefix}.metaShortDesc`] || settings[`${prefix}.metaDescription`],
     fallbackDescription,
     { minLength: 3 },
   )
   const keywordsRaw = (settings[`${prefix}.metaKeywords`] || "").trim()
-  const [title, description, keywordsExpanded] = await Promise.all([
+  const [title, description, previewDescription, keywordsExpanded] = await Promise.all([
     expandShortcodes(rawTitle).then(clampMetaTitle),
-    expandShortcodes(rawDescription).then(clampMetaDescription),
+    expandShortcodes(rawSearchDescription).then(clampMetaDescription),
+    expandShortcodes(rawPreviewDescription).then(clampMetaDescription),
     keywordsRaw ? expandShortcodes(keywordsRaw) : Promise.resolve(""),
   ])
   const image = settings[`${prefix}.metaImage`] || options?.dynamicOgImage || FALLBACK_OG_IMAGE
@@ -85,14 +98,14 @@ export async function metadataFromSettings(
     ...(canonical ? { alternates: { canonical } } : {}),
     openGraph: {
       title,
-      description,
+      description: previewDescription,
       ...(canonical ? { url: canonical } : {}),
       ...(canonicalOgImageUrl ? { images: [{ url: canonicalOgImageUrl, alt: imageAlt }] } : {}),
     },
     twitter: {
       card: canonicalOgImageUrl ? "summary_large_image" : "summary",
       title,
-      description,
+      description: previewDescription,
       ...(canonicalOgImageUrl ? { images: [canonicalOgImageUrl] } : {}),
     },
   }

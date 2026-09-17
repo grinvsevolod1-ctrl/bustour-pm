@@ -27,9 +27,15 @@ async function main() {
     { path: "/contacts", imageAlt: "OG контакты" },
   )
   assert.equal(meta.title, "Контакты — БасТур")
-  assert.equal(meta.description, "Превью контактов")
+  // Поиск берёт metaDescription, превью-карточка (OG) — metaShortDesc.
+  assert.equal(meta.description, "Длинное описание контактов")
   assert.deepEqual(meta.alternates, { canonical: absoluteUrl("/contacts") })
-  const og = meta.openGraph as { url?: string; images?: Array<{ url: string; alt?: string }> }
+  const og = meta.openGraph as {
+    url?: string
+    description?: string
+    images?: Array<{ url: string; alt?: string }>
+  }
+  assert.equal(og.description, "Превью контактов")
   assert.equal(og.url, absoluteUrl("/contacts"))
   assert.deepEqual(og.images, [{ url: image, alt: "OG контакты" }])
   assert.equal(meta.twitter?.card, "summary_large_image")

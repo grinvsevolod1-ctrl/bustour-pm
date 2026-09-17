@@ -15,10 +15,16 @@ export async function generateMetadata({
   const { slug } = await params
   const article = await getArticle(slug)
   const rawTitle = article?.metaTitle || (article ? `${article.title} — БасТур` : "Статья — БасТур")
-  const rawDescription = article?.metaShortDesc || article?.metaDescription || article?.excerpt || ""
-  const [title, description] = await Promise.all([
+  // Поиск (<meta name="description">) — из metaDescription; превью-карточка
+  // (OG) — из metaShortDesc. Каждое с взаимным запасным вариантом и excerpt.
+  const rawSearchDescription =
+    article?.metaDescription || article?.metaShortDesc || article?.excerpt || ""
+  const rawPreviewDescription =
+    article?.metaShortDesc || article?.metaDescription || article?.excerpt || ""
+  const [title, description, previewDescription] = await Promise.all([
     expandShortcodes(rawTitle),
-    expandShortcodes(rawDescription),
+    expandShortcodes(rawSearchDescription),
+    expandShortcodes(rawPreviewDescription),
   ])
   const image = article?.metaImage
   const imageAlt = image
@@ -32,7 +38,7 @@ export async function generateMetadata({
       ? {
           openGraph: {
             title: await expandShortcodes(article?.metaTitle || title),
-            description,
+            description: previewDescription,
             images: [{ url: image, alt: imageAlt }],
           },
         }

@@ -58,7 +58,8 @@ async function main() {
     { path: "/reviews" },
   )
   assert.equal(meta.title, `Отзывы ${YEAR} — БасТур`)
-  assert.equal(meta.description, `Превью отзывов ${YEAR}`)
+  // Поиск берёт metaDescription, превью-карточка (OG) — metaShortDesc.
+  assert.equal(meta.description, "Длинное описание отзывов")
   assert.deepEqual(meta.alternates, { canonical: absoluteUrl("/reviews") })
   assert.equal((meta.openGraph as { description?: string }).description, `Превью отзывов ${YEAR}`)
   assert.equal((meta.openGraph as { url?: string }).url, absoluteUrl("/reviews"))

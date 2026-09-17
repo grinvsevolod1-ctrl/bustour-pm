@@ -103,8 +103,9 @@ async function main() {
     { url: "/og.jpg", alt: "Preview" },
   ])
 
-  // #44: preview (metaShortDesc) wins over metaDescription; description only if preview empty
-  const previewWins = await metadataFromSettings(
+  // #44: поиск (<meta name="description">) берёт metaDescription, а превью-карточка
+  // (OG/Twitter) — metaShortDesc. Раньше оба брали превью — это была ошибка.
+  const splitDesc = await metadataFromSettings(
     {
       "tour:7.metaTitle": "Tour title",
       "tour:7.metaDescription": "Long description text",
@@ -114,11 +115,43 @@ async function main() {
     "Fallback",
     "Fallback desc",
   )
-  assert.equal(previewWins.description, "Short preview text")
+  assert.equal(splitDesc.description, "Long description text")
   assert.equal(
-    (previewWins.openGraph as { description?: string } | undefined)?.description,
+    (splitDesc.openGraph as { description?: string } | undefined)?.description,
     "Short preview text",
   )
+  assert.equal(
+    (splitDesc.twitter as { description?: string } | undefined)?.description,
+    "Short preview text",
+  )
+
+  // Превью пустое → в OG-карточку уходит описание для поиска.
+  const previewFallsBackToSearch = await metadataFromSettings(
+    {
+      "tour:8.metaTitle": "Tour 8",
+      "tour:8.metaDescription": "Only search description",
+    },
+    "tour:8",
+    "Fallback",
+    "Fallback desc",
+  )
+  assert.equal(previewFallsBackToSearch.description, "Only search description")
+  assert.equal(
+    (previewFallsBackToSearch.openGraph as { description?: string } | undefined)?.description,
+    "Only search description",
+  )
+
+  // Поиск пустой → в meta description уходит превью.
+  const searchFallsBackToPreview = await metadataFromSettings(
+    {
+      "tour:9.metaTitle": "Tour 9",
+      "tour:9.metaShortDesc": "Only preview text",
+    },
+    "tour:9",
+    "Fallback",
+    "Fallback desc",
+  )
+  assert.equal(searchFallsBackToPreview.description, "Only preview text")
 
   // #62: reviews page uses reviews.* keys + /reviews canonical
   const reviewsMeta = await metadataFromSettings(
@@ -132,7 +165,11 @@ async function main() {
     "Fallback desc",
     { path: "/reviews" },
   )
-  assert.equal(reviewsMeta.description, "Превью отзывов")
+  assert.equal(reviewsMeta.description, "Длинное описание")
+  assert.equal(
+    (reviewsMeta.openGraph as { description?: string } | undefined)?.description,
+    "Превью отзывов",
+  )
   assert.deepEqual(reviewsMeta.alternates, { canonical: absoluteUrl("/reviews") })
 
   const descFallback = await metadataFromSettings(
@@ -151,15 +188,16 @@ async function main() {
   const { fileURLToPath } = await import("node:url")
   const root = join(dirname(fileURLToPath(import.meta.url)), "..")
   const infoPage = readFileSync(join(root, "app/(site)/helpful/[slug]/page.tsx"), "utf8")
+  // Поиск берёт metaDescription первым, превью-карточка — metaShortDesc первым.
   assert.match(
     infoPage,
-    /metaShortDesc\s*\|\|\s*article\?\.metaDescription/,
-    "article generateMetadata must prefer metaShortDesc",
+    /rawSearchDescription\s*=\s*[\s\S]{0,80}metaDescription\s*\|\|\s*article\?\.metaShortDesc/,
+    "article search description must prefer metaDescription",
   )
-  assert.doesNotMatch(
+  assert.match(
     infoPage,
-    /metaDescription\s*\|\|\s*article\?\.metaShortDesc/,
-    "article generateMetadata must not prefer metaDescription first",
+    /rawPreviewDescription\s*=\s*[\s\S]{0,80}metaShortDesc\s*\|\|\s*article\?\.metaDescription/,
+    "article preview description must prefer metaShortDesc",
   )
 
   const paths = sitemapCountryPaths([

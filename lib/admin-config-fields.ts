@@ -32,10 +32,10 @@ export function pageAlertFields(prefix: string): SettingField[] {
 /** Shared copy for CMS + tour/article SEO forms (keep in sync with selfcheck). */
 export const SEO_META_DESCRIPTION_LABEL = "Описание для поиска"
 export const SEO_META_DESCRIPTION_HINT =
-  "Текст под заголовком в Google и других поисковиках. Можно чуть длиннее. Если превью пустое — это же описание уйдёт и в карточку при шаринге."
+  "Текст под заголовком в Google и других поисковиках (meta description). Можно чуть длиннее. Если «превью описание» пустое — этот же текст уйдёт и в карточку при шаринге."
 export const SEO_META_SHORT_DESC_LABEL = "Превью описание"
 export const SEO_META_SHORT_DESC_HINT =
-  "Короткий текст для Telegram, VK, WhatsApp, Facebook. Если заполнено — оно важнее «описания для поиска» в публичном meta/OG."
+  "Короткий текст только для карточки при шаринге в Telegram, VK, WhatsApp, Facebook (OG). На сниппет в поиске не влияет. Пусто — в карточку уйдёт «описание для поиска»."
 
 /** DRY SEO pair: `{prefix}.metaDescription` + `{prefix}.metaShortDesc`. Empty prefix → bare keys. */
 export function seoPreviewDescriptionFields(
