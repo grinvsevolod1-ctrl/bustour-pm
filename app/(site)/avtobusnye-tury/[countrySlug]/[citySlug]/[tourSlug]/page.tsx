@@ -52,7 +52,7 @@ export async function generateMetadata({
   if (tour.image) ogParams.set("img", tour.image)
   const dynamicOgImage = `/api/og?${ogParams.toString()}`
   return metadataFromSettings(settings, `tour:${tour.id}`, title, description, {
-    ...(path ? { path } : {}),
+    path: path ?? undefined,
     dynamicOgImage,
   })
 }
