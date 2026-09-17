@@ -99,7 +99,7 @@ export default async function AviaToursPage() {
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        <AviaSidebar countries={aviaCountries} shortcodesDict={shortcodesDict} />
+        <AviaSidebar countries={aviaCountries} aviaPrefix={aviaPrefix} shortcodesDict={shortcodesDict} />
         <div className="min-w-0 flex-1 space-y-8">
           <div className="space-y-6">
             <Breadcrumb items={[{ label: "Главная", href: "/" }, { label: "Авиатуры" }]} />

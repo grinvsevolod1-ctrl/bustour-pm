@@ -123,6 +123,7 @@ export default async function AviaCityPage({
           countries={aviaCountries}
           activeCountrySlug={countrySlug}
           activeCitySlug={liveCitySlug}
+          aviaPrefix={aviaPrefix}
           shortcodesDict={shortcodesDict}
         />
         <div className="min-w-0 flex-1 space-y-6">

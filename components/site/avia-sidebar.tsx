@@ -3,13 +3,20 @@
 import { useMemo } from "react"
 import type { AviaCountryEntry } from "@/lib/countries"
 import { parseShortcodes } from "@/lib/parse-shortcodes"
+import { DEFAULT_AVIA_SLUG } from "@/lib/avia-slug"
 import { CatalogSidebar, type CatalogSidebarCountry } from "./catalog/catalog-sidebar"
 
 type Props = {
   countries: AviaCountryEntry[]
   activeCountrySlug?: string
   activeCitySlug?: string
-  /** URL prefix for avia routes, defaults to "/aviatory" */
+  /**
+   * Публичный URL-префикс авиараздела, например "/aviatury".
+   * ВАЖНО: дефолт — публичный слаг, а НЕ внутренняя папка "/aviatory".
+   * Внутренний префикс в ссылках вызывает 301 в middleware, а RSC-префетчи
+   * таких ссылок уходят в ERR_TOO_MANY_REDIRECTS. Страницы всегда должны
+   * передавать резолвнутый префикс через resolveAviaSlug(settings["aviatory.slug"]).
+   */
   aviaPrefix?: string
   onCountrySelect?: (countryName: string) => void
   /** Display-only shortcode expansion for labels (keys/onSelect stay raw). */
@@ -20,7 +27,7 @@ export function AviaSidebar({
   countries,
   activeCountrySlug,
   activeCitySlug,
-  aviaPrefix = "/aviatory",
+  aviaPrefix = `/${DEFAULT_AVIA_SLUG}`,
   onCountrySelect,
   shortcodesDict = {},
 }: Props) {
