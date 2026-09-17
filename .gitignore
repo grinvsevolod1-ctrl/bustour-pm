@@ -60,6 +60,9 @@ public/uploads/
 .githooks/
 .git/
 
+# v0 internal memory notes (не должны попадать в репозиторий)
+v0_memories/
+
 # GitHub Actions: v0 GitHub App не имеет права `workflows` и не может пушить
 # файлы в .github/workflows/. Держим workflow в корне как ci-workflow.yml;
 # перенос в .github/workflows/ci.yml делает владелец руками (см. шапку файла).
