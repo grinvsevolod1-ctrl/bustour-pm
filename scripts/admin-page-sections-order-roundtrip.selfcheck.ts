@@ -35,6 +35,24 @@ async function main() {
     "resolveInitialOrder did not return reordered list (isValid baseShortKeys coverage broken?)",
   )
 
+  // Legacy saved order (записан ДО появления секции «callus»): resolveInitialOrder
+  // обязан дозаписать недостающий callus, иначе плашку нельзя двигать на странице
+  // (баг «не работает на курорте»). Порядок существующих секций не меняется.
+  const LEGACY = ["cities", "search", "resorts", "seo", "faq"]
+  await saveSettings({ [ORDER_KEY]: JSON.stringify(LEGACY) })
+  const legacySettings = await getSettings()
+  const legacyResolved = resolveInitialOrder(legacySettings[ORDER_KEY], DEFAULT_ORDER, BASE_SHORT_KEYS)
+  assert.deepEqual(
+    legacyResolved,
+    [...LEGACY, "callus"],
+    "resolveInitialOrder must append callus missing from a legacy saved order",
+  )
+  assert.deepEqual(
+    legacyResolved.slice(0, LEGACY.length),
+    LEGACY,
+    "existing sections order must stay untouched when appending new sections",
+  )
+
   // Now simulate: user drags faq to FIRST position
   const SECOND = ["faq", ...FIRST.filter((k) => k !== "faq")]
   await saveSettings({ [ORDER_KEY]: JSON.stringify(SECOND) })

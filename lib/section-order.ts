@@ -77,5 +77,16 @@ export function resolveInitialOrder(
   const kept = parsed.filter(isValid)
   // Empty saved order → fallback, never return [].
   if (!kept.length) return fallbackMerge()
-  return kept
+  // Секции, добавленные в систему ПОЗЖЕ, чем был сохранён этот порядок (напр.
+  // «callus»), отсутствуют в persisted-массиве. Без дозаписи они молча пропадают
+  // из менеджера на страницах со старым сохранённым порядком (баг «плашку нельзя
+  // двигать на курорте»). Дозаписываем недостающие канонические секции в конец,
+  // сохраняя выбранный пользователем порядок существующих секций.
+  const appended = [
+    ...defaultOrder.filter((key) => isValid(key) && !kept.includes(key)),
+    ...baseShortKeys.filter(
+      (key) => !defaultOrder.includes(key) && !optionalKeys.includes(key) && !kept.includes(key),
+    ),
+  ]
+  return appended.length ? [...kept, ...appended] : kept
 }
