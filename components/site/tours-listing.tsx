@@ -8,83 +8,41 @@ import type { Currency } from "@/lib/types"
 import {
   ALL_PERIODS_LABEL,
   collectPeriodLabels,
-  deserializeDepartureRange,
   nearestDeparture,
-  serializeDepartureRange,
   tourMatchesDepartureRangeSelection,
   tourMatchesPeriod,
-  type DepartureRange,
 } from "@/lib/dates-table"
 import { sanitizeCmsHtml } from "@/lib/sanitize-html"
-import { formatPrice } from "@/lib/format"
 import { scrollToId } from "@/lib/scroll-to-id"
 import { tourUrl } from "@/lib/tour-url"
+import {
+  ALL_DESTINATIONS,
+  ALL_TYPES,
+  DATE_FROM_PARAM,
+  DATE_TO_PARAM,
+  PAGE_SIZE,
+  PRICE_DEBOUNCE_MS,
+  PRICE_FROM_PARAM,
+  PRICE_TO_PARAM,
+  busSortOptions,
+  clamp,
+  departureRangeFromSearch,
+  deserializeDepartureRange,
+  searchPrice,
+  serializeDepartureRange,
+  sortOptions,
+  type DepartureRange,
+  type SlugMaps,
+} from "@/lib/tours-listing-utils"
 import { Dropdown } from "./dropdown"
 import { TourCard } from "./tour-card"
 import { ToursSidebar } from "./tours-sidebar"
 import { AviaSidebar } from "./avia-sidebar"
 import type { AviaCountryEntry } from "@/lib/countries"
 import { TitleUnderline } from "./title-underline"
-import { DateRangePicker, type DateRangePickerValue } from "@/components/ui/date-range-picker"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Slider } from "@/components/ui/slider"
+import { BusDeparturePicker, PriceRangePicker } from "./tours-filter-pickers"
 
 export const TOUR_SEARCH_RESULTS_ID = "tour-search-results"
-
-const sortOptions = [
-  { value: "default", label: "По популярности" },
-  { value: "priceAsc", label: "Сначала дешёвые" },
-  { value: "priceDesc", label: "Сначала дорогие" },
-  { value: "nights", label: "По длительности" },
-]
-
-const busSortOptions = [
-  { value: "nearest", label: "По ближайшей дате" },
-  { value: "popularity", label: "По популярности" },
-  { value: "priceAsc", label: "Сначала дешёвые" },
-  { value: "priceDesc", label: "Сначала дорогие" },
-  { value: "nights", label: "По длительности" },
-]
-
-const ALL_DESTINATIONS = "Все направления"
-const ALL_TYPES = "Все типы туров"
-const DATE_FROM_PARAM = "dateFrom"
-const DATE_TO_PARAM = "dateTo"
-const PRICE_FROM_PARAM = "priceFrom"
-const PRICE_TO_PARAM = "priceTo"
-const PRICE_DEBOUNCE_MS = 400
-
-const PAGE_SIZE = 6
-
-// Format a converted amount with its currency code (client-safe, mirrors lib/currencies).
-function formatMoney(amount: number, code: string): string {
-  const rounded = Math.round(amount * 100) / 100
-  const str = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2)
-  return `${str.replace(/\B(?=(\d{3})+(?!\d))/g, " ")} ${code}`
-}
-
-type SlugMaps = { countrySlugById: Record<number, string>; citySlugById: Record<number, string> }
-
-function isIsoDate(value: string | null): value is string {
-  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00`)))
-}
-
-function departureRangeFromSearch(params: URLSearchParams): DepartureRange {
-  const from = params.get(DATE_FROM_PARAM)
-  const to = params.get(DATE_TO_PARAM)
-  if (!isIsoDate(from) && !isIsoDate(to)) return { kind: "any" }
-  return { kind: "custom", start: isIsoDate(from) ? from : "", end: isIsoDate(to) ? to : "" }
-}
-
-function searchPrice(value: string | null): number | null {
-  if (!value) return null
-  const parsed = Number.parseInt(value, 10)
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, Math.round(value)))
-}
 
 export function ToursListing({
   tours,
@@ -250,7 +208,7 @@ export function ToursListing({
       }),
     )
 
-    // Страница конкретного города — жёстко ограничиваем список этим городом
+    // Страница конкретного города — жёст��о ограничиваем список этим городом
     // (фильтр «Куда» на такой странице скрыт).
     if (restrictToCitySlug) {
       list = list.filter(
@@ -605,132 +563,6 @@ export function ToursListing({
           </Fragment>
         )}
       </div>
-    </div>
-  )
-}
-
-type BusDeparturePickerProps = {
-  value: DepartureRange
-  onChange: (r: DepartureRange) => void
-}
-
-function PriceRangePicker({
-  value,
-  bounds,
-  currencyCode,
-  currencySymbol,
-  onChange,
-}: {
-  value: [number, number]
-  bounds: { min: number; max: number }
-  currencyCode: string
-  currencySymbol: string
-  onChange: (value: [number, number]) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const isAny = value[0] <= bounds.min && value[1] >= bounds.max
-  const label = isAny ? "Любая цена" : `${formatPrice(value[0])} - ${formatPrice(value[1])} ${currencyCode} / чел.`
-
-  useEffect(() => {
-    if (!open) return
-    const onPointerDown = (event: PointerEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false)
-    }
-    document.addEventListener("pointerdown", onPointerDown)
-    return () => document.removeEventListener("pointerdown", onPointerDown)
-  }, [open])
-
-  function setFrom(raw: string) {
-    const next = clamp(Number.parseInt(raw || "0", 10), bounds.min, value[1])
-    onChange([next, value[1]])
-  }
-
-  function setTo(raw: string) {
-    const next = clamp(Number.parseInt(raw || "0", 10), value[0], bounds.max)
-    onChange([value[0], next])
-  }
-
-  return (
-    <Popover>
-      <div ref={ref} className="flex flex-col gap-1">
-        <PopoverTrigger>
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            aria-label="Стоимость"
-            aria-expanded={open}
-            className="flex h-[52px] w-full items-center justify-between rounded bg-white px-4 text-left text-base text-ink"
-          >
-            <span className={isAny ? "text-ink-muted" : "text-ink"}>{label}</span>
-            <ChevronDown className={`h-5 w-5 shrink-0 text-ink-muted transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
-          </button>
-        </PopoverTrigger>
-
-        {open ? (
-          <PopoverContent className="md:w-[360px]">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold text-ink">Диапазон стоимости</span>
-                <span className="rounded bg-cream px-2 py-1 text-xs font-bold text-ink">{currencySymbol}</span>
-              </div>
-
-              <Slider
-                value={value}
-                min={bounds.min}
-                max={bounds.max}
-                step={1}
-                minStepsBetweenThumbs={1}
-                onValueChange={(next) => onChange([next[0] ?? bounds.min, next[1] ?? bounds.max])}
-              />
-
-              <div className="flex items-end gap-2">
-                <label className="min-w-0 flex-1 text-xs font-medium text-ink-muted">
-                  От
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={value[0]}
-                    min={bounds.min}
-                    max={value[1]}
-                    onChange={(e) => setFrom(e.target.value)}
-                    className="mt-1 h-11 w-full rounded border border-line px-3 text-base text-ink outline-none focus:border-brand"
-                  />
-                </label>
-                <label className="min-w-0 flex-1 text-xs font-medium text-ink-muted">
-                  До
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={value[1]}
-                    min={value[0]}
-                    max={bounds.max}
-                    onChange={(e) => setTo(e.target.value)}
-                    className="mt-1 h-11 w-full rounded border border-line px-3 text-base text-ink outline-none focus:border-brand"
-                  />
-                </label>
-              </div>
-
-            </div>
-          </PopoverContent>
-        ) : null}
-      </div>
-    </Popover>
-  )
-}
-
-function BusDeparturePicker({ value, onChange }: BusDeparturePickerProps) {
-  const start = value.kind === "custom" ? value.start : ""
-  const end = value.kind === "custom" ? value.end : ""
-
-  function pick(next: DateRangePickerValue) {
-    onChange(next.start ? { kind: "custom", start: next.start, end: next.end } : { kind: "any" })
-  }
-
-  return (
-    <div className="flex min-w-[260px] flex-1 flex-col gap-2">
-      <span className="text-base text-white">Период выезда</span>
-      <DateRangePicker value={{ start, end }} onChange={pick} />
     </div>
   )
 }

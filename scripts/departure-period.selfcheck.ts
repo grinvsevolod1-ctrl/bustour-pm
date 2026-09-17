@@ -56,9 +56,13 @@ assert.equal(tourMatchesDepartureRangeSelection(table, { kind: "custom", start: 
 assert.equal(tourMatchesDepartureRangeSelection(table, { kind: "custom", start: "2026-09-01", end: "" }, today), true)
 
 const listing = readFileSync("components/site/tours-listing.tsx", "utf8")
-assert.match(listing, /DateRangePicker/, "bus filter must use shared DateRangePicker")
-assert.match(listing, /dateFrom/, "dateFrom must be synced to URL")
-assert.match(listing, /dateTo/, "dateTo must be synced to URL")
+// Пикеры фильтра (DateRangePicker + price popover) вынесены в отдельный модуль,
+// константы URL-параметров — в utils каталога.
+const pickers = readFileSync("components/site/tours-filter-pickers.tsx", "utf8")
+const listingUtils = readFileSync("lib/tours-listing-utils.ts", "utf8")
+assert.match(pickers, /DateRangePicker/, "bus filter must use shared DateRangePicker")
+assert.match(listingUtils, /dateFrom/, "dateFrom must be synced to URL")
+assert.match(listingUtils, /dateTo/, "dateTo must be synced to URL")
 assert.doesNotMatch(listing, /По декадам|По половинам|decadeLabel|halfLabel/, "old decade/half picker UI must stay removed")
 
 const picker = readFileSync("components/ui/date-range-picker.tsx", "utf8")
@@ -76,7 +80,7 @@ assert.match(picker, /monthSelectorType: "dropdown"/, "month dropdown must stay 
 assert.doesNotMatch(picker, /react-day-picker|DayPicker|PopoverContent|numberOfMonths/, "period picker must not use the old custom DayPicker popover")
 
 assert.doesNotMatch(listing, /\* Цена указана за 1 человека/, "price filter must not show the outside person-price note")
-assert.match(listing, /document\.addEventListener\("pointerdown", onPointerDown\)/, "price dropdown must close on outside pointerdown")
+assert.match(pickers, /document\.addEventListener\("pointerdown", onPointerDown\)/, "price dropdown must close on outside pointerdown")
 
 const css = readFileSync("app/globals.css", "utf8")
 assert.match(css, /flatpickr\/dist\/flatpickr\.css/, "Flatpickr base CSS must be imported")
