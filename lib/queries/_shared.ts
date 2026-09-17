@@ -117,7 +117,8 @@ export function mapTour(
   // реально бронируемую цену и не расходится с таблицей внизу страницы.
   // Ручное поле «Цена» (row.priceAmount) в блоке «Дополнительно» — запасной
   // вариант: используется, только когда таблица дат не заполнена ценами.
-  // Corner-cut: tours-listing price conversion assumes datesTable.currency matches the base currency.
+  // priceAmount задаётся в валюте datesCurrency (см. ниже). Каталог (tours-listing)
+  // приводит её к базовой валюте по курсу datesCurrency перед фильтрацией/сортировкой.
   const derivedPriceAmount = fillFromDates ? minTablePrice(datesTable) : 0
   const priceAmount = derivedPriceAmount > 0 ? derivedPriceAmount : row.priceAmount
   // Цена форматируется при чтении из priceAmount + datesCurrency — хранимая

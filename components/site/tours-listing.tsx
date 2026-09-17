@@ -160,7 +160,19 @@ export function ToursListing({
   const currencyList = currencies.length ? currencies : [{ id: 0, code: "BYN", label: "BYN", symbol: "Br", rate: 1, isBase: true, sortOrder: 0 }]
   const baseCurrency = currencyList.find((c) => c.isBase) ?? currencyList[0]
   const currencyCodes = currencyList.map((c) => c.code)
-  const maxBasePrice = Math.max(0, ...tours.map((t) => t.priceAmount || 0))
+  // Курс валюты, в которой задана цена тура (datesCurrency). Цена тура хранится
+  // в СВОЕЙ валюте (напр. одна в USD, другая в BYN), поэтому перед любым
+  // сравнением/сортировкой её нужно привести к базовой валюте:
+  // amountInBase = priceAmount / rate(datesCurrency). Без этого фильтр сравнивал
+  // бы «300 USD» и «300 BYN» как одинаковые 300 — это была ошибка конвертации.
+  const rateOfCode = (code: string | undefined): number => {
+    const trimmed = (code || "").trim().toUpperCase()
+    if (!trimmed) return 1
+    return currencyList.find((c) => c.code.toUpperCase() === trimmed)?.rate || 1
+  }
+  const tourBaseAmount = (t: { priceAmount?: number; datesCurrency?: string }): number =>
+    Math.max(0, t.priceAmount || 0) / rateOfCode(t.datesCurrency)
+  const maxBasePrice = Math.max(0, ...tours.map((t) => tourBaseAmount(t)))
 
   const [destination, setDestination] = useState(initialCountries[0] ?? ALL_DESTINATIONS)
   const [type, setType] = useState(ALL_TYPES)
@@ -233,13 +245,16 @@ export function ToursListing({
 
     if (priceRange[0] > priceBounds.min || priceRange[1] < priceBounds.max) {
       list = list.filter((t) => {
-        const v = Math.round((t.priceAmount || 0) * activeCurrency.rate)
+        // Цена тура приводится к базовой валюте по её datesCurrency, затем к активной.
+        const v = Math.round(tourBaseAmount(t) * activeCurrency.rate)
         return v >= priceRange[0] && v <= priceRange[1]
       })
     }
 
-    if (sort === "priceAsc") list = [...list].sort((a, b) => a.priceAmount - b.priceAmount)
-    else if (sort === "priceDesc") list = [...list].sort((a, b) => b.priceAmount - a.priceAmount)
+    // Сортировка по цене — тоже по приведённой к базе сумме, иначе туры в разных
+    // валютах сортировались бы по «сырым» числам (300 USD рядом с 300 BYN).
+    if (sort === "priceAsc") list = [...list].sort((a, b) => tourBaseAmount(a) - tourBaseAmount(b))
+    else if (sort === "priceDesc") list = [...list].sort((a, b) => tourBaseAmount(b) - tourBaseAmount(a))
     else if (sort === "nights") list = [...list].sort((a, b) => b.nights - a.nights)
     else if (sort === "popularity") list = [...list].sort((a, b) => a.sortOrder - b.sortOrder)
     else if (sort === "default" && !aviaMode) {
