@@ -1,0 +1,8 @@
+{
+  "Коды городов и стран.xls": {
+    "error": "xlsx read failed for Коды городов и стран.xls"
+  },
+  "Коды стран и курортов.xls": {
+    "error": "xlsx read failed for Коды стран и курортов.xls"
+  }
+}

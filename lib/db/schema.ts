@@ -293,7 +293,7 @@ export const admins = pgTable("admins", {
 })
 
 // Rate-limit логина, переживающий рестарты pm2: автодеплой перезапускает
-// процесс на каждый пуш в main, и in-memory счётчики брутфорса обнулялись.
+// процесс на каждый пуш в main, и in-memory счётчики брутф��рса обнулялись.
 export const rateLimits = pgTable("rate_limits", {
   key: text("key").primaryKey(), // "<bucket>:<ip|username>"
   count: integer("count").notNull().default(0),
@@ -340,6 +340,8 @@ export const cityDestinations = pgTable(
     category: text("category").notNull().default("bus"),
     country: text("country").notNull(),
     countryId: integer("countryId").notNull().references(() => countries.id),
+    // Числовой код курорта в справочнике Tourvisor (для виджетов tv-resort и deep-link поиска). Пусто — не связан.
+    tourvisorResortCode: integer("tourvisorResortCode"),
     intro: text("intro").notNull().default(""),
     sections: text("sections").notNull().default("[]"),
     seoHtml: text("seoHtml").notNull().default(""),
@@ -363,6 +365,8 @@ export const countries = pgTable(
     slug: text("slug").notNull(),
     name: text("name").notNull(),
     category: text("category").notNull().default("bus"),
+    // Числовой код страны в справочнике Tourvisor (для виджетов tv-countries и deep-link поиска). Пусто — не связан.
+    tourvisorCode: integer("tourvisorCode"),
     intro: text("intro").notNull().default(""),
     seoHtml: text("seoHtml").notNull().default(""),
     sortOrder: integer("sortOrder").notNull().default(0),
