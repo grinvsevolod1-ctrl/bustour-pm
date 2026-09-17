@@ -51,6 +51,16 @@ export function sanitizePhoneTyping(value: string): string {
  * UX: free typing on change; call this on blur.
  * @see https://github.com/catamphetamine/libphonenumber-js
  */
+/**
+ * True when an already-formatted string is a supported number:
+ * BY (`+375`, 12 digits) или RU (`+7`, 11 digits). Единый предикат для
+ * форматтера и валидатора, чтобы они не расходились.
+ */
+function isSupportedFormattedPhone(formatted: string): boolean {
+  const digits = formatted.replace(/\D/g, "")
+  return (formatted.startsWith("+375") && digits.length === 12) || (formatted.startsWith("+7") && digits.length === 11)
+}
+
 export function formatPhoneIfComplete(value: string): string {
   const trimmed = value.trim()
   if (!trimmed) return ""
@@ -62,15 +72,20 @@ export function formatPhoneIfComplete(value: string): string {
   const meta = metadata as PhoneMeta
   for (const country of ["BY", "RU"] as const) {
     const parsed = parsePhoneNumberFromString(normalized, country, meta)
-    if (parsed?.isValid() && (parsed.country === "BY" || parsed.country === "RU")) return parsed.formatInternational()
+    if (parsed?.isValid() && (parsed.country === "BY" || parsed.country === "RU")) {
+      const formatted = parsed.formatInternational()
+      // libphonenumber иногда «валидирует» пограничный ввод и форматирует
+      // его в несуществующий номер (напр. "8044555555" → "+375 804 455 5555").
+      // Показываем результат только если это реально поддерживаемый BY/RU номер,
+      // иначе оставляем как ввёл пользователь — без мусорной трансформации.
+      if (isSupportedFormattedPhone(formatted)) return formatted
+    }
   }
   return trimmed
 }
 
 export function isSupportedPhone(value: string): boolean {
-  const formatted = formatPhoneIfComplete(value)
-  const digits = formatted.replace(/\D/g, "")
-  return (formatted.startsWith("+375") && digits.length === 12) || (formatted.startsWith("+7") && digits.length === 11)
+  return isSupportedFormattedPhone(formatPhoneIfComplete(value))
 }
 
 /** @deprecated Prefer sanitizePhoneTyping — alias for older call sites. */
