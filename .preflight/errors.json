@@ -1,17 +1,17 @@
 {
-  "startedAt": "2026-09-17T08:01:18.999Z",
-  "finishedAt": "2026-09-17T08:01:38.876Z",
+  "startedAt": "2026-09-17T08:18:00.723Z",
+  "finishedAt": "2026-09-17T08:18:06.891Z",
   "errors": [],
   "warnings": [
     {
       "stage": "selfcheck",
       "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/perf-hero-hydration-office-map.selfcheck.ts",
+      "file": "/vercel/share/v0-project/scripts/bus-layout.selfcheck.ts",
       "line": null,
       "column": null,
       "code": "SELFCHECK_FAIL",
-      "message": " | [SmartTest] Selfcheck failed: scripts/perf-hero-hydration-office-map.selfcheck.ts (exit 1) | ",
-      "raw": "    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:326:3)\n    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:231:7)\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/perf-hero-hydration-office-map.selfcheck.ts (exit 1)\n"
+      "message": " | [SmartTest] Selfcheck failed: scripts/bus-layout.selfcheck.ts (exit 1) | ",
+      "raw": "    'documents',\n    'seo',\n    'faq',\n    'resorts',\n    'callus'\n  ],\n  expected: [ 'specs', 'seating', 'documents', 'seo', 'faq' ],\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/bus-layout.selfcheck.ts (exit 1)\n"
     }
   ],
   "totals": {
