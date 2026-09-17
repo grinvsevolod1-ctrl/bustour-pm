@@ -13,14 +13,7 @@ import {
 } from "@/lib/admin-audit"
 import { runAuditPurgeAction, saveAuditRetentionAction } from "@/app/admin/audit-actions"
 import { PageHeader, FormSection, TableWrap, Thead, Tbody, Tr, Th, Td, EmptyState } from "@/components/admin/ui"
-
-function fmt(ts: number) {
-  try {
-    return new Date(ts).toLocaleString("ru-RU")
-  } catch {
-    return String(ts)
-  }
-}
+import { formatDateTimeSafe as fmt } from "@/lib/format"
 
 function prettyJson(raw: string) {
   if (!raw) return "—"

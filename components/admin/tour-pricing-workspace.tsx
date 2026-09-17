@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowUpDown, CalendarDays, ExternalLink, Search } from "
 import { useMemo, useState } from "react"
 import type { Tour } from "@/lib/types"
 import { finalPrice, formatDateRange, upcomingRows, isDateRangeOrdered } from "@/lib/dates-table"
+import { formatMoney } from "@/lib/format"
 import { Card, CardBody, CardHeader, CardTitle, EmptyState, Input, PageHeader, Select, TableWrap, Tbody, Td, Th, Thead, Tr } from "@/components/admin/ui"
 import { TourPricingImportExport } from "@/components/admin/tour-pricing-import-export"
 import { TourProgramImportExport } from "@/components/admin/tour-program-import-export"
@@ -20,10 +21,6 @@ type GridRow = {
 
 function isoStart(row?: Tour["datesTable"]["rows"][number]) {
   return row?.startDate && /^\d{4}-\d{2}-\d{2}$/.test(row.startDate) ? row.startDate : ""
-}
-
-function formatMoney(value: number, currency: string) {
-  return `${Math.round(value).toLocaleString("ru-RU")} ${currency}`
 }
 
 function dateFromToday(value: string) {

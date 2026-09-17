@@ -1,4 +1,5 @@
 import { getLeads } from "@/lib/queries"
+import { formatDateTime } from "@/lib/format"
 import { updateLeadStatusAction, deleteLeadAction } from "@/app/admin/actions"
 import { Archive } from "lucide-react"
 import { ConfirmActionForm } from "@/components/admin/confirm-action-form"
@@ -30,16 +31,6 @@ const statuses = [
   { value: "done", label: "Завершена" },
 ]
 
-function formatDate(ts: number) {
-  return new Date(ts).toLocaleString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
 export default async function AdminLeadsPage() {
   const leads = await getLeads()
   const newCount = leads.filter((l) => l.status === "new").length
@@ -69,7 +60,7 @@ export default async function AdminLeadsPage() {
           <Tbody>
             {leads.map((lead) => (
               <Tr key={lead.id} className="align-top">
-                <Td className="whitespace-nowrap text-admin-fg-muted">{formatDate(lead.createdAt)}</Td>
+                <Td className="whitespace-nowrap text-admin-fg-muted">{formatDateTime(lead.createdAt)}</Td>
                 <Td className="font-medium">{lead.name}</Td>
                 <Td className="whitespace-nowrap">
                   <a href={`tel:${lead.phone.replace(/\D/g, "")}`} className="text-admin-fg hover:underline">

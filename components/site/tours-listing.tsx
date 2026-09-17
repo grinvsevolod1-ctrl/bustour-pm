@@ -16,6 +16,7 @@ import {
   type DepartureRange,
 } from "@/lib/dates-table"
 import { sanitizeCmsHtml } from "@/lib/sanitize-html"
+import { formatPrice } from "@/lib/format"
 import { scrollToId } from "@/lib/scroll-to-id"
 import { tourUrl } from "@/lib/tour-url"
 import { Dropdown } from "./dropdown"
@@ -611,10 +612,6 @@ export function ToursListing({
 type BusDeparturePickerProps = {
   value: DepartureRange
   onChange: (r: DepartureRange) => void
-}
-
-function formatPrice(value: number): string {
-  return Math.round(value).toLocaleString("ru-RU")
 }
 
 function PriceRangePicker({
