@@ -119,7 +119,21 @@ export async function TourPageContent({
       : null,
   }
 
-  const sections = layout.filter((s) => s.visible && sectionNodes[s.key])
+  // «Есть вопросы?» (callus) добавлена в набор секций позже, поэтому у туров,
+  // сохранённых раньше, её нет в layout — и конверсионная плашка молча пропадала
+  // со страницы. Если секция включена глобально, но в layout отсутствует ВОВСЕ,
+  // дорисовываем её в дефолтной позиции (сразу после «Даты и цены»). Явно
+  // скрытую (visible:false) секцию не воскрешаем — уважаем настройку из админки.
+  const layoutWithCallus = (() => {
+    if (layout.some((s) => s.key === "callus")) return layout
+    if (!(isOn(settings, "section.callus") && isOn(settings, "page.tour.callus"))) return layout
+    const datesIdx = layout.findIndex((s) => s.key === "dates")
+    const next = [...layout]
+    next.splice(datesIdx >= 0 ? datesIdx + 1 : 0, 0, { key: "callus", label: "Есть вопросы?", visible: true })
+    return next
+  })()
+
+  const sections = layoutWithCallus.filter((s) => s.visible && sectionNodes[s.key])
   const navItems = sections
     // Кнопка «Полезные документы» не должна попадать в блок быстрого доступа
     // (сама секция документов ниже остаётся). Требование #12.

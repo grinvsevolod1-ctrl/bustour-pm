@@ -84,7 +84,11 @@ export function ProgramTimeline({
   const lastIdx = items.length - 1
 
   return (
-    <div className="rounded-3xl bg-white">
+    // overflow-x-clip — страховка: раскрытая жёлтая плашка с -ml-16 и любой
+    // широкий контент внутри дня (длинные слова, таблицы) не должны пробивать
+    // карточку и раздувать страницу в горизонтальный скролл — иначе на телефоне
+    // «уезжает» вся портянка и визуально смещается H1 (#mobile-program).
+    <div className="overflow-x-clip rounded-3xl bg-white">
       {items.map((p, i) => {
         const isOpen = open === i
         const isLast = i === lastIdx
@@ -135,7 +139,10 @@ export function ProgramTimeline({
             </div>
 
             {/* Right: header + body */}
-            <div className="flex flex-1 flex-col justify-center pb-2">
+            {/* min-w-0 обязателен: без него flex-элемент не сжимается ниже
+                интринсик-ширины контента (длинные слова/таблицы в программе дня)
+                и раздувает строку шире карточки → горизонтальный скролл (#mobile-program). */}
+            <div className="flex min-w-0 flex-1 flex-col justify-center pb-2">
               <div className="flex items-center justify-between gap-4">
                 <h3 className="text-lg font-semibold leading-snug text-ink">{label.fullTitle}</h3>
                 {isOpen ? (

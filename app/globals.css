@@ -1292,29 +1292,31 @@ span.flatpickr-weekday {
   text-overflow: ellipsis;
 }
 
-/* Tourvisor search widget — адаптив под узкие экраны.
+/* Tourvisor search widget — адаптив ТОЛЬКО под узкие экраны.
    Виджет приходит со стороннего сервера формой фиксированной ширины
    (TVWideForm) с жёстким min-width: 670px на внутренних контейнерах — именно
    min-width пробивал родителя и растягивал body в горизонтальный скролл на
-   мобильных. Разметку виджета менять нельзя, поэтому снимаем min-width и
-   зажимаем контейнеры по ширине родителя — виджет сам переносит поля в
-   вертикальную раскладку. overflow на хосте НЕ ставим, чтобы не обрезать
-   выпадающие календарь/списки (tourvisor рендерит их своими попапами). */
-.tv-search-form,
-.tv-search-form .TVWideForm,
-.tv-search-form .TVInterfaceWrapper,
-.tv-search-form .TVMainForm,
-.tv-search-form [class*="TVWide"],
-.tv-search-form [class*="TVMain"],
-.tv-search-form [class*="TVInterface"] {
-  min-width: 0 !important;
-  max-width: 100% !important;
-  width: 100% !important;
-  box-sizing: border-box;
-}
-.tv-search-form .TVSearchingFormFlexBlock {
-  flex-wrap: wrap !important;
-  max-width: 100% !important;
+   мобильных. Снимаем min-width и ограничиваем контейнеры по ширине родителя,
+   но НЕ форсируем width:100% на внутренних блоках — из-за этого поля виджета
+   складывались в кривую вертикальную «кашу». Виджет сам переносит поля.
+   Правила зажаты в mobile-медиазапрос, чтобы не ломать десктопную раскладку.
+   overflow на хосте НЕ ставим, чтобы не обрезать выпадающие календарь/списки. */
+@media (max-width: 767px) {
+  .tv-search-form,
+  .tv-search-form .TVWideForm,
+  .tv-search-form .TVInterfaceWrapper,
+  .tv-search-form .TVMainForm,
+  .tv-search-form [class*="TVWide"],
+  .tv-search-form [class*="TVMain"],
+  .tv-search-form [class*="TVInterface"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  .tv-search-form .TVSearchingFormFlexBlock {
+    flex-wrap: wrap !important;
+    max-width: 100% !important;
+  }
 }
 
 /* consentium — brand theme */

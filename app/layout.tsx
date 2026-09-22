@@ -40,6 +40,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" className={`${nunito.variable} light bg-background`} suppressHydrationWarning>
+      <head>
+        {/* Tourvisor-виджет грузится лениво (по первому взаимодействию), но когда
+            он всё же подключается — это сторонний домен, и на установку
+            соединения (DNS + TLS) уходит время. Заранее «прогреваем» соединение
+            resource-hints'ами, чтобы к моменту инъекции init.js рукопожатие уже
+            было готово и виджет появлялся быстрее. Сам скрипт при этом НЕ
+            предзагружаем — иначе потеряем выигрыш от ленивой загрузки в TBT. */}
+        <link rel="preconnect" href="https://tourvisor.ru" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://tourvisor.ru" />
+      </head>
       <body className="font-sans antialiased text-ink" suppressHydrationWarning>
         <SiteConsent>
           {children}
