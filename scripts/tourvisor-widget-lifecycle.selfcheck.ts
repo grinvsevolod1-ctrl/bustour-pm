@@ -46,7 +46,7 @@ assert.ok(
 )
 assert.ok(!search.includes(TOURVISOR_INJECT_ATTR), "SearchForm script is not marked as inject")
 
-assert.match(avia, /\[countryId,\s*cityId\]/, "avia effect deps include countryId/cityId")
+assert.match(avia, /countryId,\s*cityId\]/, "avia effect deps include countryId/cityId")
 assert.ok(avia.includes("key={`${countryId ?? \"\"}-${cityId ?? \"\"}`}") || /key=\{`\$\{countryId/.test(avia), "avia host remounts via key")
 
 // Minimal DOM mock: remover must keep unmarked scripts (SearchForm-like)

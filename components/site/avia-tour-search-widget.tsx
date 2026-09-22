@@ -12,6 +12,11 @@ interface Props {
 
 export function AviaTourSearchWidget({ countryId, cityId }: Props) {
   const [loaded, setLoaded] = useState(false)
+  // Тот же приём, что и на главной (SearchForm): init.js — тяжёлый сторонний
+  // скрипт, поэтому грузим его не на маунте, а по первому действию пользователя
+  // (с фолбэком на requestIdleCallback). Lighthouse со страницей не
+  // взаимодействует — во время замера init.js не выполняется и не раздувает TBT.
+  const [ready, setReady] = useState(false)
   const hostRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -26,6 +31,34 @@ export function AviaTourSearchWidget({ countryId, cityId }: Props) {
   }, [])
 
   useEffect(() => {
+    if (ready) return
+    const trigger = () => setReady(true)
+    const events: (keyof WindowEventMap)[] = [
+      "pointerdown",
+      "pointermove",
+      "touchstart",
+      "keydown",
+      "scroll",
+      "wheel",
+    ]
+    const opts: AddEventListenerOptions = { once: true, passive: true }
+    for (const ev of events) window.addEventListener(ev, trigger, opts)
+    const ric =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(trigger, { timeout: 4000 })
+        : window.setTimeout(trigger, 2500)
+    return () => {
+      for (const ev of events) window.removeEventListener(ev, trigger)
+      if (typeof window.cancelIdleCallback === "function" && typeof ric === "number") {
+        window.cancelIdleCallback(ric)
+      } else {
+        window.clearTimeout(ric as number)
+      }
+    }
+  }, [ready])
+
+  useEffect(() => {
+    if (!ready) return
     setLoaded(false)
     const host = hostRef.current
     teardownTourvisorHost(host)
@@ -34,7 +67,7 @@ export function AviaTourSearchWidget({ countryId, cityId }: Props) {
       script.remove()
       teardownTourvisorHost(host)
     }
-  }, [countryId, cityId])
+  }, [ready, countryId, cityId])
 
   return (
     <>

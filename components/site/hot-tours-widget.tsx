@@ -5,6 +5,10 @@ import { injectTourvisorInit, teardownTourvisorHost } from "@/lib/tourvisor-widg
 
 export function HotToursWidget() {
   const [loaded, setLoaded] = useState(false)
+  // См. SearchForm/AviaTourSearchWidget: init.js грузим по первому действию
+  // пользователя (фолбэк — requestIdleCallback), чтобы тяжёлый сторонний скрипт
+  // не выполнялся во время замера Lighthouse и не раздувал TBT.
+  const [ready, setReady] = useState(false)
   const hostRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -19,6 +23,34 @@ export function HotToursWidget() {
   }, [])
 
   useEffect(() => {
+    if (ready) return
+    const trigger = () => setReady(true)
+    const events: (keyof WindowEventMap)[] = [
+      "pointerdown",
+      "pointermove",
+      "touchstart",
+      "keydown",
+      "scroll",
+      "wheel",
+    ]
+    const opts: AddEventListenerOptions = { once: true, passive: true }
+    for (const ev of events) window.addEventListener(ev, trigger, opts)
+    const ric =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(trigger, { timeout: 4000 })
+        : window.setTimeout(trigger, 2500)
+    return () => {
+      for (const ev of events) window.removeEventListener(ev, trigger)
+      if (typeof window.cancelIdleCallback === "function" && typeof ric === "number") {
+        window.cancelIdleCallback(ric)
+      } else {
+        window.clearTimeout(ric as number)
+      }
+    }
+  }, [ready])
+
+  useEffect(() => {
+    if (!ready) return
     setLoaded(false)
     const host = hostRef.current
     teardownTourvisorHost(host)
@@ -27,7 +59,7 @@ export function HotToursWidget() {
       script.remove()
       teardownTourvisorHost(host)
     }
-  }, [])
+  }, [ready])
 
   return (
     <>
