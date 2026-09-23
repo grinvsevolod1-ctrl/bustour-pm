@@ -1,21 +1,10 @@
 {
-  "startedAt": "2026-09-23T08:05:11.832Z",
-  "finishedAt": "2026-09-23T08:05:24.550Z",
+  "startedAt": "2026-09-23T09:54:54.460Z",
+  "finishedAt": "2026-09-23T09:55:41.291Z",
   "errors": [],
-  "warnings": [
-    {
-      "stage": "selfcheck",
-      "severity": "warning",
-      "file": "/vercel/share/v0-project/scripts/faq-schema.selfcheck.ts",
-      "line": null,
-      "column": null,
-      "code": "SELFCHECK_FAIL",
-      "message": " | [SmartTest] Selfcheck failed: scripts/faq-schema.selfcheck.ts (exit 1) | ",
-      "raw": "    '          </li>\\n' +\n    '        ))}\\n' +\n    '      </ol>\\n' +\n    '    </nav>\\n' +\n    '  )\\n' +\n    '}\\n',\n  expected: /getSiteOrigin/,\n  operator: 'match',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n\n[SmartTest] Selfcheck failed: scripts/faq-schema.selfcheck.ts (exit 1)\n"
-    }
-  ],
+  "warnings": [],
   "totals": {
     "errors": 0,
-    "warnings": 1
+    "warnings": 0
   }
 }
