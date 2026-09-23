@@ -168,34 +168,57 @@ function parseSiteHoursSpec(settings: SiteSettings): OpeningHoursSpecification |
   }
 }
 
+const SCHEMA_WEEKDAYS = new Set(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
+
+/**
+ * Оставить только НЕбудние дни (сб/вс), ещё не занятые более приоритетными
+ * спеками. Нужно, чтобы доп. дни из разных CMS-полей не дублировали друг друга
+ * и не перетирали будни из `site.hours`.
+ */
+function extraDaysOnly(
+  specs: OpeningHoursSpecification[],
+  claimedBy: OpeningHoursSpecification[],
+): OpeningHoursSpecification[] {
+  const claimed = new Set(claimedBy.flatMap((spec) => spec.dayOfWeek))
+  return specs
+    .map((spec) => ({
+      ...spec,
+      dayOfWeek: spec.dayOfWeek.filter((d) => !SCHEMA_WEEKDAYS.has(d) && !claimed.has(d)),
+    }))
+    .filter((spec) => spec.dayOfWeek.length > 0)
+}
+
 /**
  * Итоговые часы работы для schema.org.
  *
  * Авторитетный источник для будних дней — `site.hours` (поле «Часы работы»),
  * то же значение, что показывается в шапке сайта: именно его правит админ,
- * поэтому схема обязана совпадать с шапкой. `site.hoursFull` («Полный режим
- * работы») используется лишь чтобы ДОБАВИТЬ нестандартные дни (сб/вс), которых
- * короткое поле выразить не может — его будние строки НЕ перекрывают `site.hours`.
- * Так исключается расхождение «в шапке одно, в schema.org другое».
+ * поэтому схема обязана совпадать с шапкой. Нестандартные дни (сб/вс) короткое
+ * поле выразить не может, поэтому они ДОБАВЛЯЮТСЯ из `site.hoursFull` («Полный
+ * режим работы») и из `site.hoursNote` («Примечание к часам») — где бы владелец
+ * ни записал «сб.: 11:00–16:00», суббота попадёт в schema.org. Приоритет доп.
+ * дней: полный режим → примечание; будние строки этих полей НЕ перекрывают
+ * `site.hours`, так что расхождение «в шапке одно, в schema.org другое» исключено.
+ * Строки без времени («сб. и вс. — выходной») в примечании игнорируются парсером.
  */
 export function buildOpeningHours(settings: SiteSettings): OpeningHoursSpecification[] {
   const weekdaySpec = parseSiteHoursSpec(settings)
   const full = parseHoursFull(settings["site.hoursFull"])
+  const note = parseHoursFull(settings["site.hoursNote"])
 
-  // Полный режим не задан — только короткие часы (или дефолтный фолбэк Пн–Пт).
+  // Полный режим не задан — короткие часы (или дефолт Пн–Пт) + доп. дни из примечания.
   if (!full.length) {
-    return weekdaySpec ? [weekdaySpec] : buildWeekdayOpeningHours(settings)
+    const base = weekdaySpec ? [weekdaySpec] : buildWeekdayOpeningHours(settings)
+    return [...base, ...extraDaysOnly(note, base)]
   }
-  // Короткие часы не заданы/не распоз��аны — доверяем полному режиму как есть.
+  // Короткие часы не заданы/не распознаны — доверяем полному режиму, + доп. дни из примечания.
   if (!weekdaySpec) {
-    return full
+    return [...full, ...extraDaysOnly(note, full)]
   }
-  // Оба заданы: будни ← site.hours (шапка), доп. дни (сб/вс) ← полный режим.
-  const WEEKDAYS = new Set(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
-  const extraDays = full
-    .map((spec) => ({ ...spec, dayOfWeek: spec.dayOfWeek.filter((d) => !WEEKDAYS.has(d)) }))
-    .filter((spec) => spec.dayOfWeek.length > 0)
-  return [weekdaySpec, ...extraDays]
+  // Оба заданы: будни ← site.hours (шапка), доп. дни ← полный режим, затем примечание.
+  const extraFromFull = extraDaysOnly(full, [weekdaySpec])
+  const extraFromNote = extraDaysOnly(note, [weekdaySpec, ...extraFromFull])
+  return [weekdaySpec, ...extraFromFull, ...extraFromNote]
 }
 
 export type TravelAgencyJsonLd = {
@@ -420,7 +443,7 @@ export function buildProductOfferJsonLd(input: {
   /** If seats/available dates known, flag availability. Default conservative = OutOfStock. */
   availableSeats?: number | null
   hasAvailability?: boolean
-  /** Дата актуальности цены (YYYY-MM-DD). По умолчанию �� конец следующего года. */
+  /** Дата актуальности цены (YYYY-MM-DD). По ум��лчанию �� конец следующего года. */
   priceValidUntil?: string
 }): ProductOfferJsonLd | null {
   const name = stripFaqHtml(input.name)
