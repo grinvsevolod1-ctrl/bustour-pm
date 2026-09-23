@@ -449,7 +449,11 @@ export function AdminNav({
       </header>
 
       {open ? (
-        <div className="fixed inset-0 z-50 md:hidden">
+        // z-[100] + transform-gpu: на мобильных Safari/Chrome sticky-бары с
+        // backdrop-filter (сохранить/табы/шапка) уходят в свой композитный слой
+        // и просвечивают сквозь фикс-оверлей — поднимаем drawer на отдельный
+        // верхний слой (см. AGENTS.md, «Грабли» №2 про z-[100] у оверлеев).
+        <div className="fixed inset-0 z-[100] transform-gpu md:hidden">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setOpen(false)}
