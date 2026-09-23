@@ -1,7 +1,9 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { getSettings } from "@/lib/cms"
 import { SettingsForm } from "@/components/admin/settings-form"
+import { IntegrationsStatusPanel, IntegrationsStatusSkeleton } from "@/components/admin/integrations-status-panel"
 import { requireCapability } from "@/lib/auth"
 import { getBustourDeployEnv } from "@/lib/deploy-env"
 import { getCaptchaWiringStatus } from "@/lib/recaptcha"
@@ -30,6 +32,13 @@ export default async function SettingsPage() {
         settings={settings}
         showCaptchaStatusSetting={showCaptchaStatusSetting}
         captchaWiring={captchaWiring}
+        integrationsPanel={
+          // Внешние проверки (SMTP, Telegram, U-ON) стримятся отдельно — форма
+          // открывается сразу, статус догружается.
+          <Suspense fallback={<IntegrationsStatusSkeleton />}>
+            <IntegrationsStatusPanel />
+          </Suspense>
+        }
       />
     </div>
   )

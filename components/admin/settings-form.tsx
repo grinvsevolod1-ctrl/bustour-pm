@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useEffect, useState, type ReactNode } from "react"
 import { Check, ChevronDown } from "lucide-react"
 import { settingsGroups, sectionToggles } from "@/lib/admin-config"
 import type { SettingsGroup } from "@/lib/admin-config"
@@ -32,14 +32,19 @@ function settingsGroupBodyId(heading: string) {
   return `settings-group-${heading.replace(/[^a-zA-Zа-яА-Я0-9]+/g, "-").replace(/^-|-$/g, "")}`
 }
 
+const NOTIFY_GROUP_HEADING = "Уведомления о заявках"
+
 function CollapsibleSettingsGroup({
   group,
   settings,
   captchaWiring,
+  leading,
 }: {
   group: SettingsGroup
   settings: SiteSettings
   captchaWiring?: CaptchaWiringStatus
+  /** Серверный блок над полями группы (статус интеграций у «Уведомлений»). */
+  leading?: ReactNode
 }) {
   const [open, setOpen] = useState(true)
   const bodyId = settingsGroupBodyId(group.heading)
@@ -92,6 +97,7 @@ function CollapsibleSettingsGroup({
           {group.description ? (
             <p className="-mt-1 text-sm text-admin-fg-muted">{group.description}</p>
           ) : null}
+          {leading}
           {group.heading === "Веб-аналитика и цели" ? (
             <div className="space-y-5">
               {group.fields.map((field, index) => (
@@ -128,6 +134,7 @@ export function SettingsForm({
   hideToggles = true,
   showCaptchaStatusSetting = false,
   captchaWiring,
+  integrationsPanel,
 }: {
   settings: SiteSettings
   groups?: SettingsGroup[]
@@ -135,6 +142,8 @@ export function SettingsForm({
   /** Only on DEV stand (`BASTUR_DEPLOY_ENV=dev`). */
   showCaptchaStatusSetting?: boolean
   captchaWiring?: CaptchaWiringStatus
+  /** Серверный статус интеграций, показывается внутри группы «Уведомления о заявках». */
+  integrationsPanel?: ReactNode
 }) {
   const [state, action, pending] = useActionState(saveSettingsAction, null)
   const [saved, setSaved] = useState(false)
@@ -189,7 +198,13 @@ export function SettingsForm({
             </Card>
           ) : null}
           {mainGroups.map((group) => (
-            <CollapsibleSettingsGroup key={group.heading} group={group} settings={settings} captchaWiring={showCaptchaStatusSetting ? captchaWiring : undefined} />
+            <CollapsibleSettingsGroup
+              key={group.heading}
+              group={group}
+              settings={settings}
+              captchaWiring={showCaptchaStatusSetting ? captchaWiring : undefined}
+              leading={group.heading === NOTIFY_GROUP_HEADING ? integrationsPanel : undefined}
+            />
           ))}
           {!groupsOverride ? <SocialLinksEditor settings={settings} /> : null}
         </div>

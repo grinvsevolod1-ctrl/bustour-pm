@@ -100,7 +100,7 @@ function parseEmailList(raw: string): string[] {
     .filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))
 }
 
-async function loadNotifyConfig(): Promise<NotifyChannelConfig> {
+export async function loadNotifyConfig(): Promise<NotifyChannelConfig> {
   let settings: Record<string, string> = {}
   try {
     const { getSettings } = await import("@/lib/cms")
@@ -126,21 +126,30 @@ async function loadNotifyConfig(): Promise<NotifyChannelConfig> {
 
 type LeadMail = { from: string; to: string[]; replyTo?: string; subject: string; text: string }
 
-async function sendViaSmtp(cfg: SmtpConfig, mail: LeadMail): Promise<boolean> {
+/**
+ * Результат одной отправки. Текст ошибки — без секретов и без PII, его
+ * показывает админке кнопка «Отправить тест» и пишет в лог notifyLead.
+ */
+export type SendResult = { ok: true } | { ok: false; error: string }
+
+const SKIPPED: SendResult = { ok: false, error: "канал выключен или не настроен" }
+
+async function sendViaSmtp(cfg: SmtpConfig, mail: LeadMail): Promise<SendResult> {
   try {
     const info = await getSmtpTransporter(cfg).sendMail(mail)
     if (!info.accepted?.length) {
       console.error("[notify] lead email (smtp) rejected for all recipients: %s", info.response)
-      return false
+      return { ok: false, error: `SMTP отклонил всех получателей: ${info.response}` }
     }
-    return true
+    return { ok: true }
   } catch (err) {
-    console.error("[notify] lead email (smtp %s:%d) failed:", cfg.host, cfg.port, (err as Error).message)
-    return false
+    const message = (err as Error).message
+    console.error("[notify] lead email (smtp %s:%d) failed:", cfg.host, cfg.port, message)
+    return { ok: false, error: `SMTP ${cfg.host}:${cfg.port} — ${message}` }
   }
 }
 
-async function sendViaResend(apiKey: string, mail: LeadMail): Promise<boolean> {
+async function sendViaResend(apiKey: string, mail: LeadMail): Promise<SendResult> {
   try {
     const resp = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -156,22 +165,23 @@ async function sendViaResend(apiKey: string, mail: LeadMail): Promise<boolean> {
     })
     if (!resp.ok) {
       // Раньше не-2xx от Resend молча считался успехом.
-      console.error("[notify] lead email notify failed: HTTP %d %s", resp.status, await resp.text().catch(() => ""))
-      return false
+      const body = await resp.text().catch(() => "")
+      console.error("[notify] lead email notify failed: HTTP %d %s", resp.status, body)
+      return { ok: false, error: `Resend HTTP ${resp.status}` }
     }
-    return true
+    return { ok: true }
   } catch (err) {
     console.error("[notify] lead email notify failed:", (err as Error).message)
-    return false
+    return { ok: false, error: `Resend — ${(err as Error).message}` }
   }
 }
 
 /**
- * Возвращает true при подтверждённой доставке в API канала.
- * Транспорт: SMTP почтового хостинга, если сконфигурирован; иначе Resend.
+ * Доставка в e-mail канал. Транспорт: SMTP почтового хостинга, если
+ * сконфигурирован; иначе Resend.
  */
-async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelConfig): Promise<boolean> {
-  if (!config.emailEnabled || config.emailTo.length === 0) return false
+async function sendEmail(mail: Omit<LeadMail, "from" | "to">, config: NotifyChannelConfig): Promise<SendResult> {
+  if (!config.emailEnabled || config.emailTo.length === 0) return SKIPPED
   const smtp = readSmtpConfig()
   const resendKey = process.env.RESEND_API_KEY
   if (!smtp && !resendKey) {
@@ -180,42 +190,51 @@ async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelC
     console.warn(
       "[notify] email channel enabled but neither SMTP_HOST/SMTP_USER/SMTP_PASS nor RESEND_API_KEY is set — lead email skipped",
     )
-    return false
+    return { ok: false, error: "не задан ни SMTP_HOST/SMTP_USER/SMTP_PASS, ни RESEND_API_KEY" }
   }
-  const mail: LeadMail = {
-    from: config.emailFrom,
-    to: config.emailTo,
-    // Менеджер отвечает клиенту прямо из письма, а не копирует адрес из текста.
-    replyTo: data.email?.trim() || undefined,
-    subject: `${typeLabel(data.type)} — БасТур`,
-    text: lines.join("\n"),
-  }
-  return smtp ? sendViaSmtp(smtp, mail) : sendViaResend(resendKey as string, mail)
+  const full: LeadMail = { ...mail, from: config.emailFrom, to: config.emailTo }
+  return smtp ? sendViaSmtp(smtp, full) : sendViaResend(resendKey as string, full)
 }
 
-async function sendTelegram(lines: string[], config: NotifyChannelConfig): Promise<boolean> {
+async function sendTelegram(text: string, config: NotifyChannelConfig): Promise<SendResult> {
   const token = process.env.TELEGRAM_BOT_TOKEN
   const chatId = config.telegramChatId
-  if (!token || !chatId || !config.telegramEnabled) return false
+  if (!token || !config.telegramEnabled) return SKIPPED
+  if (!chatId) return { ok: false, error: "не задан chat_id (напишите боту и укажите ID в настройках)" }
   try {
     const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: "🔔 Новая заявка с сайта БасТур\n\n" + lines.join("\n"),
-      }),
+      body: JSON.stringify({ chat_id: chatId, text }),
       signal: AbortSignal.timeout(NOTIFY_TIMEOUT_MS),
     })
     if (!resp.ok) {
-      console.error("[notify] lead telegram notify failed: HTTP %d", resp.status)
-      return false
+      const description = await resp
+        .json()
+        .then((j: { description?: string }) => j.description ?? "")
+        .catch(() => "")
+      console.error("[notify] lead telegram notify failed: HTTP %d %s", resp.status, description)
+      return { ok: false, error: `Telegram HTTP ${resp.status}${description ? ` — ${description}` : ""}` }
     }
-    return true
+    return { ok: true }
   } catch (err) {
     console.error("[notify] lead telegram notify failed:", (err as Error).message)
-    return false
+    return { ok: false, error: `Telegram — ${(err as Error).message}` }
   }
+}
+
+/**
+ * Тестовое уведомление из админки: тот же конфиг и тот же транспорт, что и у
+ * реальных заявок, поэтому успех здесь означает, что заявки дойдут.
+ */
+export async function sendTestNotification(channel: "email" | "telegram", sender: string): Promise<SendResult> {
+  const config = await loadNotifyConfig()
+  const when = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Minsk" })
+  const body = `Тестовое уведомление из админ-панели БасТур.\nОтправил: ${sender}\nВремя: ${when}\n\nЕсли вы видите это сообщение — канал настроен верно, заявки с сайта будут приходить сюда.`
+  if (channel === "email") {
+    return sendEmail({ subject: "Тест уведомлений — БасТур", text: body }, config)
+  }
+  return sendTelegram("🔔 " + body, config)
 }
 
 export function buildSafeMeta(data: LeadData) {
@@ -244,9 +263,18 @@ export async function notifyLead(data: LeadData) {
   )
   const lines = buildLines(data)
   const config = await loadNotifyConfig()
-  const [emailRes, tgRes] = await Promise.allSettled([sendEmail(data, lines, config), sendTelegram(lines, config)])
-  const emailOk = emailRes.status === "fulfilled" && emailRes.value
-  const tgOk = tgRes.status === "fulfilled" && tgRes.value
+  const mail = {
+    // Менеджер отвечает клиенту прямо из письма, а не копирует адрес из текста.
+    replyTo: data.email?.trim() || undefined,
+    subject: `${typeLabel(data.type)} — БасТур`,
+    text: lines.join("\n"),
+  }
+  const [emailRes, tgRes] = await Promise.allSettled([
+    sendEmail(mail, config),
+    sendTelegram("🔔 Новая заявка с сайта БасТур\n\n" + lines.join("\n"), config),
+  ])
+  const emailOk = emailRes.status === "fulfilled" && emailRes.value.ok
+  const tgOk = tgRes.status === "fulfilled" && tgRes.value.ok
   // Итоговая строка по cid: по логам видно, ушла ли заявка хоть куда-то.
   // Заявка при этом всегда сохранена в БД (lead создаётся до notifyLead).
   console.info("[notify] lead cid=%s email=%s telegram=%s", meta.correlationId, emailOk, tgOk)

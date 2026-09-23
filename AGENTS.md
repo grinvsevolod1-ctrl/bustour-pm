@@ -92,7 +92,7 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker
   **Пуш в main = деплой на прод.** Логи: `journalctl -u bastur-auto-deploy -f`.
 - `deploy.sh` (на сервере, в `/var/www/bustour`): git pull → npm ci →
   preflight → build → миграции (`db:migrate:prod`) → pm2 startOrReload →
-  health-check. Флаги: `--setup` (перв��чная установка), `--no-pull`.
+  health-check. Флаги: `--setup` (перв���чная установка), `--no-pull`.
 - pm2-процессы: `bastur-app` (web) и `bastur-media-worker`. Логи:
   `pm2 logs bastur-app --lines 50 --nostream`. Ротация — pm2-logrotate
   (ставится deploy.sh автоматически).
@@ -107,7 +107,7 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker
 - `BASTUR_DEPLOY_ENV` — production | dev | local. В production капча
   ОБЯЗАТЕЛЬНА: без `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`/`RECAPTCHA_SECRET_KEY`
   формы (заявки/отзывы) не отправятся. Это известный незакрытый пункт —
-  ключи ждут владел��ца (reCAPTCHA v3).
+  ключи ждут влад��л��ца (reCAPTCHA v3).
 - `DATABASE_URL` — локальный PostgreSQL на VPS.
 - `AUTH_SECRET` — секрет сессий (openssl rand -hex 32).
 - В песочнице v0 dev-сервер запускается `BUSTOUR_SKIP_PREFLIGHT=1 npm run dev`
@@ -134,6 +134,13 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker
   `TELEGRAM_CHAT_ID` через getUpdates (владелец должен один раз написать боту),
   проверяет логин SMTP (`verify`), пишет статусы в лог деплоя. Значения
   секретов в лог не попадают. Для админа есть `GET /api/admin/telegram-chats`.
+- **Проверка без SSH:** Админка → Настройки → «Уведомления о заявках» → блок
+  «Состояние каналов на сервере» (`lib/integrations-status.ts`,
+  `components/admin/integrations-status-panel.tsx`): живой SMTP `verify`,
+  Telegram `getMe`/`getUpdates`/`getChat` (кнопка «Использовать» подставляет
+  chat_id в поле), GET-проверка U-ON, статус капчи. Кнопки «Тест e-mail» /
+  «Тест Telegram» шлют тест тем же кодом, что и заявки (`sendTestNotification`,
+  action `notify_test` в аудите). Секреты в объект статуса не попадают.
 - E-mail заявок: SMTP (`SMTP_HOST/PORT/SECURE/USER/PASS`) имеет приоритет
   над Resend; `From` при SMTP должен совпадать с `SMTP_USER`.
 - Ключи в `.env` руками через SSH больше не нужны; если ключ сервера
