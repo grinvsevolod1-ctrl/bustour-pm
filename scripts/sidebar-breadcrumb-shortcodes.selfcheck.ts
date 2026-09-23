@@ -18,8 +18,10 @@ const breadcrumb = read("components/site/breadcrumb.tsx")
 assert.match(breadcrumb, /expandShortcodes/)
 assert.match(breadcrumb, /await expandShortcodes\(item\.label\)/)
 assert.match(breadcrumb, /name:\s*item\.label/)
-assert.match(breadcrumb, /getSiteOrigin/, "schema item URLs from site.url settings")
-assert.match(breadcrumb, /getPublicSettings/, "loads CMS settings for origin")
+// URL элементов BreadcrumbList — через canonical-origin (единый trust boundary
+// с canonical/sitemap), а не через CMS site.url.
+assert.match(breadcrumb, /canonicalAbsoluteUrl/, "schema item URLs from canonical origin")
+assert.doesNotMatch(breadcrumb, /getSiteOrigin/, "breadcrumb must not derive origin from CMS site.url")
 
 for (const file of [
   "components/site/avia-sidebar.tsx",

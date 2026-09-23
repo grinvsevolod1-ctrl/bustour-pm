@@ -34,7 +34,9 @@ assert.deepEqual(
     ["cities", "seo", "faq", "callus"],
     ["cities", "seo", "faq", "callus"],
   ),
-  ["cities", "seo", "seo2", "callus3", "faq"],
+  // Клоны (seo2, callus3) сохраняют своё место; базовая «callus», которой нет в
+  // сохранённом порядке, дописывается в конец (см. resolveInitialOrder).
+  ["cities", "seo", "seo2", "callus3", "faq", "callus"],
 )
 
 const mgr = read("components/admin/page-sections-manager.tsx")

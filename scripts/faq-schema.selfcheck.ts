@@ -84,7 +84,10 @@ assert.match(layout, /application\/ld\+json/)
 
 const crumb = readFileSync(join(root, "components/site/breadcrumb.tsx"), "utf8")
 assert.match(crumb, /BreadcrumbList/)
-assert.match(crumb, /getSiteOrigin/, "breadcrumb JSON-LD uses CMS site.url")
+// Крошки строят URL через canonical-origin (единый источник с canonical/sitemap),
+// а не через CMS site.url и не через голый process.env в компоненте.
+assert.match(crumb, /canonicalAbsoluteUrl/, "breadcrumb JSON-LD uses canonical origin helper")
+assert.doesNotMatch(crumb, /getSiteOrigin/, "breadcrumb must not derive origin from CMS site.url")
 assert.doesNotMatch(crumb, /const BASE_URL = process\.env\.NEXT_PUBLIC_SITE_URL/, "no hardcoded env-only breadcrumb base")
 
 console.log("faq-schema.selfcheck: ok")

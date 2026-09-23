@@ -53,8 +53,11 @@ try {
   const sealed = JSON.parse(readFileSync(sealedFile, "utf8"))
   assert.equal(sealed.format, "bastur-sealed-env/1")
   assert.deepEqual(sealed.keys, Object.keys(secrets).sort())
-  for (const v of Object.values(secrets)) {
-    assert.ok(!readFileSync(sealedFile, "utf8").includes(v), "секрет не должен лежать в файле открытым текстом")
+  // Короткие значения («465») могут случайно совпасть с подстрокой base64-шифртекста —
+  // проверяем только длинные, где совпадение невозможно.
+  const sealedRaw = readFileSync(sealedFile, "utf8")
+  for (const v of Object.values(secrets).filter((v) => v.length >= 8)) {
+    assert.ok(!sealedRaw.includes(v), `секрет не должен лежать в файле открытым текстом: ${v.slice(0, 4)}…`)
   }
   const inspect = run(["inspect", sealedFile])
   assert.match(inspect.stdout, /SMTP_PASS/)

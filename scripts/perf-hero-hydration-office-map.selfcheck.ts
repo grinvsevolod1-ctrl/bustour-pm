@@ -21,9 +21,14 @@ const officeMapSrc = (() => {
 const heroClean = heroSrc
   .replace(/\/\*[\s\S]*?\*\//g, "")
   .replace(/\/\/[^\n]*/g, "")
-// Hero: 1. Single H1 on page — NOT multiple <h1>s (slides must not each render H1)
+// Hero: 1. Единственный <h1> страницы живёт в app/(site)/page.tsx (стабильный
+// SEO-заголовок, коммиты dff0503/bf3288b); слайды hero — рекламные офферы и
+// рендерят h3, ни одного <h1> внутри hero.tsx быть не должно.
 const h1Count = (heroClean.match(/<h1\b/g) || []).length
-ok(h1Count === 1, `Hero must have exactly ONE <h1> tag (found ${h1Count})`)
+ok(h1Count === 0, `hero.tsx must not render <h1> — page H1 lives in app/(site)/page.tsx (found ${h1Count})`)
+const homeSrc = readFileSync(join(root, "app/(site)/page.tsx"), "utf8")
+const homeH1Count = (homeSrc.replace(/\{\/\*[\s\S]*?\*\/\}/g, "").match(/<h1\b/g) || []).length
+ok(homeH1Count === 1, `app/(site)/page.tsx must have exactly ONE <h1> (found ${homeH1Count})`)
 
 // Hero: 2. No motion/react import (replaced with CSS transitions)
 doesNotMatch(heroSrc, /from ["']framer-motion["']|import.*motion.*from.*motion|@motion\.dev/,

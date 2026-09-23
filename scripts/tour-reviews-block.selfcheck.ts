@@ -32,7 +32,11 @@ assert.doesNotMatch(
 )
 assert.match(block, /md:hidden/, "mobile carousel branch")
 assert.match(block, /aria-roledescription="carousel"/, "carousel a11y")
-assert.match(block, /md:grid/, "desktop grid")
+// Десктопная ветка: контейнер hidden md:block, внутри grid с 1/2 колонками
+// в зависимости от числа отзывов — а не статичный md:grid.
+assert.match(block, /hidden md:block/, "desktop branch")
+assert.match(block, /"grid items-stretch gap-6"/, "desktop grid")
+assert.match(block, /grid-cols-2/, "desktop grid two columns")
 assert.match(block, /ReviewCardPublic/, "shared public card")
 assert.match(busRoute, /getReviewsByTour/, "bus tour fetches reviews")
 

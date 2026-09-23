@@ -51,7 +51,10 @@ assert.deepEqual(
     "faq",
     "callus",
   ]),
-  ["seo", "faq"],
+  // Сохранённый порядок уважается, а не попавшие в него канонические секции
+  // дописываются в конец (порядок defaultOrder) — иначе новые блоки пропадали
+  // бы на страницах со старым сохранённым порядком (коммит 81dfe2e).
+  ["seo", "faq", "search", "cities", "resorts", "callus"],
 )
 
 const cityAdmin = read("app/admin/(protected)/cities/[id]/page.tsx")
