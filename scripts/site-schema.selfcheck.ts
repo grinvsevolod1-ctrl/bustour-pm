@@ -210,6 +210,9 @@ assert.match(reviewsLd, /organizationId/)
 
 const crumb = readFileSync(join(root, "components/site/breadcrumb.tsx"), "utf8")
 assert.match(crumb, /serializeJsonLd/)
-assert.match(crumb, /getSiteOrigin/)
+// URL крошек в JSON-LD — через canonical-origin (env), не через CMS site.url:
+// единый trust boundary с canonical/sitemap и единый формат без слеша.
+assert.match(crumb, /canonicalAbsoluteUrl/)
+assert.doesNotMatch(crumb, /getSiteOrigin/)
 
 console.log("ok")

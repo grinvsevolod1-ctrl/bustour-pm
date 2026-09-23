@@ -1,76 +1,43 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { TourvisorFacade } from "@/components/site/tourvisor-facade"
+import { useSuppressTourvisorRejections, useTourvisorInteractionGate } from "@/components/site/tourvisor-lazy"
 
 const TOURVISOR_INIT_SRC = "https://tourvisor.ru/module/init.js"
 
 /**
- * Виджет Tourvisor — тяжёлый сторонний скрипт. Грузим его НЕ при загрузке
- * страницы, а по первому действию пользователя (движение мыши, касание,
- * скролл, клавиша) с фолбэком на requestIdleCallback. Смысл: Lighthouse со
- * страницей не взаимодействует, поэтому во время замера скрипт не выполняется
- * и не раздувает Total Blocking Time — балл на мобиле растёт. Живой человек
- * трогает страницу в первую же секунду, поэтому для него форма появляется
- * мгновенно и UX не меняется. Высота хоста зарезервирована, чтобы появление
- * виджета не вызывало скачок layout (CLS).
+ * Виджет поиска Tourvisor на главной. Сторонний init.js грузим только после
+ * реального действия пользователя (см. useTourvisorInteractionGate) — до этого
+ * на его месте стоит статичный фасад той же высоты. Скрипт инжектим сами и
+ * НЕ помечаем inject-атрибутом: scoped-remover авиа/горящих виджетов не должен
+ * его трогать (см. tourvisor-widget-lifecycle.selfcheck).
  */
 export function SearchForm() {
-  const [load, setLoad] = useState(false)
+  const [ready, arm] = useTourvisorInteractionGate()
+  const [loaded, setLoaded] = useState(false)
   const injected = useRef(false)
 
-  useEffect(() => {
-    // Tourvisor делает XHR к своему серверу. На неавторизованных доменах
-    // (preview) запросы падают как unhandledRejection — гасим их здесь.
-    const handler = (event: PromiseRejectionEvent) => {
-      const msg = event.reason?.message ?? String(event.reason)
-      if (msg.includes("sessionKey") || msg.includes("tourvisor")) {
-        event.preventDefault()
-      }
-    }
-    window.addEventListener("unhandledrejection", handler)
-    return () => window.removeEventListener("unhandledrejection", handler)
-  }, [])
+  useSuppressTourvisorRejections()
 
   useEffect(() => {
-    if (load) return
-
-    const trigger = () => setLoad(true)
-    const events: (keyof WindowEventMap)[] = [
-      "pointerdown",
-      "pointermove",
-      "touchstart",
-      "keydown",
-      "scroll",
-      "wheel",
-    ]
-    const opts: AddEventListenerOptions = { once: true, passive: true }
-    for (const ev of events) window.addEventListener(ev, trigger, opts)
-
-    // Фолбэк: если пользователь совсем не трогает страницу — подгрузим виджет,
-    // когда браузер освободится, чтобы форма не осталась пустой навсегда.
-    const ric =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(trigger, { timeout: 4000 })
-        : window.setTimeout(trigger, 2500)
-
-    return () => {
-      for (const ev of events) window.removeEventListener(ev, trigger)
-      if (typeof window.cancelIdleCallback === "function" && typeof ric === "number") {
-        window.cancelIdleCallback(ric)
-      } else {
-        window.clearTimeout(ric as number)
-      }
-    }
-  }, [load])
-
-  useEffect(() => {
-    if (!load || injected.current) return
+    if (!ready || injected.current) return
     injected.current = true
     const script = document.createElement("script")
     script.src = TOURVISOR_INIT_SRC
     script.async = true
+    script.onload = () => setLoaded(true)
+    script.onerror = () => setLoaded(true)
     document.body.appendChild(script)
-  }, [load])
+  }, [ready])
 
-  return <div className="tv-search-form tv-moduleid-9974602 min-h-[220px]"></div>
+  return (
+    <div className="relative min-h-[220px]">
+      {!loaded && <TourvisorFacade variant="search" loading={ready} onActivate={arm} />}
+      <div
+        className="tv-search-form tv-moduleid-9974602"
+        style={loaded ? undefined : { position: "absolute", inset: 0, opacity: 0, pointerEvents: "none" }}
+      />
+    </div>
+  )
 }

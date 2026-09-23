@@ -3,13 +3,13 @@ import { branchPublicPrefix } from "@/lib/admin-public-href"
 import { resolvePublicCmsText } from "@/lib/cms-public-text"
 import { getAltTextByUrl } from "@/lib/media/service"
 import { expandShortcodes } from "@/lib/shortcodes"
-import { canonicalAbsoluteUrl, getCanonicalOrigin } from "@/lib/canonical-origin"
+import { canonicalAbsoluteUrl, getCanonicalOrigin, normalizeCanonicalPath } from "@/lib/canonical-origin"
 
 const CANONICAL_SITE_URL = getCanonicalOrigin()
 
+/** Абсолютный URL в каноническом формате (без завершающего слеша, кроме «/»). */
 export function absoluteUrl(path: string): string {
-  const normalized = path.startsWith("/") ? path : `/${path}`
-  return `${CANONICAL_SITE_URL}${normalized}`
+  return `${CANONICAL_SITE_URL}${normalizeCanonicalPath(path)}`
 }
 
 /** SERP-friendly title length (visible ~50–60). */
@@ -118,6 +118,6 @@ export function sitemapCountryPaths(
 ): string[] {
   return countries.map((country) => {
     const prefix = branchPublicPrefix(country.category, aviaSlugRaw)
-    return `/${prefix}/${country.slug}/`
+    return `/${prefix}/${country.slug}`
   })
 }

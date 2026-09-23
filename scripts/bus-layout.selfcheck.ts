@@ -24,7 +24,10 @@ assert.deepEqual(
   defaultOrder,
 )
 
-// Saved CMS-only order still accepts core keys when present in JSON
+// Saved CMS-only order still accepts core keys when present in JSON; секции,
+// которых в сохранённом порядке ещё не было (resorts, callus), дописываются
+// в конец в порядке defaultOrder — иначе новые блоки пропадали бы со старых
+// страниц (см. коммит 81dfe2e).
 assert.deepEqual(
   resolveInitialOrder(
     JSON.stringify(["specs", "seating", "documents", "seo", "faq"]),
@@ -32,7 +35,7 @@ assert.deepEqual(
     shortKeys,
     [...MULTIPLIABLE_SECTION_BASES],
   ),
-  ["specs", "seating", "documents", "seo", "faq"],
+  ["specs", "seating", "documents", "seo", "faq", "resorts", "callus"],
 )
 
 const publicPage = fs.readFileSync(path.join(root, "app/(site)/arenda-avtobusov-v-minske/[slug]/page.tsx"), "utf8")

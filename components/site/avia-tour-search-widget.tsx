@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { TourvisorFacade } from "@/components/site/tourvisor-facade"
+import { useSuppressTourvisorRejections, useTourvisorInteractionGate } from "@/components/site/tourvisor-lazy"
 import { injectTourvisorInit, teardownTourvisorHost } from "@/lib/tourvisor-widget"
 
 interface Props {
@@ -10,52 +12,16 @@ interface Props {
   cityId?: number
 }
 
+/**
+ * Виджет поиска авиатуров. init.js грузим только после действия пользователя
+ * (фасад до этого), при смене страны/города — переинициализируем.
+ */
 export function AviaTourSearchWidget({ countryId, cityId }: Props) {
+  const [ready, arm] = useTourvisorInteractionGate()
   const [loaded, setLoaded] = useState(false)
-  // Тот же приём, что и на главной (SearchForm): init.js — тяжёлый сторонний
-  // скрипт, поэтому грузим его не на маунте, а по первому действию пользователя
-  // (с фолбэком на requestIdleCallback). Lighthouse со страницей не
-  // взаимодействует — во время замера init.js не выполняется и не раздувает TBT.
-  const [ready, setReady] = useState(false)
   const hostRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const handler = (event: PromiseRejectionEvent) => {
-      const msg = event.reason?.message ?? String(event.reason)
-      if (msg.includes("sessionKey") || msg.includes("tourvisor")) {
-        event.preventDefault()
-      }
-    }
-    window.addEventListener("unhandledrejection", handler)
-    return () => window.removeEventListener("unhandledrejection", handler)
-  }, [])
-
-  useEffect(() => {
-    if (ready) return
-    const trigger = () => setReady(true)
-    const events: (keyof WindowEventMap)[] = [
-      "pointerdown",
-      "pointermove",
-      "touchstart",
-      "keydown",
-      "scroll",
-      "wheel",
-    ]
-    const opts: AddEventListenerOptions = { once: true, passive: true }
-    for (const ev of events) window.addEventListener(ev, trigger, opts)
-    const ric =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(trigger, { timeout: 4000 })
-        : window.setTimeout(trigger, 2500)
-    return () => {
-      for (const ev of events) window.removeEventListener(ev, trigger)
-      if (typeof window.cancelIdleCallback === "function" && typeof ric === "number") {
-        window.cancelIdleCallback(ric)
-      } else {
-        window.clearTimeout(ric as number)
-      }
-    }
-  }, [ready])
+  useSuppressTourvisorRejections()
 
   useEffect(() => {
     if (!ready) return
@@ -70,23 +36,16 @@ export function AviaTourSearchWidget({ countryId, cityId }: Props) {
   }, [ready, countryId, cityId])
 
   return (
-    <>
-      {!loaded && (
-        <div className="flex min-h-[220px] items-center justify-center rounded-xl border border-line bg-cream/60">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-brand" />
-            <span className="text-sm text-ink-muted">Загружаем форму поиска…</span>
-          </div>
-        </div>
-      )}
+    <div className="relative min-h-[220px]">
+      {!loaded && <TourvisorFacade variant="search" loading={ready} onActivate={arm} />}
       <div
         key={`${countryId ?? ""}-${cityId ?? ""}`}
         ref={hostRef}
         className="tv-search-form tv-moduleid-9974602"
         data-country={countryId ?? undefined}
         data-city={cityId ?? undefined}
-        style={loaded ? undefined : { position: "absolute", opacity: 0, pointerEvents: "none" }}
+        style={loaded ? undefined : { position: "absolute", inset: 0, opacity: 0, pointerEvents: "none" }}
       />
-    </>
+    </div>
   )
 }

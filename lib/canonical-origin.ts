@@ -30,11 +30,28 @@ export function getCanonicalOrigin(): string {
   return CANONICAL_ORIGIN
 }
 
+/**
+ * Единый формат публичного пути: с ведущим слешем и БЕЗ завершающего
+ * (корень «/» — единственное исключение). Сервер уже 308-редиректит
+ * `/rossiya/` → `/rossiya`, поэтому sitemap, canonical, og:url и JSON-LD
+ * обязаны отдавать ту же форму — иначе Google получает противоречивые сигналы
+ * (sitemap со слешем → редирект → canonical снова со слешем).
+ * Query/hash не трогаем.
+ */
+export function normalizeCanonicalPath(path: string): string {
+  const raw = String(path || "").trim()
+  const match = raw.match(/^([^?#]*)([?#].*)?$/)
+  const pathname = match?.[1] ?? raw
+  const suffix = match?.[2] ?? ""
+  const withLeading = pathname.startsWith("/") ? pathname : `/${pathname}`
+  const stripped = withLeading.replace(/\/+$/, "")
+  return `${stripped || "/"}${suffix}`
+}
+
 /** Build an absolute URL using canonical origin. Accepts path or absolute URL. */
 export function canonicalAbsoluteUrl(pathOrUrl: string | undefined | null): string | undefined {
   const raw = String(pathOrUrl || "").trim()
   if (!raw) return undefined
   if (/^https?:\/\//i.test(raw)) return raw
-  const normalized = raw.startsWith("/") ? raw : `/${raw}`
-  return `${CANONICAL_ORIGIN}${normalized}`
+  return `${CANONICAL_ORIGIN}${normalizeCanonicalPath(raw)}`
 }

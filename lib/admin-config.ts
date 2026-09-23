@@ -546,7 +546,7 @@ export const settingsGroups: SettingsGroup[] = [
   {
     heading: "Уведомления о заявках",
     description:
-      "Куда отправлять новые заявки с сайта (бронирования, звонки, аренда). E-mail работает через Resend (ключ RESEND_API_KEY в окружении), Telegram — через бота (TELEGRAM_BOT_TOKEN).",
+      "Куда отправлять новые заявки с сайта (бронирования, звонки, аренда). E-mail уходит через SMTP почтового хостинга (SMTP_HOST/SMTP_USER/SMTP_PASS в окружении), а если SMTP не настроен — через Resend (RESEND_API_KEY). Telegram — через бота (TELEGRAM_BOT_TOKEN).",
     fields: [
       {
         key: "notify.emailTo",
@@ -560,7 +560,7 @@ export const settingsGroups: SettingsGroup[] = [
         key: "notify.emailFrom",
         label: "E-mail отправителя",
         placeholder: "БасТур <noreply@bastur.by>",
-        hint: "Адрес должен быть подтверждён в Resend. Пусто — значение LEAD_EMAIL_FROM из окружения.",
+        hint: "Для SMTP адрес должен совпадать с ящиком SMTP_USER (иначе почтовый сервер отклонит письмо), для Resend — быть подтверждён в Resend. Пусто — значение LEAD_EMAIL_FROM из окружения.",
       },
       {
         key: "notify.emailEnabled",
@@ -586,7 +586,7 @@ export const settingsGroups: SettingsGroup[] = [
         key: "notify.telegramChatId",
         label: "Telegram chat ID",
         placeholder: "-1001234567890",
-        hint: "ID чата или канала. Пусто — значение TELEGRAM_CHAT_ID из окружения.",
+        hint: "ID чата или канала. Пусто — значение TELEGRAM_CHAT_ID из окружения. Не знаете ID: напишите боту /start и откройте /api/admin/telegram-chats — там будут все чаты, которые видит бот.",
       },
     ],
     help: "Уведомления отправляются в фоне и не задерживают отправку формы. Если канал не настроен — он просто пропускается, заявка всё равно сохраняется в разделе «Заявки».",

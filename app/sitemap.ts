@@ -8,13 +8,11 @@ import { tourUrl } from "@/lib/tour-url"
 import { articleUrl } from "@/lib/article-url"
 import { LEGAL_SLUGS, legalPages } from "@/lib/legal-pages"
 import { absoluteUrl, sitemapCountryPaths } from "@/lib/seo-metadata"
-import { getCanonicalOrigin } from "@/lib/canonical-origin"
 import {
   filterCitiesForSitemap,
   filterCountriesForSitemap,
 } from "@/lib/sitemap-visibility"
 
-const CANONICAL_BASE_URL = getCanonicalOrigin()
 // Sitemap не обязан быть посекундно свежим: кэшируем на час вместо force-dynamic,
 // чтобы каждый заход робота не дёргал 9 параллельных запросов в БД. Новые
 // туры/статьи попадут в карту в течение часа (или сразу — при revalidatePath).
@@ -55,11 +53,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const aviaSlugRaw = settings["aviatory.slug"]
   const aviaPrefix = `/${resolveAviaSlug(aviaSlugRaw)}`
 
+  // Все пути — без завершающего слеша (absoluteUrl нормализует, но источники
+  // держим чистыми). Единственное исключение — корень «/».
   const staticRoutes = [
     "",
-    "/avtobusnye-tury/",
-    `${aviaPrefix}/`,
-    "/hot/",
+    "/avtobusnye-tury",
+    aviaPrefix,
+    "/hot",
     "/arenda-avtobusov-v-minske",
     "/company",
     "/company/staff",
@@ -91,7 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!countrySlug) return []
     return [
       {
-        url: absoluteUrl(`/avtobusnye-tury/${countrySlug}/${city.slug}/`),
+        url: absoluteUrl(`/avtobusnye-tury/${countrySlug}/${city.slug}`),
         changeFrequency: "weekly" as const,
         priority: 0.7,
       },
@@ -103,7 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!countrySlug) return []
     return [
       {
-        url: absoluteUrl(`${aviaPrefix}/${countrySlug}/${city.slug}/`),
+        url: absoluteUrl(`${aviaPrefix}/${countrySlug}/${city.slug}`),
         changeFrequency: "weekly" as const,
         priority: 0.7,
       },
@@ -115,7 +115,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!countrySlug) return []
     return [
       {
-        url: absoluteUrl(`/hot/${countrySlug}/${city.slug}/`),
+        url: absoluteUrl(`/hot/${countrySlug}/${city.slug}`),
         changeFrequency: "weekly" as const,
         priority: 0.7,
       },
@@ -131,7 +131,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (!path) return []
     return [
       {
-        url: `${CANONICAL_BASE_URL}${path}`,
+        url: absoluteUrl(path),
         changeFrequency: "weekly" as const,
         priority: 0.7,
       },

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto"
+import { createTransport, type Transporter } from "nodemailer"
 import type { LeadType } from "@/lib/types"
 
 export type LeadData = {
@@ -43,6 +44,45 @@ function buildLines(data: LeadData): string[] {
 
 /** Hard timeout for outbound notification calls — a hung API must never stall the app. */
 const NOTIFY_TIMEOUT_MS = 5_000
+/** SMTP-рукопожатие по SSL медленнее одного HTTP-запроса; notifyLead и так вызывается fire-and-forget. */
+const SMTP_TIMEOUT_MS = 15_000
+
+export type SmtpConfig = { host: string; port: number; secure: boolean; user: string; pass: string }
+
+/**
+ * SMTP включается только при полном наборе SMTP_HOST/SMTP_USER/SMTP_PASS.
+ * Порт по умолчанию 465 (implicit SSL/TLS — так у hoster.by); для 587
+ * secure=false, и nodemailer сам поднимет STARTTLS.
+ */
+export function readSmtpConfig(env: NodeJS.ProcessEnv = process.env): SmtpConfig | null {
+  const host = env.SMTP_HOST?.trim()
+  const user = env.SMTP_USER?.trim()
+  const pass = env.SMTP_PASS
+  if (!host || !user || !pass) return null
+  const port = Number.parseInt(env.SMTP_PORT ?? "", 10) || 465
+  const secureRaw = env.SMTP_SECURE?.trim().toLowerCase()
+  const secure = secureRaw ? !["0", "false", "no"].includes(secureRaw) : port === 465
+  return { host, port, secure, user, pass }
+}
+
+let smtpTransport: { signature: string; transporter: Transporter } | null = null
+
+/** Транспорт кэшируется на процесс; смена пароля подхватится после pm2 reload (он и так идёт с деплоем). */
+function getSmtpTransporter(cfg: SmtpConfig): Transporter {
+  const signature = `${cfg.host}:${cfg.port}:${cfg.secure}:${cfg.user}`
+  if (smtpTransport?.signature === signature) return smtpTransport.transporter
+  const transporter = createTransport({
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.secure,
+    auth: { user: cfg.user, pass: cfg.pass },
+    connectionTimeout: SMTP_TIMEOUT_MS,
+    greetingTimeout: SMTP_TIMEOUT_MS,
+    socketTimeout: SMTP_TIMEOUT_MS,
+  })
+  smtpTransport = { signature, transporter }
+  return transporter
+}
 
 /** Notification channel config: admin settings (DB) override env vars. */
 export type NotifyChannelConfig = {
@@ -70,36 +110,47 @@ async function loadNotifyConfig(): Promise<NotifyChannelConfig> {
   }
   const emailToSetting = parseEmailList(settings["notify.emailTo"] ?? "")
   const emailToEnv = parseEmailList(process.env.LEAD_EMAIL_TO ?? "")
+  // Без явных адресов при SMTP заявки идут в сам почтовый ящик отправителя —
+  // это гарантированно существующий адрес, который читает владелец.
+  const smtp = readSmtpConfig()
+  const fallbackTo = smtp ? [smtp.user] : ["info@bastur.by"]
+  const fallbackFrom = smtp ? `БасТур <${smtp.user}>` : "БасТур <onboarding@resend.dev>"
   return {
     emailEnabled: (settings["notify.emailEnabled"] ?? "true") !== "false",
-    emailTo: emailToSetting.length ? emailToSetting : emailToEnv.length ? emailToEnv : ["info@bastur.by"],
-    emailFrom:
-      settings["notify.emailFrom"]?.trim() || process.env.LEAD_EMAIL_FROM || "БасТур <onboarding@resend.dev>",
+    emailTo: emailToSetting.length ? emailToSetting : emailToEnv.length ? emailToEnv : fallbackTo,
+    emailFrom: settings["notify.emailFrom"]?.trim() || process.env.LEAD_EMAIL_FROM || fallbackFrom,
     telegramEnabled: (settings["notify.telegramEnabled"] ?? "true") !== "false",
     telegramChatId: settings["notify.telegramChatId"]?.trim() || process.env.TELEGRAM_CHAT_ID || "",
   }
 }
 
-/** Возвращает true при подтверждённой доставке в API канала. */
-async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelConfig): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey || !config.emailEnabled || config.emailTo.length === 0) {
-    if (!apiKey && config.emailEnabled) {
-      // Канал включён, но не сконфигурирован — заявка уйдёт «в никуда»,
-      // это должно быть видно в логах, а не выглядеть успехом.
-      console.warn("[notify] email channel enabled but RESEND_API_KEY is not set — lead email skipped")
+type LeadMail = { from: string; to: string[]; replyTo?: string; subject: string; text: string }
+
+async function sendViaSmtp(cfg: SmtpConfig, mail: LeadMail): Promise<boolean> {
+  try {
+    const info = await getSmtpTransporter(cfg).sendMail(mail)
+    if (!info.accepted?.length) {
+      console.error("[notify] lead email (smtp) rejected for all recipients: %s", info.response)
+      return false
     }
+    return true
+  } catch (err) {
+    console.error("[notify] lead email (smtp %s:%d) failed:", cfg.host, cfg.port, (err as Error).message)
     return false
   }
+}
+
+async function sendViaResend(apiKey: string, mail: LeadMail): Promise<boolean> {
   try {
     const resp = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: config.emailFrom,
-        to: config.emailTo,
-        subject: `${typeLabel(data.type)} — БасТур`,
-        text: lines.join("\n"),
+        from: mail.from,
+        to: mail.to,
+        reply_to: mail.replyTo,
+        subject: mail.subject,
+        text: mail.text,
       }),
       signal: AbortSignal.timeout(NOTIFY_TIMEOUT_MS),
     })
@@ -113,6 +164,33 @@ async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelC
     console.error("[notify] lead email notify failed:", (err as Error).message)
     return false
   }
+}
+
+/**
+ * Возвращает true при подтверждённой доставке в API канала.
+ * Транспорт: SMTP почтового хостинга, если сконфигурирован; иначе Resend.
+ */
+async function sendEmail(data: LeadData, lines: string[], config: NotifyChannelConfig): Promise<boolean> {
+  if (!config.emailEnabled || config.emailTo.length === 0) return false
+  const smtp = readSmtpConfig()
+  const resendKey = process.env.RESEND_API_KEY
+  if (!smtp && !resendKey) {
+    // Канал включён, но не сконфигурирован — заявка уйдёт «в никуда»,
+    // это должно быть видно в логах, а не выглядеть успехом.
+    console.warn(
+      "[notify] email channel enabled but neither SMTP_HOST/SMTP_USER/SMTP_PASS nor RESEND_API_KEY is set — lead email skipped",
+    )
+    return false
+  }
+  const mail: LeadMail = {
+    from: config.emailFrom,
+    to: config.emailTo,
+    // Менеджер отвечает клиенту прямо из письма, а не копирует адрес из текста.
+    replyTo: data.email?.trim() || undefined,
+    subject: `${typeLabel(data.type)} — БасТур`,
+    text: lines.join("\n"),
+  }
+  return smtp ? sendViaSmtp(smtp, mail) : sendViaResend(resendKey as string, mail)
 }
 
 async function sendTelegram(lines: string[], config: NotifyChannelConfig): Promise<boolean> {

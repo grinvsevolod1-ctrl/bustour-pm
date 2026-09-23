@@ -206,9 +206,15 @@ async function main() {
     { slug: "turciya", category: "hot" },
   ])
   // Public avia prefix defaults to /aviatury/, never internal /aviatory/
-  assert.deepEqual(paths.sort(), ["/aviatury/egipet/", "/avtobusnye-tury/rossiya/", "/hot/turciya/"].sort())
-  assert.ok(!paths.includes("/aviatory/egipet/"))
-  assert.ok(!paths.includes("/aviatory/rossiya/"))
+// Единый формат: без завершающего слеша (сервер 308-редиректит `/x/` → `/x`).
+assert.deepEqual(paths.sort(), ["/aviatury/egipet", "/avtobusnye-tury/rossiya", "/hot/turciya"].sort())
+assert.ok(!paths.includes("/aviatory/egipet"))
+assert.ok(!paths.includes("/aviatory/rossiya"))
+assert.ok(paths.every((p) => !p.endsWith("/")), "sitemap country paths must not end with slash")
+// absoluteUrl нормализует legacy-пути со слешем и не трогает корень.
+assert.equal(absoluteUrl("/avtobusnye-tury/rossiya/"), absoluteUrl("/avtobusnye-tury/rossiya"))
+assert.ok(!absoluteUrl("/helpful/").endsWith("/"))
+assert.ok(absoluteUrl("/").endsWith("/"))
   assert.deepEqual(
     sitemapCountryPaths([{ slug: "egipet", category: "avia" }], "aviatory"),
     ["/aviatury/egipet/"],

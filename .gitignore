@@ -1,6 +1,8 @@
 # Environment (secrets must never be committed; use .env.example as template)
 .env
 .env.*
+# Ключевая пара сервера для sealed-env (scripts/sealed-env.mjs) — только на VPS
+.seal/
 !.env.example
 
 # Dependencies

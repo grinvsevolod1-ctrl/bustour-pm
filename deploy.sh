@@ -127,6 +127,19 @@ if [ "$DO_PULL" -eq 1 ]; then
   git reset --hard "origin/$BRANCH"
 fi
 
+# --- 2b. Секреты из git (sealed-env) -------------------------------------------
+# Ключевая пара сервера живёт в .seal/ (вне git, создаётся один раз). Публичный
+# ключ отдаёт GET /api/seal-key; им запечатывают секреты в ops/sealed-env/*.json,
+# а здесь они расшифровываются и дописываются в .env — так секреты доезжают на
+# сервер обычным пушем в main, без SSH и без открытого текста в репозитории.
+# Скрипту не нужны node_modules — идёт до npm ci. См. AGENTS.md → «Секреты».
+log "sealed-env: ключ сервера и применение запечатанных секретов"
+node scripts/sealed-env.mjs init
+node scripts/sealed-env.mjs apply || log "ВНИМАНИЕ: sealed-env apply завершился с ошибкой — см. вывод выше"
+# Перечитываем .env: apply мог добавить/обновить значения, нужные ниже
+# (NEXT_PUBLIC_* для сборки, ключи интеграций для bootstrap).
+set -a; . ./.env; [ -f .env.local ] && . ./.env.local; set +a
+
 # --- 3. Зависимости -----------------------------------------------------------
 # --include=dev обязателен: при NODE_ENV=production npm ci иначе пропускает
 # dev-зависимости (tsx, typescript), которые нужны для сборки.
@@ -153,6 +166,15 @@ if ! command -v ffmpeg >/dev/null 2>&1; then
   sudo apt-get update -qq
   sudo apt-get install -y -qq ffmpeg || log "ВНИМАНИЕ: не удалось поставить ffmpeg — видео не будет конвертироваться в WebM"
 fi
+
+# --- 3d. Интеграции: самопроверка и дозаполнение ---------------------------------
+# Telegram: подбирает TELEGRAM_CHAT_ID, если владелец уже написал боту;
+# SMTP: проверяет логин на почтовом сервере; U-ON: факт наличия ключа.
+# Только предупреждения — деплой не блокирует. Идёт до pm2 reload, чтобы
+# дописанный chat_id попал в окружение процессов.
+log "Проверяю интеграции (Telegram / SMTP / CRM)"
+node scripts/integrations-bootstrap.mjs || log "ВНИМАНИЕ: integrations-bootstrap завершился с ошибкой — см. вывод выше"
+set -a; . ./.env; [ -f .env.local ] && . ./.env.local; set +a
 
 # --- 4. Сборка ----------------------------------------------------------------
 log "next build"

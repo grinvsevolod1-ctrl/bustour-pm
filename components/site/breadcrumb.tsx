@@ -1,12 +1,13 @@
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { expandShortcodes } from "@/lib/shortcodes"
-import { getPublicSettings, getSiteOrigin } from "@/lib/cms"
 import { serializeJsonLd } from "@/lib/faq-schema"
+import { canonicalAbsoluteUrl } from "@/lib/canonical-origin"
 
 export async function Breadcrumb({ items }: { items: { label: string; href?: string }[] }) {
-  const settings = await getPublicSettings()
-  const baseUrl = getSiteOrigin(settings)
+  // URL для JSON-LD строим через canonical-origin (env), а не через CMS
+  // site.url — тот же trust boundary, что у canonical/sitemap, плюс единый
+  // формат без завершающего слеша.
   const resolved = await Promise.all(
     items.map(async (item) => ({
       ...item,
@@ -21,7 +22,7 @@ export async function Breadcrumb({ items }: { items: { label: string; href?: str
       "@type": "ListItem",
       position: i + 1,
       name: item.label,
-      ...(item.href ? { item: `${baseUrl}${item.href}` } : {}),
+      ...(item.href ? { item: canonicalAbsoluteUrl(item.href) } : {}),
     })),
   }
 

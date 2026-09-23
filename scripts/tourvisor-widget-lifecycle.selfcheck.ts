@@ -46,6 +46,28 @@ assert.ok(
 )
 assert.ok(!search.includes(TOURVISOR_INJECT_ATTR), "SearchForm script is not marked as inject")
 
+// Перф-инвариант (PageSpeed): init.js грузится ТОЛЬКО по действию пользователя.
+// Любой таймерный фолбэк (requestIdleCallback/setTimeout) срабатывает внутри
+// окна замера Lighthouse и возвращает сторонний скрипт в TBT — запрещён.
+const gate = read("components/site/tourvisor-lazy.ts")
+for (const [label, src] of [
+  ["gate", gate],
+  ["hot", hot],
+  ["avia", avia],
+  ["search", search],
+] as const) {
+  assert.ok(!src.includes("requestIdleCallback"), `${label}: no idle fallback for init.js`)
+  assert.ok(!/setTimeout\(/.test(src), `${label}: no timer fallback for init.js`)
+}
+for (const [label, src] of [
+  ["hot", hot],
+  ["avia", avia],
+  ["search", search],
+] as const) {
+  assert.ok(src.includes("useTourvisorInteractionGate"), `${label}: uses shared interaction gate`)
+  assert.ok(src.includes("TourvisorFacade"), `${label}: renders static facade before load`)
+}
+
 assert.match(avia, /countryId,\s*cityId\]/, "avia effect deps include countryId/cityId")
 assert.ok(avia.includes("key={`${countryId ?? \"\"}-${cityId ?? \"\"}`}") || /key=\{`\$\{countryId/.test(avia), "avia host remounts via key")
 

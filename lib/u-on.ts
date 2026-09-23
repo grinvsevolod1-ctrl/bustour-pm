@@ -80,7 +80,15 @@ export async function sendLeadToUon(data: LeadData): Promise<boolean> {
       signal: AbortSignal.timeout(UON_TIMEOUT_MS),
     })
     if (!resp.ok) {
-      console.error("[u-on] lead cid=%s create failed: HTTP %d", correlationId, resp.status)
+      // 406 — ключ верный, но в самой CRM не включён API: это настройка на
+      // стороне заказчика, код тут бессилен — подсказываем, где включить.
+      const hint =
+        resp.status === 406
+          ? " — API выключен в U-ON: Настройки → Интеграции → API (включить GET и POST)"
+          : resp.status === 403
+            ? " — U-ON не принял U_ON_API_KEY"
+            : ""
+      console.error("[u-on] lead cid=%s create failed: HTTP %d%s", correlationId, resp.status, hint)
       return false
     }
     // U-ON отдаёт JSON с полем result (1 — успех). Тело читаем best-effort.

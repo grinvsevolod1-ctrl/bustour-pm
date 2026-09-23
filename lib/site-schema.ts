@@ -1,6 +1,6 @@
 /** Shared schema.org builders for public site JSON-LD. */
 
-import { getCanonicalOrigin } from "@/lib/canonical-origin"
+import { getCanonicalOrigin, normalizeCanonicalPath } from "@/lib/canonical-origin"
 import { parseSocialLinks } from "@/lib/social-links"
 import { serializeJsonLd, stripFaqHtml } from "@/lib/faq-schema"
 import type { SiteSettings } from "@/lib/types"
@@ -16,7 +16,7 @@ export function absoluteUrl(origin: string, pathOrUrl: string | undefined | null
   if (!raw) return undefined
   if (/^https?:\/\//i.test(raw)) return raw
   const base = origin.replace(/\/$/, "")
-  return `${base}${raw.startsWith("/") ? raw : `/${raw}`}`
+  return `${base}${normalizeCanonicalPath(raw)}`
 }
 
 /** Parse `site.hours` like `10:00–18:00` → opens/closes (fallback weekdays 10–18). */
@@ -186,7 +186,7 @@ export function buildOpeningHours(settings: SiteSettings): OpeningHoursSpecifica
   if (!full.length) {
     return weekdaySpec ? [weekdaySpec] : buildWeekdayOpeningHours(settings)
   }
-  // Короткие часы не заданы/не распознаны — доверяем полному режиму как есть.
+  // Короткие часы не заданы/не распоз��аны — доверяем полному режиму как есть.
   if (!weekdaySpec) {
     return full
   }
@@ -420,7 +420,7 @@ export function buildProductOfferJsonLd(input: {
   /** If seats/available dates known, flag availability. Default conservative = OutOfStock. */
   availableSeats?: number | null
   hasAvailability?: boolean
-  /** Дата актуальности цены (YYYY-MM-DD). По умолчанию — конец следующего года. */
+  /** Дата актуальности цены (YYYY-MM-DD). По умолчанию �� конец следующего года. */
   priceValidUntil?: string
 }): ProductOfferJsonLd | null {
   const name = stripFaqHtml(input.name)

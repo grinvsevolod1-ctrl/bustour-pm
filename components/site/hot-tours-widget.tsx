@@ -1,53 +1,20 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { TourvisorFacade } from "@/components/site/tourvisor-facade"
+import { useSuppressTourvisorRejections, useTourvisorInteractionGate } from "@/components/site/tourvisor-lazy"
 import { injectTourvisorInit, teardownTourvisorHost } from "@/lib/tourvisor-widget"
 
+/**
+ * Виджет горящих туров. init.js грузим только после действия пользователя,
+ * до этого — статичный фасад той же высоты (см. useTourvisorInteractionGate).
+ */
 export function HotToursWidget() {
+  const [ready, arm] = useTourvisorInteractionGate()
   const [loaded, setLoaded] = useState(false)
-  // См. SearchForm/AviaTourSearchWidget: init.js грузим по первому действию
-  // пользователя (фолбэк — requestIdleCallback), чтобы тяжёлый сторонний скрипт
-  // не выполнялся во время замера Lighthouse и не раздувал TBT.
-  const [ready, setReady] = useState(false)
   const hostRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const handler = (event: PromiseRejectionEvent) => {
-      const msg = event.reason?.message ?? String(event.reason)
-      if (msg.includes("sessionKey") || msg.includes("tourvisor")) {
-        event.preventDefault()
-      }
-    }
-    window.addEventListener("unhandledrejection", handler)
-    return () => window.removeEventListener("unhandledrejection", handler)
-  }, [])
-
-  useEffect(() => {
-    if (ready) return
-    const trigger = () => setReady(true)
-    const events: (keyof WindowEventMap)[] = [
-      "pointerdown",
-      "pointermove",
-      "touchstart",
-      "keydown",
-      "scroll",
-      "wheel",
-    ]
-    const opts: AddEventListenerOptions = { once: true, passive: true }
-    for (const ev of events) window.addEventListener(ev, trigger, opts)
-    const ric =
-      typeof window.requestIdleCallback === "function"
-        ? window.requestIdleCallback(trigger, { timeout: 4000 })
-        : window.setTimeout(trigger, 2500)
-    return () => {
-      for (const ev of events) window.removeEventListener(ev, trigger)
-      if (typeof window.cancelIdleCallback === "function" && typeof ric === "number") {
-        window.cancelIdleCallback(ric)
-      } else {
-        window.clearTimeout(ric as number)
-      }
-    }
-  }, [ready])
+  useSuppressTourvisorRejections()
 
   useEffect(() => {
     if (!ready) return
@@ -62,20 +29,13 @@ export function HotToursWidget() {
   }, [ready])
 
   return (
-    <>
-      {!loaded && (
-        <div className="flex min-h-[220px] items-center justify-center rounded-xl border border-line bg-cream/60">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-brand" />
-            <span className="text-sm text-ink-muted">Загружаем горящие туры…</span>
-          </div>
-        </div>
-      )}
+    <div className="relative min-h-[220px]">
+      {!loaded && <TourvisorFacade variant="hot" loading={ready} onActivate={arm} />}
       <div
         ref={hostRef}
         className="tv-hot-tours tv-moduleid-9986280"
-        style={loaded ? undefined : { position: "absolute", opacity: 0, pointerEvents: "none" }}
+        style={loaded ? undefined : { position: "absolute", inset: 0, opacity: 0, pointerEvents: "none" }}
       />
-    </>
+    </div>
   )
 }

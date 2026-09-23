@@ -18,7 +18,14 @@ assert.doesNotMatch(helperCodeOnly, /settings\[["']site\.url|getSiteOrigin|from\
 
 // seo-metadata, site-schema, sitemap must all import from canonical-origin instead of ad-hoc SITE_URL/CMS site.url
 assert.match(seoMd, /from\s*"@\/lib\/canonical-origin"/, "seo-metadata.ts must import canonical origin from helper")
-assert.match(sitemap, /from\s*"@\/lib\/canonical-origin"/, "sitemap.ts must import canonical origin from helper")
+// sitemap строит URL только через absoluteUrl из seo-metadata (тот, в свою
+// очередь, — через canonical-origin); прямой импорт helper'а не обязателен.
+assert.match(
+  sitemap,
+  /from\s*"@\/lib\/(canonical-origin|seo-metadata)"/,
+  "sitemap.ts must build URLs via canonical origin (canonical-origin or seo-metadata absoluteUrl)",
+)
+assert.doesNotMatch(sitemap, /getSiteOrigin|settings\[["']site\.url/, "sitemap.ts must not derive origin from CMS")
 assert.match(schema, /from\s*"@\/lib\/canonical-origin"/, "site-schema.ts must import canonical origin from helper")
 
 // site-schema must NOT read `site.url` inside JSON-LD @id or url fields

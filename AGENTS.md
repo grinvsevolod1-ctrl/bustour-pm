@@ -92,7 +92,7 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker
   **Пуш в main = деплой на прод.** Логи: `journalctl -u bastur-auto-deploy -f`.
 - `deploy.sh` (на сервере, в `/var/www/bustour`): git pull → npm ci →
   preflight → build → миграции (`db:migrate:prod`) → pm2 startOrReload →
-  health-check. Флаги: `--setup` (первичная установка), `--no-pull`.
+  health-check. Флаги: `--setup` (перв��чная установка), `--no-pull`.
 - pm2-процессы: `bastur-app` (web) и `bastur-media-worker`. Логи:
   `pm2 logs bastur-app --lines 50 --nostream`. Ротация — pm2-logrotate
   (ставится deploy.sh автоматически).
@@ -107,11 +107,37 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker
 - `BASTUR_DEPLOY_ENV` — production | dev | local. В production капча
   ОБЯЗАТЕЛЬНА: без `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`/`RECAPTCHA_SECRET_KEY`
   формы (заявки/отзывы) не отправятся. Это известный незакрытый пункт —
-  ключи ждут владельца (reCAPTCHA v3).
+  ключи ждут владел��ца (reCAPTCHA v3).
 - `DATABASE_URL` — локальный PostgreSQL на VPS.
 - `AUTH_SECRET` — секрет сессий (openssl rand -hex 32).
 - В песочнице v0 dev-сервер запускается `BUSTOUR_SKIP_PREFLIGHT=1 npm run dev`
   с локальным PostgreSQL (`pg_ctl -D /tmp/pgdata`).
+
+## Секреты без доступа к серверу (sealed-env)
+
+Секреты интеграций (Telegram, SMTP, U-ON) на прод доезжают обычным пушем
+в `main`, но в git лежат ТОЛЬКО в зашифрованном виде — `scripts/sealed-env.mjs`.
+
+- Сервер при деплое один раз создаёт пару RSA-4096 в `.seal/` (gitignored)
+  и отдаёт публичный ключ по `GET https://bus-tour.by/api/seal-key`
+  (заголовок `X-Seal-Key-Id` = `keyId` в файлах).
+- Запечатать: `npm run sealed-env -- seal --pub https://bus-tour.by/api/seal-key
+  --out ops/sealed-env/10-notify.json KEY=VALUE ...` (или `--from-file secrets.env`).
+  В файле открыто только имена ключей; коммитить его безопасно.
+- `deploy.sh` (шаг 2b) делает `init` + `apply`: расшифровывает `ops/sealed-env/*.json`
+  и дописывает/обновляет значения в `.env` (комментарии и порядок строк
+  сохраняются, значения для bash-безопасности пишутся в одинарных кавычках).
+  Значение из sealed-файла — источник правды: ручная правка того же ключа
+  в `.env` перезапишется на следующем деплое. Чужой/битый файл пропускается
+  с предупреждением, деплой не блокируется.
+- `scripts/integrations-bootstrap.mjs` (шаг 3d) после apply: подбирает
+  `TELEGRAM_CHAT_ID` через getUpdates (владелец должен один раз написать боту),
+  проверяет логин SMTP (`verify`), пишет статусы в лог деплоя. Значения
+  секретов в лог не попадают. Для админа есть `GET /api/admin/telegram-chats`.
+- E-mail заявок: SMTP (`SMTP_HOST/PORT/SECURE/USER/PASS`) имеет приоритет
+  над Resend; `From` при SMTP должен совпадать с `SMTP_USER`.
+- Ключи в `.env` руками через SSH больше не нужны; если ключ сервера
+  пересоздали (потеряли `.seal/`) — перезапечатать файлы новым публичным ключом.
 
 ## Известные грабли (не наступать повторно)
 

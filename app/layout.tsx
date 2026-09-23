@@ -41,13 +41,11 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${nunito.variable} light bg-background`} suppressHydrationWarning>
       <head>
-        {/* Tourvisor-виджет грузится лениво (по первому взаимодействию), но когда
-            он всё же подключается — это сторонний домен, и на установку
-            соединения (DNS + TLS) уходит время. Заранее «прогреваем» соединение
-            resource-hints'ами, чтобы к моменту инъекции init.js рукопожатие уже
-            было готово и виджет появлялся быстрее. Сам скрипт при этом НЕ
-            предзагружаем — иначе потеряем выигрыш от ленивой загрузки в TBT. */}
-        <link rel="preconnect" href="https://tourvisor.ru" crossOrigin="anonymous" />
+        {/* Tourvisor-виджет грузится строго после действия пользователя, поэтому
+            во время замера Lighthouse соединение с tourvisor.ru не используется.
+            Полный preconnect в таком режиме Lighthouse помечает как «неиспользуемый»
+            (и держит соединение зря ~10 с), а dns-prefetch — дешёвый и без
+            предупреждений: DNS уже разрешён к моменту, когда человек кликнет. */}
         <link rel="dns-prefetch" href="https://tourvisor.ru" />
       </head>
       <body className="font-sans antialiased text-ink" suppressHydrationWarning>
