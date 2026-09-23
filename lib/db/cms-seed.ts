@@ -23,7 +23,7 @@ export const defaultSettings: Record<string, string> = {
   "site.address": "г. Минск, пр-т Независимости, 45, оф. 12",
   "site.hours": "10:00–18:00",
   "site.hoursNote": "сб. и вс. — выходной",
-  "site.copyright": "© БасТур, 2013–2025. Путешествия, которые хочется повторить.",
+  "site.copyright": "© БасТур, 2013–2025. Путешествия, которые хочется повторить",
   // Web analytics and conversion goals (loaded only after analytics consent)
   "analytics.ymCounterId": "",
   "analytics.gtmId": "",
