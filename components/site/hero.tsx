@@ -74,7 +74,6 @@ export function Hero({ blocks }: { blocks: ContentBlock[] }) {
                 sizes="100vw"
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-black/30" aria-hidden />
               <div className="absolute inset-0 flex items-center justify-center px-4">
                 <div className="w-full max-w-xl space-y-5 rounded bg-black/40 px-6 py-6 text-center backdrop-blur-sm">
                   {/* ⚠️ Промо-заголовки слайдов — это НЕ H1 страницы. Единственный <h1>
