@@ -5,7 +5,7 @@ import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { AviaSidebar } from "@/components/site/avia-sidebar"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { PageAlert } from "@/components/site/alert"
-import { DESTINATION_DEFAULT_SECTION_ORDER } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { ResortCards } from "@/components/site/resort-cards"
 import { DestinationSectionMap } from "@/components/site/catalog/destination-section-map"
@@ -64,9 +64,11 @@ export default async function AviaToursPage() {
     return [...DESTINATION_DEFAULT_SECTION_ORDER]
   })()
 
-  const searchIndex = sectionOrder.indexOf("search")
-  const beforeSearchOrder = searchIndex < 0 ? [] : sectionOrder.slice(0, searchIndex)
-  const afterSearchOrder = sectionOrder.filter((key, index) => key !== "search" && (searchIndex < 0 || index > searchIndex))
+  const {
+    top: topOrder,
+    beforeSearch: beforeSearchOrder,
+    afterSearch: afterSearchOrder,
+  } = splitOrderAroundSearch(sectionOrder)
 
   const renderCmsSections = (order: string[]) => (
     <DestinationSectionMap
@@ -108,6 +110,7 @@ export default async function AviaToursPage() {
                 <ParsedText text={h1} />
               </TitleUnderline>
               <PageAlert settings={settings} prefix={p} />
+              {renderCmsSections(topOrder)}
               <RichContent html={introHtml} />
             </div>
             {renderCmsSections(beforeSearchOrder)}

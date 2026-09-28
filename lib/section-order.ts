@@ -1,4 +1,28 @@
-import { MULTIPLIABLE_SECTION_BASES } from "@/lib/multipliable-sections"
+import { MULTIPLIABLE_SECTION_BASES, isCallusSectionKey } from "@/lib/multipliable-sections"
+
+/**
+ * Разбивает порядок секций страницы с жёсткой шапкой (H1 → вступление → виджет
+ * поиска) на три зоны, чтобы порядок из админки реально влиял на позицию:
+ *  - top: «Есть вопросы», поставленные В САМОЕ НАЧАЛО порядка, — выводятся
+ *    сразу под H1/алертом, выше вступительного текста (иначе блок невозможно
+ *    поднять выше интро: интро не является сортируемой секцией);
+ *  - beforeSearch: всё, что стоит до «search», — между интро и виджетом;
+ *  - afterSearch: остальное — под виджетом.
+ * Если в старом сохранённом порядке нет «search», виджет считается первым,
+ * как было раньше, чтобы на проде ничего не съехало.
+ */
+export function splitOrderAroundSearch(order: string[]) {
+  let lead = 0
+  while (lead < order.length && isCallusSectionKey(order[lead])) lead++
+  const tail = order.slice(lead)
+  const rest = tail.includes("search") ? tail : ["search", ...tail]
+  const searchIndex = rest.indexOf("search")
+  return {
+    top: order.slice(0, lead),
+    beforeSearch: rest.slice(0, searchIndex),
+    afterSearch: rest.slice(searchIndex + 1),
+  }
+}
 
 /**
  * Default order for destination pages (city / country / branch home).

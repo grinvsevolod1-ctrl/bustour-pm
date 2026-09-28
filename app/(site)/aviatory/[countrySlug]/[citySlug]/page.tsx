@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { AviaSidebar } from "@/components/site/avia-sidebar"
 import { TitleUnderline } from "@/components/site/title-underline"
-import { DESTINATION_DEFAULT_SECTION_ORDER } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { PageAlert } from "@/components/site/alert"
 import { ResortCards } from "@/components/site/resort-cards"
@@ -89,6 +89,33 @@ export default async function AviaCityPage({
     return [...DESTINATION_DEFAULT_SECTION_ORDER]
   })()
   const get = (key: string) => settings[`${p}.${key}`] ?? ""
+  const split = splitOrderAroundSearch(sectionOrder)
+
+  const renderSections = (order: string[]) => (
+    <DestinationSectionMap
+      sectionOrder={order}
+      settings={settings}
+      settingsPrefix={p}
+      resortBlocks={resortBlocks}
+      faqs={faqs}
+      citiesSection={
+        relatedCities.length ? (
+          <section className="space-y-4">
+            <TitleUnderline as="h2">
+              <ParsedText text={get("citiesTitle") || `Популярные курорты в ${info.country}`} />
+            </TitleUnderline>
+            <ResortCards
+              cities={relatedCities}
+              basePath={`${aviaPrefix}/${countrySlug}`}
+              category="avia"
+              settings={settings}
+              settingsPrefix={p}
+            />
+          </section>
+        ) : null
+      }
+    />
+  )
 
   const header = (
     <div className="space-y-6">
@@ -108,10 +135,12 @@ export default async function AviaCityPage({
       <div className="space-y-4">
         <TitleUnderline as="h1"><ParsedText text={get("h1") || `Авиатуры в ${info.name}`} /></TitleUnderline>
         <PageAlert settings={settings} prefix={p} />
+        {renderSections(split.top)}
         {resolveCmsText(get("intro")) ? (
           <RichContent html={resolveCmsText(get("intro"))} />
         ) : null}
       </div>
+      {renderSections(split.beforeSearch)}
       <AviaTourSearchWidget />
     </div>
   )
@@ -128,29 +157,7 @@ export default async function AviaCityPage({
         />
         <div className="min-w-0 flex-1 space-y-6">
           {header}
-          <DestinationSectionMap
-            sectionOrder={sectionOrder}
-            settings={settings}
-            settingsPrefix={p}
-            resortBlocks={resortBlocks}
-            faqs={faqs}
-            citiesSection={
-              relatedCities.length ? (
-                <section className="space-y-4">
-                  <TitleUnderline as="h2">
-                    <ParsedText text={get("citiesTitle") || `Популярные курорты в ${info.country}`} />
-                  </TitleUnderline>
-                  <ResortCards
-                    cities={relatedCities}
-                    basePath={`${aviaPrefix}/${countrySlug}`}
-                    category="avia"
-                    settings={settings}
-                    settingsPrefix={p}
-                  />
-                </section>
-              ) : null
-            }
-          />
+          {renderSections(split.afterSearch)}
         </div>
       </div>
     </main>

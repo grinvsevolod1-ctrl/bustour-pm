@@ -18,6 +18,7 @@ import { resolveCountryPage, assertCountryPreviewAccess } from "@/lib/preview-re
 import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { ParsedText } from "@/components/site/parsed-text"
 import { getShortcodesDict } from "@/lib/shortcodes"
+import { splitOrderAroundSearch } from "@/lib/section-order"
 
 export const dynamic = "force-dynamic"
 
@@ -91,117 +92,65 @@ export default async function AviaCountryPage({
       const raw = settings[`${p}.sections.order`]
       if (raw) return JSON.parse(raw) as string[]
     } catch {}
-    return ["cities", "seo", "callus", "faq"]
+    return ["search", "cities", "seo", "callus", "faq"]
   })()
 
-  // ── Rich template page ───────────────────────────────────────────────
-  if (hasRichContent) {
-    const get = (key: string) => settings[`${p}.${key}`] ?? ""
-
-    return (
-      <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start">
-          <AviaSidebar countries={aviaCountries} activeCountrySlug={liveCountrySlug} aviaPrefix={aviaPrefix} shortcodesDict={shortcodesDict} />
-          <div className="min-w-0 flex-1 space-y-10">
-
-            {/* Header */}
-            <div className="space-y-6">
-              <Breadcrumb
-                items={[
-                  { label: "Главная", href: "/" },
-                  { label: "Авиатуры", href: `${aviaPrefix}/` },
-                  { label: country.name },
-                ]}
-              />
-              <div className="space-y-4">
-                <TitleUnderline as="h1"><ParsedText text={get("h1") || `Авиатуры в ${country.name} из Минска`} /></TitleUnderline>
-                <PageAlert
-                  settings={settings}
-                  prefix={p}
-                />
-                {resolveCmsText(get("intro")) ? (
-                  <RichContent html={resolveCmsText(get("intro"))} />
-                ) : null}
-              </div>
-              <AviaTourSearchWidget />
-            </div>
-
-            {/* Sections rendered in admin-defined order */}
-            <DestinationSectionMap
-              sectionOrder={sectionOrder}
-              settings={settings}
-              settingsPrefix={p}
-              resortBlocks={resortBlocks}
-              faqs={faqs}
-              citiesSection={
-                countryCities.length ? (
-                  <section className="space-y-4">
-                    <TitleUnderline as="h2">
-                      <ParsedText text={get("citiesTitle") || `Популярные курорты в ${country.name}`} />
-                    </TitleUnderline>
-                    <ResortCards cities={countryCities} basePath={`${aviaPrefix}/${liveCountrySlug}`} category="avia" settings={settings} settingsPrefix={p} />
-                  </section>
-                ) : null
-              }
-            />
-
-          </div>
-        </div>
-      </main>
-    )
-  }
-
-  // ── Default page (no rich content, uses ToursListing layout) ──────
   const get = (key: string) => settings[`${p}.${key}`] ?? ""
-  const header = (
-    <div className="space-y-6">
-      <Breadcrumb
-        items={[
-          { label: "Главная", href: "/" },
-          { label: "Авиатуры", href: `${aviaPrefix}/` },
-          { label: country.name },
-        ]}
-      />
-      <div className="space-y-4">
-        <TitleUnderline as="h1">
-          <ParsedText text={get("h1") || `Авиатуры в ${country.name}`} />
-        </TitleUnderline>
-        <PageAlert settings={settings} prefix={p} />
-        {resolveCmsText(get("intro")) ? (
-          <RichContent html={resolveCmsText(get("intro"))} />
-        ) : null}
-      </div>
-      <AviaTourSearchWidget />
-    </div>
+  const split = splitOrderAroundSearch(sectionOrder)
+  const defaultH1 = hasRichContent ? `Авиатуры в ${country.name} из Минска` : `Авиатуры в ${country.name}`
+
+  const renderSections = (order: string[]) => (
+    <DestinationSectionMap
+      sectionOrder={order}
+      settings={settings}
+      settingsPrefix={p}
+      resortBlocks={resortBlocks}
+      faqs={faqs}
+      faqDefaultTitle={hasRichContent ? undefined : settings["title.faq"]}
+      citiesSection={
+        countryCities.length ? (
+          <section className="space-y-4">
+            <TitleUnderline as="h2">
+              <ParsedText text={get("citiesTitle") || `Популярные курорты в ${country.name}`} />
+            </TitleUnderline>
+            <ResortCards cities={countryCities} basePath={`${aviaPrefix}/${liveCountrySlug}`} category="avia" settings={settings} settingsPrefix={p} />
+          </section>
+        ) : null
+      }
+    />
   )
 
-  // Раньше «Есть вопросы» и ЧаВо рисовались жёстко ПОСЛЕ SEO и курортов,
-  // поэтому перемещение блока вверх в админке ни на что не влияло.
-  // Теперь все секции идут строго в порядке sections.order — как в rich-шаблоне.
+  // Шапка (H1 → интро → виджет) раньше была жёсткой, и все секции из админки,
+  // включая «Есть вопросы», могли стоять только ПОД виджетом поиска.
+  // Теперь позицию задаёт sections.order: callus в начале порядка — сразу под H1,
+  // секции до «search» — между интро и виджетом (см. splitOrderAroundSearch).
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <AviaSidebar countries={aviaCountries} activeCountrySlug={liveCountrySlug} aviaPrefix={aviaPrefix} shortcodesDict={shortcodesDict} />
         <div className="min-w-0 flex-1 space-y-10">
-          {header}
-          <DestinationSectionMap
-            sectionOrder={sectionOrder}
-            settings={settings}
-            settingsPrefix={p}
-            resortBlocks={resortBlocks}
-            faqs={faqs}
-            faqDefaultTitle={settings["title.faq"]}
-            citiesSection={
-              countryCities.length ? (
-                <section className="space-y-4">
-                  <TitleUnderline as="h2">
-                    <ParsedText text={get("citiesTitle") || `Популярные курорты в ${country.name}`} />
-                  </TitleUnderline>
-                  <ResortCards cities={countryCities} basePath={`${aviaPrefix}/${liveCountrySlug}`} category="avia" settings={settings} settingsPrefix={p} />
-                </section>
-              ) : null
-            }
-          />
+          <div className="space-y-6">
+            <Breadcrumb
+              items={[
+                { label: "Главная", href: "/" },
+                { label: "Авиатуры", href: `${aviaPrefix}/` },
+                { label: country.name },
+              ]}
+            />
+            <div className="space-y-4">
+              <TitleUnderline as="h1">
+                <ParsedText text={get("h1") || defaultH1} />
+              </TitleUnderline>
+              <PageAlert settings={settings} prefix={p} />
+              {renderSections(split.top)}
+              {resolveCmsText(get("intro")) ? (
+                <RichContent html={resolveCmsText(get("intro"))} />
+              ) : null}
+            </div>
+            {renderSections(split.beforeSearch)}
+            <AviaTourSearchWidget />
+          </div>
+          {renderSections(split.afterSearch)}
         </div>
       </div>
     </main>
