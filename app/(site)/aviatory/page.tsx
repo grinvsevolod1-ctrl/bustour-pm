@@ -110,9 +110,10 @@ export default async function AviaToursPage() {
                 <ParsedText text={h1} />
               </TitleUnderline>
               <PageAlert settings={settings} prefix={p} />
-              {renderCmsSections(topOrder)}
               <RichContent html={introHtml} />
             </div>
+            {/* «Есть вопросы» поднятый наверх — ставим под интро, прямо над карточками Tourvisor */}
+            {renderCmsSections(topOrder)}
             {renderCmsSections(beforeSearchOrder)}
             <AviaTourSearchWidget />
             {renderCmsSections(afterSearchOrder)}

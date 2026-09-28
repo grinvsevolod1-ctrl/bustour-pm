@@ -142,11 +142,11 @@ export default async function AviaCountryPage({
                 <ParsedText text={get("h1") || defaultH1} />
               </TitleUnderline>
               <PageAlert settings={settings} prefix={p} />
-              {renderSections(split.top)}
               {resolveCmsText(get("intro")) ? (
                 <RichContent html={resolveCmsText(get("intro"))} />
               ) : null}
             </div>
+            {renderSections(split.top)}
             {renderSections(split.beforeSearch)}
             <AviaTourSearchWidget />
           </div>

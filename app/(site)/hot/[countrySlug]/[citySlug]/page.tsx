@@ -147,11 +147,11 @@ export default async function HotCityPage({ params, searchParams }: Props) {
                 <ParsedText text={get("h1") || `Горящие туры — ${info.name}`} />
               </TitleUnderline>
               <PageAlert settings={settings} prefix={p} />
-              {renderCmsSections(split.top)}
               {resolveCmsText(get("intro")) ? (
                 <RichContent html={resolveCmsText(get("intro"))} />
               ) : null}
             </div>
+            {renderCmsSections(split.top)}
             {renderCmsSections(split.beforeSearch)}
             {showSearch ? useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget /> : null}
             {renderCmsSections(split.afterSearch)}

@@ -105,7 +105,6 @@ export default async function HotToursPage() {
                 <ParsedText text={resolvePublicCmsText(get("h1"), "Горящие туры")} />
               </TitleUnderline>
               <PageAlert settings={settings} prefix={p} />
-              {renderCmsSections(split.top)}
               <RichContent
                 html={resolvePublicCmsText(
                   get("intro"),
@@ -114,6 +113,7 @@ export default async function HotToursPage() {
                 )}
               />
             </div>
+            {renderCmsSections(split.top)}
             {renderCmsSections(split.beforeSearch)}
             {showSearch ? useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget /> : null}
             {renderCmsSections(split.afterSearch)}

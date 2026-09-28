@@ -135,11 +135,11 @@ export default async function AviaCityPage({
       <div className="space-y-4">
         <TitleUnderline as="h1"><ParsedText text={get("h1") || `Авиатуры в ${info.name}`} /></TitleUnderline>
         <PageAlert settings={settings} prefix={p} />
-        {renderSections(split.top)}
         {resolveCmsText(get("intro")) ? (
           <RichContent html={resolveCmsText(get("intro"))} />
         ) : null}
       </div>
+      {renderSections(split.top)}
       {renderSections(split.beforeSearch)}
       <AviaTourSearchWidget />
     </div>
