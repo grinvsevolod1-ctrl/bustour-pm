@@ -55,8 +55,19 @@ export function Testimonials({
   const DESKTOP_PAGE_SIZE = 4
 
   const capped = maxReviews === Infinity ? reviews : reviews.slice(0, maxReviews)
-  const visible = capped.slice(0, DESKTOP_PAGE_SIZE)
-  const mobileReview = capped[mobilePage]
+
+  // Каждый отзыв рендерится в DOM ровно один раз: раньше были отдельные
+  // мобильный и десктопный блоки, и первый отзыв (плюс инфо-карточка и CTA)
+  // дублировался в HTML — поисковики и скринридеры видели «двойной отзыв».
+  // Видимость на мобайле/десктопе теперь переключается классами.
+  function cardVisibility(index: number) {
+    const onMobile = index === mobilePage
+    const onDesktop = index < DESKTOP_PAGE_SIZE
+    if (onMobile && onDesktop) return ""
+    if (onMobile) return "sm:hidden"
+    if (onDesktop) return "hidden sm:block"
+    return "hidden"
+  }
 
   return (
     <section
@@ -69,14 +80,17 @@ export function Testimonials({
         </div>
       ) : null}
 
-      <div className="space-y-6 sm:hidden">
-        <InfoCard title={infoTitle || title} body={infoBody} />
+      <div className="flex flex-col gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-3">
+        <InfoCard title={infoTitle} body={infoBody} />
 
-        {mobileReview ? (
-          <div aria-roledescription="carousel" aria-label="Видеоотзывы клиентов">
-            <VideoCard key={mobileReview.id} review={mobileReview} />
-            {capped.length > 1 ? (
-              <div className="mt-4 flex items-center justify-center gap-4">
+        {capped.map((review, index) => (
+          <div key={review.id} className={cardVisibility(index)}>
+            <VideoCard review={review} />
+          </div>
+        ))}
+
+        {capped.length > 1 ? (
+              <div className="-mt-2 flex items-center justify-center gap-4 sm:hidden">
                 <button
                   type="button"
                   onClick={() => setMobilePage((page) => Math.max(0, page - 1))}
@@ -99,18 +113,8 @@ export function Testimonials({
                   <ChevronRight className="h-5 w-5" aria-hidden />
                 </button>
               </div>
-            ) : null}
-          </div>
         ) : null}
 
-        <AllReviewsCta label={ctaLabel} />
-      </div>
-
-      <div className="hidden gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-3">
-        <InfoCard title={infoTitle || title} body={infoBody} />
-        {visible.map((review) => (
-          <VideoCard key={review.id} review={review} />
-        ))}
         <AllReviewsCta label={ctaLabel} />
       </div>
     </section>
