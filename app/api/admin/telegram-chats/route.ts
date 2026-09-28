@@ -1,4 +1,5 @@
-import { requireAdmin } from "@/lib/auth"
+import { getAdmin } from "@/lib/auth"
+import { roleHasCapability } from "@/lib/admin-roles"
 
 export const dynamic = "force-dynamic"
 
@@ -31,8 +32,12 @@ async function tg<T>(token: string, method: string, body?: Record<string, unknow
  * отдаём — только имя бота и найденные чаты.
  */
 export async function GET() {
-  const admin = await requireAdmin().catch(() => null)
+  const admin = await getAdmin()
   if (!admin) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
+  // Список чатов бота — часть настройки интеграций, менеджеру он не нужен.
+  if (!roleHasCapability(admin.role, "manage_settings")) {
+    return Response.json({ ok: false, error: "forbidden" }, { status: 403 })
+  }
 
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim()
   if (!token) return Response.json({ ok: false, error: "TELEGRAM_BOT_TOKEN не задан на сервере" })

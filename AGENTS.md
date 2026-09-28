@@ -10,11 +10,11 @@
 Проект состоит из публичного сайта и полноценной админ-панели (`/admin`)
 с ролями, аудитом и CMS-настройками почти каждого текста на сайте.
 
-- **Прод:** https://bus-tour.by (временный домен; боевой будет `bus-tour.by` —
-  смена домена = поменять `NEXT_PUBLIC_SITE_URL` в `.env` и передеплоить)
+- **Прод:** https://bus-tour.by (смена домена = поменять `NEXT_PUBLIC_SITE_URL`
+  в `.env` и передеплоить)
 - **Репозиторий:** github.com/grinvsevolod1-ctrl/bustour-pm, рабочая ветка `main`
   (старый репозиторий BUSTOUR удалён — единственный правильный это bustour-pm)
-- **Хостинг:** собственный VPS (Ubuntu), nginx → pm2 → Next.js standalone на
+- **Хостинг:** собственный VPS (Ubuntu), nginx → pm2 (`next start`) на
   порту 3000, PostgreSQL 18 на той же машине. НЕ Vercel-хостинг.
 
 ## Стек
@@ -36,7 +36,8 @@
 ```
 app/
   (site)/          # публичный сайт: aviatory, avtobusnye-tury, hot, tour,
-                   # bus-rental, company, contacts, info, legal, testimonials
+                   # arenda-avtobusov-v-minske, company, contacts, helpful,
+                   # legal, reviews
   admin/           # админка: login + (protected)/ со всеми разделами
   api/             # route handlers (health, формы, revalidate и пр.)
   uploads/         # раздача загруженных файлов
@@ -59,7 +60,7 @@ lib/
   avia-slug.ts     # переименовываемый слаг раздела авиатуров (/aviatury и т.п.)
 middleware.ts      # rewrite авиа-слага, редиректы; см. «Грабли» ниже
 scripts/           # preflight, миграции, seed, десятки selfcheck-тестов
-tests/             # vitest-тесты (move, avia-slug, proxy-origin)
+tests/             # vitest-тесты (move, avia-slug, proxy-origin, seo-auto и др.)
 ops/auto-deploy/   # systemd-таймер автодеплоя на сервере
 deploy.sh          # главный скрипт деплоя на VPS (см. «Деплой»)
 ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker

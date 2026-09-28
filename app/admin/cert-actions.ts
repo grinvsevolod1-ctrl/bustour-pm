@@ -28,7 +28,7 @@ export async function saveCertSectionAction(_prev: unknown, formData: FormData) 
 
   const id = Number(formData.get("id") || 0)
   const outcome = await withAdminAction(
-    { errorMessage: "Не удалось сохранить раздел", revalidate: REVALIDATE },
+    { capability: "manage_content", errorMessage: "Не удалось сохранить раздел", revalidate: REVALIDATE },
     async () => {
       if (id) await updateCertSection(id, input)
       else await createCertSection(input)
@@ -50,7 +50,7 @@ export async function saveCertSectionAction(_prev: unknown, formData: FormData) 
 export async function deleteCertSectionAction(formData: FormData) {
   const id = Number(formData.get("id") || 0)
   const outcome = await withAdminAction(
-    { errorMessage: "Не удалось удалить раздел", revalidate: REVALIDATE },
+    { capability: "manage_content", errorMessage: "Не удалось удалить раздел", revalidate: REVALIDATE },
     async () => {
       if (id) await deleteCertSection(id)
       return {
@@ -72,7 +72,7 @@ export async function moveCertSectionAction(formData: FormData) {
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "up") === "down" ? "down" : "up"
   await withAdminAction(
-    { errorMessage: "Не удалось переместить раздел", revalidate: REVALIDATE },
+    { capability: "manage_content", errorMessage: "Не удалось переместить раздел", revalidate: REVALIDATE },
     async () => {
       if (id) await moveCertSection(id, direction)
       return {
@@ -105,7 +105,7 @@ export async function saveCertificateAction(_prev: unknown, formData: FormData) 
 
   const id = Number(formData.get("id") || 0)
   const outcome = await withAdminAction(
-    { errorMessage: "Не удалось сохранить документ", revalidate: REVALIDATE },
+    { capability: "manage_content", errorMessage: "Не удалось сохранить документ", revalidate: REVALIDATE },
     async () => {
       if (id) await updateCertificate(id, input)
       else await createCertificate(input)
@@ -128,7 +128,7 @@ export async function moveCertificateAction(formData: FormData) {
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "up") === "down" ? "down" : "up"
   await withAdminAction(
-    { errorMessage: "Не удалось переместить документ", revalidate: REVALIDATE },
+    { capability: "manage_content", errorMessage: "Не удалось переместить документ", revalidate: REVALIDATE },
     async () => {
       if (id) await moveCertificate(id, direction)
       return {
@@ -147,7 +147,7 @@ export async function moveCertificateAction(formData: FormData) {
 export async function deleteCertificateAction(formData: FormData) {
   const id = Number(formData.get("id") || 0)
   await withAdminAction(
-    { errorMessage: "Не удалось удалить документ", revalidate: REVALIDATE },
+    { capability: "manage_content", errorMessage: "Не удалось удалить документ", revalidate: REVALIDATE },
     async () => {
       if (id) await deleteCertificate(id)
       return {
