@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { PageExtras } from "@/components/site/page-extras"
+import { PageAlert } from "@/components/site/alert"
 import { getPublicSettings, isOn } from "@/lib/cms"
 import { getTransfers } from "@/lib/queries"
 import { metadataFromSettings } from "@/lib/seo-metadata"
@@ -226,6 +227,7 @@ export default async function TransfersPage() {
           <TitleUnderline as="h1">
             <ParsedText text={settings["transfers.title"] || "Трансферы в аэропорт"} />
           </TitleUnderline>
+          <PageAlert settings={settings} prefix={pageKey} />
 
           {flow.map((item) =>
             item.type === "block" ? (

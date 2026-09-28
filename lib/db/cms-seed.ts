@@ -19,7 +19,7 @@ export const defaultSettings: Record<string, string> = {
   "site.phone": "+375 29 621-44-77",
   // Footer phones — one per line, shown as-is; tel: link derived automatically.
   "site.phones": "+375 (29) 621-44-77\n+375 (33) 621-44-77\n+375 (25) 621-44-77",
-  "site.email": "info@bastur.by",
+  "site.email": "info@bus-tour.by",
   "site.address": "г. Минск, пр-т Независимости, 45, оф. 12",
   "site.hours": "10:00–18:00",
   "site.hoursNote": "сб. и вс. — выходной",

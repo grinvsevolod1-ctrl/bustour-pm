@@ -182,6 +182,10 @@ export function transferPageConfig(slug: string, transferTitle?: string): {
     ],
     groups: [
       {
+        heading: "Алерт",
+        fields: [...pageAlertFields(p)],
+      },
+      {
         heading: "SEO и мета",
         fields: [
           { key: `${p}.metaTitle`, label: "Title (SEO)", type: "shortcode-input", placeholder: `${title} — БасТур` },

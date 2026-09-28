@@ -2,14 +2,14 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { createBusTourType, updateBusTourType, deleteBusTourType } from "@/lib/bus-tour-types"
 
 type ActionState = { ok?: boolean; error?: string }
 
 export async function saveBusTourTypeAction(_prev: unknown, formData: FormData): Promise<ActionState> {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const name = String(formData.get("name") || "").trim()
   if (!name) return { error: "Укажите название типа тура" }
   const id = Number(formData.get("id") || 0)
@@ -43,7 +43,7 @@ export async function saveBusTourTypeAction(_prev: unknown, formData: FormData):
 }
 
 export async function deleteBusTourTypeAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   if (!id) return
   try {

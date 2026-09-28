@@ -363,6 +363,7 @@ export const pageSettingsGroups: Record<string, {
         heading: "Тексты страницы",
         fields: [
           { key: "transfers.title", label: "Заголовок страницы (H1)", type: "shortcode-input" },
+          ...pageAlertFields("transfers"),
           {
             key: "transfers.intro",
             label: "Вводный текст",
@@ -526,7 +527,7 @@ export const settingsGroups: SettingsGroup[] = [
       {
         key: "site.url",
         label: "URL сайта",
-        placeholder: "https://bastur.by",
+        placeholder: "https://bus-tour.by",
         hint: "Используется в ссылках на виджет Tourvisor. Укажите полный адрес с https://",
       },
       {
@@ -553,13 +554,13 @@ export const settingsGroups: SettingsGroup[] = [
         label: "E-mail получателей заявок",
         type: "textarea",
         rows: 2,
-        placeholder: "info@bastur.by\nmanager@bastur.by",
+        placeholder: "info@bus-tour.by\nmanager@bus-tour.by",
         hint: "По одному адресу на ст��оку (или через запятую). Пусто — использовать адрес из переменной окружения LEAD_EMAIL_TO.",
       },
       {
         key: "notify.emailFrom",
         label: "E-mail отправителя",
-        placeholder: "БасТур <noreply@bastur.by>",
+        placeholder: "БасТур <noreply@bus-tour.by>",
         hint: "Для SMTP адрес должен совпадать с ящиком SMTP_USER (иначе почтовый сервер отклонит письмо), для Resend — быть подтверждён в Resend. Пусто — значение LEAD_EMAIL_FROM из окружения.",
       },
       {

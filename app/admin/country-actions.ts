@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { withAdminAction } from "@/lib/admin-action"
 import { changedSettings, pickSettingsSubset, writeAudit } from "@/lib/admin-audit"
 import {
@@ -46,7 +46,7 @@ function parseOrderedIds(formData: FormData): number[] {
 }
 
 export async function saveCountryAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const input = countryFromForm(formData)
   const validated = countrySaveSchema.safeParse(input)
   if (!validated.success) return { error: zodFirstError(validated.error) }
@@ -85,7 +85,7 @@ try { newId = await saveCountryAggregate(input, { id: id || undefined, oldPageKe
  * Used by CountryBaseForm on the edit page alongside PageSettingsForm.
  */
 export async function saveCountryPageAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const existing = id ? await getCountryById(id) : undefined
   if (!existing) return { error: "Страна не найдена" }
@@ -142,7 +142,7 @@ export async function saveCountryPageAction(_prev: unknown, formData: FormData) 
   return { ok: true }
 }
 export async function saveCountryBaseAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   if (!id) return { error: "ID не указан" }
   const name = String(formData.get("name") || "").trim()
@@ -238,7 +238,7 @@ export async function reorderCountriesAction(formData: FormData) {
 }
 
 export async function deleteCountryAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   if (!id) redirect("/admin/countries")
   const country = await getCountryById(id)

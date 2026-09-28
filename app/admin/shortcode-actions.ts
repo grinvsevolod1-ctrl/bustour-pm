@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { shortcodes } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
-import { requireAdmin, requireCapability } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { shortcodeSaveSchema, zodFirstError } from "@/lib/validations/admin"
 import { listShortcodes } from "@/lib/shortcodes"
@@ -13,7 +13,7 @@ import { revalidateCmsSettings } from "@/lib/cms"
 
 /** List for editor insert — any logged-in admin (managers edit tours). */
 export async function getAllShortcodesAction() {
-  await requireAdmin()
+  await requireCapability("manage_content")
   return listShortcodes()
 }
 

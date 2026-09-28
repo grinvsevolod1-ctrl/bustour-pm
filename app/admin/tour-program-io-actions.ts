@@ -2,7 +2,7 @@
 
 import ExcelJS from "exceljs"
 import { revalidatePath } from "next/cache"
-import { requireAdmin } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { getBusTours, saveTourContent } from "@/lib/queries"
 import { buildProgramWorkbook, parseProgramWorkbook, type ProgramImportError } from "@/lib/tour-program-excel"
@@ -14,7 +14,7 @@ export type ExportProgramParams = { tourIds: number[] | "all"; includeWhatInclud
 export async function exportTourProgramAction(
   params: ExportProgramParams,
 ): Promise<{ success: true; base64: string; filename: string } | { success: false; error: string }> {
-  await requireAdmin()
+  await requireCapability("manage_content")
   try {
     const all = await getBusTours()
     const selected =
@@ -48,7 +48,7 @@ export async function importTourProgramAction(
   _prev: ImportProgramState,
   formData: FormData,
 ): Promise<ImportProgramState> {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const file = formData.get("file")
   if (!(file instanceof File) || file.size === 0) {
     return { success: false, error: "Выберите файл .xlsx для загрузки" }

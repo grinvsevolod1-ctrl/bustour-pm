@@ -3,8 +3,8 @@
  * verifies every URL responds 200 (после переезда/деплоя ловит битые ссылки).
  *
  * Run against local server:   npx tsx scripts/sitemap-links.check.ts
- * Run against production:     BASE_URL=https://bastur.by npx tsx scripts/sitemap-links.check.ts
- * Cron (ежедневно, 6:00):     0 6 * * * cd /var/www/bastur && BASE_URL=https://bastur.by npx tsx scripts/sitemap-links.check.ts >> logs/link-monitor.log 2>&1
+ * Run against production:     BASE_URL=https://bus-tour.by npx tsx scripts/sitemap-links.check.ts
+ * Cron (ежедневно, 6:00):     0 6 * * * cd /var/www/bastur && BASE_URL=https://bus-tour.by npx tsx scripts/sitemap-links.check.ts >> logs/link-monitor.log 2>&1
  *
  * Exit code 1 если найдены битые URL — удобно для алертов.
  */

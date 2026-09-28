@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { clientIpFromHeaders, consumePersistentRateLimit, resetPersistentRateLimit } from "@/lib/rate-limit"
-import { login, logout, requireAdmin, requireCapability } from "@/lib/auth"
+import { login, logout, requireCapability } from "@/lib/auth"
 import { writeAudit, auditTourSnapshot } from "@/lib/admin-audit"
 import { safeInternalNext } from "@/lib/safe-next"
 import { isRedirectError, mutateThenRedirect } from "@/lib/admin-redirect"
@@ -44,6 +44,7 @@ import { articleSaveSchema, zodFirstError } from "@/lib/validations/admin"
 
 const LOGIN_RATE_WINDOW = 15 * 60_000 // 15 minutes
 const LOGIN_RATE_MAX = 10 // attempts per IP in window
+const LOGIN_USER_RATE_MAX = 60 // attempts per username in window (все IP вместе)
 
 export async function loginAction(_prev: unknown, formData: FormData) {
   const username = String(formData.get("username") || "").trim()
@@ -60,10 +61,13 @@ export async function loginAction(_prev: unknown, formData: FormData) {
   if (!rate.ok) {
     return { error: `Слишком много попыток входа. Повторите через ${Math.ceil(rate.retryAfterSec / 60)} мин.` }
   }
-  // Второй bucket по логину: распределённый перебор одного аккаунта
-  // со многих IP не обойдёт лимит по IP, поэтому считаем и по username.
+  // Второй bucket по логину — против распределённого перебора одного аккаунта
+  // со многих IP. Порог в разы выше IP-лимита: иначе любой мог бы нарочно
+  // 10 раз ошибиться паролем к `admin` и запереть владельцу вход.
+  // Ключ в нижнем регистре намеренно: варьирование регистра не должно
+  // давать атакующему отдельные счётчики, даже если сам логин регистрозависим.
   const userKey = username.toLowerCase()
-  const userRate = await consumePersistentRateLimit("login-user", userKey, LOGIN_RATE_MAX, LOGIN_RATE_WINDOW)
+  const userRate = await consumePersistentRateLimit("login-user", userKey, LOGIN_USER_RATE_MAX, LOGIN_RATE_WINDOW)
   if (!userRate.ok) {
     return { error: `Слишком много попыток входа. Повторите через ${Math.ceil(userRate.retryAfterSec / 60)} мин.` }
   }
@@ -107,7 +111,7 @@ function revalidateReviewsPublic() {
 }
 
 export async function saveReviewAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const videoUrl = String(formData.get("videoUrl") || "").trim()
   // Explicit toggle from the form; fall back to auto-detect for older callers.
   const submittedType = formData.get("type")
@@ -173,7 +177,7 @@ export async function saveReviewAction(_prev: unknown, formData: FormData) {
 }
 
 export async function deleteReviewAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -194,7 +198,7 @@ export async function deleteReviewAction(formData: FormData) {
 }
 
 export async function restoreReviewAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -236,7 +240,7 @@ export async function purgeReviewAction(formData: FormData) {
 }
 
 export async function approveReviewAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const approved = formData.get("approved") === "1"
   if (id) await approveReview(id, approved)
@@ -252,7 +256,7 @@ export async function approveReviewAction(formData: FormData) {
 }
 
 export async function setReviewShowOnAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const raw = String(formData.get("showOn") || "[]")
   let showOn: string[]
@@ -281,7 +285,7 @@ export async function setReviewShowOnAction(formData: FormData) {
 /* ---------------- Articles ---------------- */
 
 export async function saveArticleAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const existingArticle = id ? await getArticleById(id) : undefined
   const title = String(formData.get("title") || "").trim()
@@ -384,7 +388,7 @@ export async function saveArticleAction(_prev: unknown, formData: FormData) {
 }
 
 export async function deleteArticleAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -406,7 +410,7 @@ export async function deleteArticleAction(formData: FormData) {
 }
 
 export async function restoreArticleAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -452,7 +456,7 @@ export async function purgeArticleAction(formData: FormData) {
 /* ---------------- Leads ---------------- */
 
 export async function updateLeadStatusAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const status = String(formData.get("status") || "new") as Lead["status"]
   if (id) await updateLeadStatus(id, status)
@@ -469,7 +473,7 @@ export async function updateLeadStatusAction(formData: FormData) {
 }
 
 export async function deleteLeadAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -491,7 +495,7 @@ export async function deleteLeadAction(formData: FormData) {
 }
 
 export async function restoreLeadAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {

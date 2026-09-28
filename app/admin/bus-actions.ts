@@ -5,7 +5,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin, requireCapability } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { isRedirectError, mutateThenRedirect } from "@/lib/admin-redirect"
 import {
@@ -42,7 +42,7 @@ function busFromForm(formData: FormData): BusInput {
 }
 
 export async function saveBusAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const input = busFromForm(formData)
   const validated = busSaveSchema.safeParse(input)
   if (!validated.success) return { error: zodFirstError(validated.error) }
@@ -110,7 +110,7 @@ export async function saveBusAction(_prev: unknown, formData: FormData) {
 }
 
 export async function moveBusAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "up") === "down" ? "down" : "up"
   if (id) await moveBus(id, direction)
@@ -130,7 +130,7 @@ export async function moveBusAction(formData: FormData) {
 }
 
 export async function deleteBusAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -154,7 +154,7 @@ export async function deleteBusAction(formData: FormData) {
 }
 
 export async function restoreBusAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {

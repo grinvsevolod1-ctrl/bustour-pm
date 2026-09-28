@@ -9,6 +9,7 @@ import { expandSettingsValues } from "@/lib/expand-content-blocks"
 import type { BlockCollection, ContentBlock, SiteSettings } from "@/lib/types"
 import { computeSwapUpdates, type MoveDirection } from "@/lib/queries/move"
 import { escapeLike } from "@/lib/sql-like"
+import { CANONICAL_ORIGIN } from "@/lib/canonical-origin"
 
 /* ---------------- Settings ---------------- */
 
@@ -59,17 +60,12 @@ export function revalidateCmsSettings() {
 }
 
 /**
- * Returns the site origin with protocol and no trailing slash for Tourvisor widget URLs.
- * Priority: settings["site.url"] → NEXT_PUBLIC_SITE_URL env → "https://bastur.by"
+ * Публичный origin сайта. Делегирует в canonical-origin: домен из настроек БД
+ * не используется, чтобы в JSON-LD/ссылках не было второго источника правды.
+ * Аргумент оставлен для совместимости с существующими вызовами.
  */
-export function getSiteOrigin(settings: SiteSettings): string {
-  const raw =
-    (settings["site.url"] as string | undefined) ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://bastur.by"
-  // Ensure protocol is present
-  const withProtocol = /^https?:\/\//.test(raw) ? raw : `https://${raw}`
-  return withProtocol.replace(/\/$/, "")
+export function getSiteOrigin(_settings?: SiteSettings): string {
+  return CANONICAL_ORIGIN
 }
 
 export function isOn(settings: SiteSettings, key: string): boolean {

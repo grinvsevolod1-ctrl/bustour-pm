@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin, requireCapability } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { mutateThenRedirect } from "@/lib/admin-redirect"
 import {
@@ -19,7 +19,7 @@ import { mapDbError } from "@/lib/db-errors"
 import { staffSaveSchema, zodFirstError } from "@/lib/validations/admin"
 
 export async function saveStaffAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
 
   const raw = {
     name: String(formData.get("name") || "").trim(),
@@ -73,7 +73,7 @@ export async function saveStaffAction(_prev: unknown, formData: FormData) {
 }
 
 export async function moveStaffAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "up") === "down" ? "down" : "up"
   if (id) await moveStaffMember(id, direction)
@@ -93,7 +93,7 @@ export async function moveStaffAction(formData: FormData) {
 }
 
 export async function deleteStaffAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -115,7 +115,7 @@ export async function deleteStaffAction(formData: FormData) {
 }
 
 export async function restoreStaffAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {

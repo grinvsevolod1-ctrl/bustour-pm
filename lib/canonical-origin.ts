@@ -9,7 +9,7 @@
 // Only `process.env.NEXT_PUBLIC_SITE_URL` is accepted. The fall-back hard-coded
 // default preserves existing SEO state if env is ever accidentally unset.
 
-const DEFAULT_ORIGIN = "https://bastur.by"
+const DEFAULT_ORIGIN = "https://bus-tour.by"
 
 // В production потеря NEXT_PUBLIC_SITE_URL — тихая SEO-катастрофа:
 // canonical/sitemap/OG молча уезжают на дефолтный домен. Кричим в лог,
@@ -23,7 +23,7 @@ if (!process.env.NEXT_PUBLIC_SITE_URL && process.env.NODE_ENV === "production") 
 const rawOrigin = String(process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_ORIGIN).trim()
 const withProtocol = /^https?:\/\//i.test(rawOrigin) ? rawOrigin : `https://${rawOrigin}`
 
-/** Canonical origin with protocol, NO trailing slash. e.g. "https://bastur.by" */
+/** Canonical origin with protocol, NO trailing slash. e.g. "https://bus-tour.by" */
 export const CANONICAL_ORIGIN: string = withProtocol.replace(/\/+$/, "")
 
 export function getCanonicalOrigin(): string {

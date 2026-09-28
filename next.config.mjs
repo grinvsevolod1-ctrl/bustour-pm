@@ -93,8 +93,6 @@ const nextConfig = {
       { protocol: "https", hostname: "i.ytimg.com" },           // альтернативный CDN постеров YouTube
       { protocol: "https", hostname: "images.unsplash.com" },   // seed-контент (lib/db/init.ts)
       { protocol: "https", hostname: "**.holiday.by" },         // импорт отзывов holiday.by
-      { protocol: "https", hostname: "bastur.by" },
-      { protocol: "https", hostname: "**.bastur.by" },
       { protocol: "https", hostname: "bus-tour.by" },           // прод-домен
       { protocol: "https", hostname: "**.bus-tour.by" },
     ],

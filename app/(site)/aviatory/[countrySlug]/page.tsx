@@ -3,13 +3,10 @@ import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { TitleUnderline } from "@/components/site/title-underline"
-import { OrderedCallUs } from "@/components/site/ordered-callus"
-import { isCallusSectionKey } from "@/lib/multipliable-sections"
 import { RichContent } from "@/components/site/rich-content"
 import { PageAlert } from "@/components/site/alert"
 import { AviaSidebar } from "@/components/site/avia-sidebar"
 import { ResortCards } from "@/components/site/resort-cards"
-import { OrderedFaqSection } from "@/components/site/ordered-faq-section"
 import { DestinationSectionMap } from "@/components/site/catalog/destination-section-map"
 import { getPublicSettings, getFaqBlocksForPage, isOn, getResortBlocksForPage } from "@/lib/cms"
 import { getCityDestinations } from "@/lib/cities"
@@ -23,8 +20,6 @@ import { ParsedText } from "@/components/site/parsed-text"
 import { getShortcodesDict } from "@/lib/shortcodes"
 
 export const dynamic = "force-dynamic"
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bastur.by"
 
 export async function generateMetadata({
   params,
@@ -98,17 +93,6 @@ export default async function AviaCountryPage({
     } catch {}
     return ["cities", "seo", "callus", "faq"]
   })()
-  const seoSections = sectionOrder
-    .filter((k) => k === "seo" || /^seo\d+$/.test(k))
-    .map((k) => {
-      const suffix = k === "seo" ? "" : k.replace("seo", "")
-      return {
-        key: k,
-        title: settings[`${p}.seoTitle${suffix}`] ?? "",
-        html: settings[`${p}.seoHtml${suffix}`] ?? "",
-      }
-    })
-    .filter((s) => s.html && isOn(settings, `${p}.section.${s.key}`))
 
   // ── Rich template page ───────────────────────────────────────────────
   if (hasRichContent) {
@@ -191,48 +175,32 @@ export default async function AviaCountryPage({
     </div>
   )
 
-  const seoContent = (
-    <div className="space-y-10">
-      {seoSections.map((s) => (
-        <section key={s.key} className="space-y-4">
-          {s.title && <TitleUnderline as="h2">{s.title}</TitleUnderline>}
-          <RichContent html={s.html} />
-        </section>
-      ))}
-      {isOn(settings, `${p}.section.cities`) && countryCities.length > 0 && (
-        <section className="space-y-4">
-          <TitleUnderline as="h2">
-            <ParsedText text={get("citiesTitle") || `Популярные курорты в ${country.name}`} />
-          </TitleUnderline>
-          <ResortCards cities={countryCities} basePath={`${aviaPrefix}/${liveCountrySlug}`} category="avia" settings={settings} settingsPrefix={p} />
-        </section>
-      )}
-    </div>
-  )
-
+  // Раньше «Есть вопросы» и ЧаВо рисовались жёстко ПОСЛЕ SEO и курортов,
+  // поэтому перемещение блока вверх в админке ни на что не влияло.
+  // Теперь все секции идут строго в порядке sections.order — как в rich-шаблоне.
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <AviaSidebar countries={aviaCountries} activeCountrySlug={liveCountrySlug} aviaPrefix={aviaPrefix} shortcodesDict={shortcodesDict} />
         <div className="min-w-0 flex-1 space-y-10">
           {header}
-          {seoContent}
-          {sectionOrder
-            .filter(isCallusSectionKey)
-            .map((key) => (
-              <OrderedCallUs
-                key={key}
-                sectionKey={key}
-                settingsPrefix={p}
-                settings={settings}
-              />
-            ))}
-          <OrderedFaqSection
-            sectionKey="faq"
-            pageKey={p}
+          <DestinationSectionMap
+            sectionOrder={sectionOrder}
             settings={settings}
-            allFaqs={faqs}
-            defaultTitle={settings["title.faq"]}
+            settingsPrefix={p}
+            resortBlocks={resortBlocks}
+            faqs={faqs}
+            faqDefaultTitle={settings["title.faq"]}
+            citiesSection={
+              countryCities.length ? (
+                <section className="space-y-4">
+                  <TitleUnderline as="h2">
+                    <ParsedText text={get("citiesTitle") || `Популярные курорты в ${country.name}`} />
+                  </TitleUnderline>
+                  <ResortCards cities={countryCities} basePath={`${aviaPrefix}/${liveCountrySlug}`} category="avia" settings={settings} settingsPrefix={p} />
+                </section>
+              ) : null
+            }
           />
         </div>
       </div>

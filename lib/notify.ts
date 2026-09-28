@@ -113,7 +113,9 @@ export async function loadNotifyConfig(): Promise<NotifyChannelConfig> {
   // Без явных адресов при SMTP заявки идут в сам почтовый ящик отправителя —
   // это гарантированно существующий адрес, который читает владелец.
   const smtp = readSmtpConfig()
-  const fallbackTo = smtp ? [smtp.user] : ["info@bastur.by"]
+  // Без SMTP и без явных адресов — никуда не шлём: жёстко зашитый адрес
+  // уже однажды указывал на чужой домен и мог сливать ПДн клиентов.
+  const fallbackTo: string[] = smtp ? [smtp.user] : []
   const fallbackFrom = smtp ? `БасТур <${smtp.user}>` : "БасТур <onboarding@resend.dev>"
   return {
     emailEnabled: (settings["notify.emailEnabled"] ?? "true") !== "false",
@@ -178,7 +180,7 @@ async function sendViaResend(apiKey: string, mail: LeadMail): Promise<SendResult
 
 /**
  * Доставка в e-mail канал. Транспорт: SMTP почтового хостинга, если
- * сконфигурирован; иначе Resend.
+ * сконфигурирован; ин��че Resend.
  */
 async function sendEmail(mail: Omit<LeadMail, "from" | "to">, config: NotifyChannelConfig): Promise<SendResult> {
   if (!config.emailEnabled || config.emailTo.length === 0) return SKIPPED

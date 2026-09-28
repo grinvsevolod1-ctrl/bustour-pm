@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { RichContent } from "@/components/site/rich-content"
 import { PageExtras } from "@/components/site/page-extras"
+import { PageAlert } from "@/components/site/alert"
 import { TransferScheduleBlock } from "@/components/site/transfer-schedule-block"
 import { getPublicSettings, isOn } from "@/lib/cms"
 import { getTransfer, getTransferById, getTransfers, getTransferSchedules } from "@/lib/queries"
@@ -159,6 +160,7 @@ export default async function TransferDetailPage({
           <TitleUnderline as="h1">
             <ParsedText text={pageHeading} />
           </TitleUnderline>
+          <PageAlert settings={settings} prefix={pageKey} />
           {transfer.intro ? <RichContent html={transfer.intro} /> : null}
 
           {(transfer.priceRoundTrip > 0 || transfer.priceOneWay > 0) ? (

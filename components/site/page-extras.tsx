@@ -54,8 +54,8 @@ export async function PageExtras({
       return isOn(settings, `${sectionPrefix}.section.${slot}`)
     }
     const pageKeyToggle = `page.${pageKey}.${slot === "callus" ? "callus" : slot}`
-    const legacyCallus = slot === "callus" ? isOn(settings, "section.callus") : true
-    return legacyCallus && isOn(settings, pageKeyToggle)
+    // `section.callus` — тумблер главной; не даём ему гасить блок на других страницах.
+    return isOn(settings, pageKeyToggle)
   })
 
   const faqKey = sectionPrefix ? `${sectionPrefix}.section.faq` : `page.${pageKey}.faq`

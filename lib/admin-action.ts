@@ -35,6 +35,10 @@ function revalidateTargets(targets: readonly RevalidateTarget[] | undefined) {
     if (typeof target === "string") revalidatePath(target)
     else revalidatePath(target[0], target[1])
   }
+  // Любая admin-мутация может добавить/скрыть URL (тур, город, трансфер,
+  // статья, тумблер видимости) — сбрасываем кэш карты сайта, иначе новый
+  // тур появлялся в sitemap только через час.
+  revalidatePath("/sitemap.xml")
 }
 
 /**

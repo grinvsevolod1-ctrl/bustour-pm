@@ -6,7 +6,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin, requireCapability } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit, auditTourSnapshot } from "@/lib/admin-audit"
 import { mutateThenRedirect } from "@/lib/admin-redirect"
 import {
@@ -150,7 +150,7 @@ async function tourFromForm(formData: FormData): Promise<TourInput | { error: st
 type TourActionState = { error?: string; success?: boolean }
 
 export async function saveTourAction(_prev: unknown, formData: FormData): Promise<TourActionState> {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const parsed = await tourFromForm(formData)
   if ("error" in parsed) return parsed
   const input = parsed
@@ -238,7 +238,7 @@ export async function saveTourAction(_prev: unknown, formData: FormData): Promis
 }
 
 export async function saveTourDatesTableAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const tourId = Number(formData.get("tourId") || 0)
   if (!tourId) return { error: "Не указан тур" }
   let table: DatesTable
@@ -270,7 +270,7 @@ export async function saveTourDatesTableAction(_prev: unknown, formData: FormDat
 }
 
 export async function deleteTourAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const before = id ? await getTourById(id) : null
   return mutateThenRedirect(
@@ -294,7 +294,7 @@ export async function deleteTourAction(formData: FormData) {
 }
 
 export async function moveTourAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "up") === "down" ? "down" : "up"
   if (id) await moveTour(id, direction)
@@ -314,7 +314,7 @@ export async function moveTourAction(formData: FormData) {
 }
 
 export async function reorderToursAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   let orderedIds: number[] = []
   try {
     const parsed = JSON.parse(String(formData.get("orderedIds") || "[]"))
@@ -340,7 +340,7 @@ export async function reorderToursAction(formData: FormData) {
 }
 
 export async function restoreTourAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const before = id ? await getTourById(id) : null
   return mutateThenRedirect(

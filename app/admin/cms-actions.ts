@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { roleHasCapability } from "@/lib/admin-roles"
 import { isGlobalSettingsKey } from "@/lib/settings-scope"
 import {
@@ -88,14 +88,14 @@ function settingsValidationError(formData: FormData): { error: string; fieldErro
 }
 
 export async function validateSettingsAction(formData: FormData) {
-  await requireAdmin()
+  await requireCapability("manage_content")
   return settingsValidationError(formData) ?? { ok: true as const }
 }
 
 export async function saveSettingsAction(_prev: unknown, formData: FormData) {
   // Любой админ может открыть сохранение; право на глобальные ключи
   // проверяется ниже по фактическому содержимому entries (key-derived).
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const validationError = settingsValidationError(formData)
   if (validationError) return validationError
   const entries: Record<string, string> = {}
@@ -282,7 +282,7 @@ function blockFromForm(formData: FormData): { collection: BlockCollection; input
 }
 
 export async function saveBlockAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const { collection, input, tableParseError } = blockFromForm(formData)
   if (!collection) return { error: "Не указан тип блока" }
   if (tableParseError) return { error: tableParseError }
@@ -333,7 +333,7 @@ export async function saveBlockAction(_prev: unknown, formData: FormData) {
 }
 
 export async function deleteBlockAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const collection = String(formData.get("collection") || "")
   if (id) {
@@ -352,7 +352,7 @@ export async function deleteBlockAction(formData: FormData) {
 }
 
 export async function toggleBlockAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const visible = formData.get("visible") === "1"
   const collection = String(formData.get("collection") || "")
@@ -370,7 +370,7 @@ export async function toggleBlockAction(formData: FormData) {
 }
 
 export async function moveBlockAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "up") as "up" | "down"
   const collection = String(formData.get("collection") || "")
@@ -388,7 +388,7 @@ export async function moveBlockAction(formData: FormData) {
 }
 
 export async function reorderBlocksAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const collection = String(formData.get("collection") || "") as BlockCollection
   const orderedIds = parseOrderedIds(formData)
   if (!collection || orderedIds.length < 2) return
@@ -413,7 +413,7 @@ export async function reorderBlocksAction(formData: FormData) {
  * FormData: __pageKey=egipet, order=["why","resorts",...]
  */
 export async function savePageSectionsOrderAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const pageKey = String(formData.get("__pageKey") || "")
   const order = String(formData.get("order") || "[]")
   if (!pageKey) return
@@ -441,7 +441,7 @@ export async function savePageSectionsOrderAction(formData: FormData) {
 /* ---------------- Per-page FAQs ---------------- */
 
 export async function savePageFaqsAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const page = String(formData.get("__page") || "")
   if (!page) return { error: "Не указана страница" }
   const slot = String(formData.get("__slot") || "faq")
@@ -474,7 +474,7 @@ function revalidateMemosAdmin() {
 }
 
 export async function createMemoTabAction() {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const settings = await getSettings()
   const order = resolveMemosTabsOrder(settings)
   const shortKey = nextMemoSlotKey(order)
@@ -504,7 +504,7 @@ export async function createMemoTabAction() {
 }
 
 export async function deleteMemoTabAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const shortKey = String(formData.get("slot") || "").trim()
   if (!isMemoSectionKey(shortKey)) return
   const settings = await getSettings()
@@ -527,7 +527,7 @@ export async function deleteMemoTabAction(formData: FormData) {
 }
 
 export async function moveMemoTabAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "")
   const shortKey = shortKeyFromMemoSlotId(id)
@@ -552,7 +552,7 @@ export async function moveMemoTabAction(formData: FormData) {
 }
 
 export async function reorderMemoTabsAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   let orderedIds: number[] = []
   try {
     const parsed = JSON.parse(String(formData.get("orderedIds") || "[]"))
@@ -592,7 +592,7 @@ function revalidateDictionaryAdmin() {
 }
 
 export async function createDictionaryTabAction() {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const settings = await getSettings()
   const order = resolveDictionaryTabsOrder(settings)
   const shortKey = nextDictionarySlotKey(order)
@@ -622,7 +622,7 @@ export async function createDictionaryTabAction() {
 }
 
 export async function deleteDictionaryTabAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const shortKey = String(formData.get("slot") || "").trim()
   if (!isDictionarySectionKey(shortKey)) return
   const settings = await getSettings()
@@ -645,7 +645,7 @@ export async function deleteDictionaryTabAction(formData: FormData) {
 }
 
 export async function moveDictionaryTabAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "")
   const shortKey = shortKeyFromDictionarySlotId(id)
@@ -670,7 +670,7 @@ export async function moveDictionaryTabAction(formData: FormData) {
 }
 
 export async function reorderDictionaryTabsAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   let orderedIds: number[] = []
   try {
     const parsed = JSON.parse(String(formData.get("orderedIds") || "[]"))

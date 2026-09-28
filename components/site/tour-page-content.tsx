@@ -79,8 +79,10 @@ export async function TourPageContent({
 
   const sectionNodes: Record<TourSectionKey, { title?: string; node: React.ReactNode } | null> = {
     dates: hasDates ? { title: layout.find((section) => section.key === "dates")?.label || "Даты и цены", node: <DatesTable data={tour.datesTable} tourTitle={tour.title} /> } : null,
+    // Только собственный тумблер туров. `section.callus` — это переключатель
+    // ГЛАВНОЙ страницы: выключение блока на главной гасило его на всех турах.
     callus:
-      isOn(settings, "section.callus") && isOn(settings, "page.tour.callus")
+      isOn(settings, "page.tour.callus")
         ? {
             node: (
               <CallUs
@@ -126,7 +128,7 @@ export async function TourPageContent({
   // скрытую (visible:false) секцию не воскрешаем — уважаем настройку из админки.
   const layoutWithCallus = (() => {
     if (layout.some((s) => s.key === "callus")) return layout
-    if (!(isOn(settings, "section.callus") && isOn(settings, "page.tour.callus"))) return layout
+    if (!isOn(settings, "page.tour.callus")) return layout
     const datesIdx = layout.findIndex((s) => s.key === "dates")
     const next = [...layout]
     next.splice(datesIdx >= 0 ? datesIdx + 1 : 0, 0, { key: "callus", label: "Есть вопросы?", visible: true })
@@ -140,7 +142,7 @@ export async function TourPageContent({
     .filter((s) => anchoredSectionKeys.includes(s.key) && s.key !== "documents")
     .map((s) => ({ id: s.key, label: s.label }))
   // Галерея живёт в hero-блоке слева (~75% ширины), рядом с карточкой цены
-  // справа — как было исторически. Поэтому не рендерим её ещё раз ниже,
+  // справа — как бы��о исторически. Поэтому не рендерим её ещё раз ниже,
   // но учитываем её видимость из настроек раздела.
   const galleryVisible = sections.some((s) => s.key === "gallery")
   const bodySections = sections.filter((s) => s.key !== "gallery")

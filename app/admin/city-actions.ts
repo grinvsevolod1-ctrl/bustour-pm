@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { withAdminAction } from "@/lib/admin-action"
 import { changedSettings, pickSettingsSubset, writeAudit } from "@/lib/admin-audit"
 import {
@@ -76,7 +76,7 @@ function cityFromForm(formData: FormData): CityInput {
 }
 
 export async function saveCityAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const input = cityFromForm(formData)
   const validated = citySaveSchema.safeParse(input)
   if (!validated.success) return { error: zodFirstError(validated.error) }
@@ -117,7 +117,7 @@ export async function saveCityAction(_prev: unknown, formData: FormData) {
 
 /** Atomic edit action used by PageSettingsForm: validates every tab before one transaction. */
 export async function saveCityPageAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const existing = id ? await getCityById(id) : undefined
   if (!existing) return { error: "Город не найден" }
@@ -249,7 +249,7 @@ export async function reorderCitiesAction(formData: FormData) {
 }
 
 export async function deleteCityAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   if (!id) redirect("/admin/cities")
   const city = await getCityById(id)
@@ -314,7 +314,7 @@ export async function purgeCityAction(formData: FormData) {
  * Used by CityBaseForm on the edit page alongside PageSettingsForm.
  */
 export async function saveCityBaseAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   if (!id) return { error: "ID не указан" }
   const name = String(formData.get("name") || "").trim()

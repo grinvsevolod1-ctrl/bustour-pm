@@ -2,7 +2,7 @@
 
 import ExcelJS from "exceljs"
 import { revalidatePath } from "next/cache"
-import { requireAdmin } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { getBusToursWithDates, saveTourDatesTable } from "@/lib/queries"
 import { buildPricingWorkbook, parsePricingWorkbook, type PricingImportError } from "@/lib/pricing-excel"
@@ -12,7 +12,7 @@ const MAX_IMPORT_SIZE_BYTES = 8 * 1024 * 1024 // 8 МБ — прайс-лист 
 export async function exportTourPricingAction(): Promise<
   { success: true; base64: string; filename: string } | { success: false; error: string }
 > {
-  await requireAdmin()
+  await requireCapability("manage_content")
   try {
     const tours = await getBusToursWithDates()
     const workbook = buildPricingWorkbook(tours)
@@ -37,7 +37,7 @@ export type ImportPricingState = {
 } | null
 
 export async function importTourPricingAction(_prev: ImportPricingState, formData: FormData): Promise<ImportPricingState> {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const file = formData.get("file")
   if (!(file instanceof File) || file.size === 0) {
     return { success: false, error: "Выберите файл .xlsx для загрузки" }

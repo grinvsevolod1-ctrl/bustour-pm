@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next"
-import { getVisibleTours, getArticles, getSlugMaps, getBuses } from "@/lib/queries"
+import { getVisibleTours, getArticles, getSlugMaps, getBuses, getTransfers } from "@/lib/queries"
 import { getCountries } from "@/lib/countries"
 import { getCityDestinations } from "@/lib/cities"
-import { getSettings } from "@/lib/cms"
+import { getSettings, isOn } from "@/lib/cms"
 import { resolveAviaSlug } from "@/lib/avia-slug"
 import { tourUrl } from "@/lib/tour-url"
 import { articleUrl } from "@/lib/article-url"
@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (process.env.BUSTOUR_SKIP_DB_BUILD === "1") {
     return staticSitemapEntries()
   }
-  const [tours, articles, slugMaps, countriesRaw, busCitiesRaw, aviaCitiesRaw, hotCitiesRaw, buses, settings] =
+  const [tours, articles, slugMaps, countriesRaw, busCitiesRaw, aviaCitiesRaw, hotCitiesRaw, buses, settings, transfers] =
     await Promise.all([
       getVisibleTours(),
       getArticles(),
@@ -43,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       getCityDestinations("hot"),
       getBuses(),
       getSettings(),
+      getTransfers(),
     ])
 
   const countries = filterCountriesForSitemap(countriesRaw, settings)
@@ -151,6 +152,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   })
 
+  // Страницы трансферов раньше не попадали в карту вовсе. Фильтр — тот же
+  // тумблер видимости, что проверяет публичная страница (иначе 404 в sitemap).
+  const transferEntries: MetadataRoute.Sitemap = transfers
+    .filter((t) => isOn(settings, `transfer:${t.slug}.visible`))
+    .map((t) => ({
+      url: absoluteUrl(`/helpful/transfery-v-aeroport/${t.slug}`),
+      changeFrequency: "weekly" as const,
+      priority: 0.65,
+    }))
+
   const busEntries: MetadataRoute.Sitemap = buses.map((bus) => ({
     url: absoluteUrl(`/arenda-avtobusov-v-minske/${bus.slug}`),
     changeFrequency: "weekly",
@@ -165,6 +176,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...hotCityEntries,
     ...tourEntries,
     ...articleEntries,
+    ...transferEntries,
     ...busEntries,
   ]
 }

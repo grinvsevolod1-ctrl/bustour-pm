@@ -6,7 +6,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { requireAdmin, requireCapability } from "@/lib/auth"
+import { requireCapability } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { isRedirectError, mutateThenRedirect } from "@/lib/admin-redirect"
 import {
@@ -46,7 +46,7 @@ function transferFromForm(formData: FormData) {
 }
 
 export async function saveTransferAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const validated = transferSaveSchema.safeParse(transferFromForm(formData))
   if (!validated.success) return { error: zodFirstError(validated.error) }
   const input: TransferInput = validated.data
@@ -109,7 +109,7 @@ export async function saveTransferAction(_prev: unknown, formData: FormData) {
 }
 
 export async function moveTransferAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   const direction = String(formData.get("direction") || "up") === "down" ? "down" : "up"
   if (id) await moveTransfer(id, direction)
@@ -129,7 +129,7 @@ export async function moveTransferAction(formData: FormData) {
 }
 
 export async function deleteTransferAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -155,7 +155,7 @@ export async function deleteTransferAction(formData: FormData) {
 }
 
 export async function restoreTransferAction(formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const id = Number(formData.get("id") || 0)
   return mutateThenRedirect(
     async () => {
@@ -201,7 +201,7 @@ export async function purgeTransferAction(formData: FormData) {
 }
 
 export async function saveTransferSchedulesAction(_prev: unknown, formData: FormData) {
-  const admin = await requireAdmin()
+  const admin = await requireCapability("manage_content")
   const raw = String(formData.get("rows") || "[]")
   let rows: unknown
   try {

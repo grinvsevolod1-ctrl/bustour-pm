@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { sanitizeCmsHtml } from "@/lib/sanitize-html"
 
@@ -80,6 +80,28 @@ export function ProgramTimeline({
   items: { day: string; text: string; dayStart?: number; dayEnd?: number }[]
 }) {
   const [open, setOpen] = useState<number | null>(0)
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([])
+  // Позиция нажатой строки до переключения: при раскрытии дня схлопывается
+  // ранее открытый день ВЫШЕ — контент над строкой укорачивается и страница
+  // «прыгает» (видео владельца, мобайл). После рендера компенсируем разницу.
+  const anchor = useRef<{ idx: number; top: number } | null>(null)
+
+  useLayoutEffect(() => {
+    const a = anchor.current
+    if (!a) return
+    anchor.current = null
+    const el = rowRefs.current[a.idx]
+    if (!el) return
+    const delta = el.getBoundingClientRect().top - a.top
+    if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: "instant" as ScrollBehavior })
+  }, [open])
+
+  const toggle = (i: number) => {
+    const el = rowRefs.current[i]
+    if (el) anchor.current = { idx: i, top: el.getBoundingClientRect().top }
+    setOpen((cur) => (cur === i ? null : i))
+  }
+
   if (!items.length) return null
   const lastIdx = items.length - 1
 
@@ -101,8 +123,20 @@ export function ProgramTimeline({
         return (
           <div
             key={`${p.day}::${p.text.slice(0, 48)}`}
-            className="flex cursor-pointer items-stretch gap-2 rounded-xl px-1 py-3 transition-colors hover:bg-[#fafafa] md:gap-6 md:px-6"
-            onClick={() => setOpen(isOpen ? null : i)}
+            ref={(el) => {
+              rowRefs.current[i] = el
+            }}
+            role="button"
+            tabIndex={0}
+            aria-expanded={isOpen}
+            className="flex cursor-pointer items-stretch gap-2 rounded-xl px-1 py-3 transition-colors [overflow-anchor:none] hover:bg-[#fafafa] focus-visible:outline-2 focus-visible:outline-brand md:gap-6 md:px-6"
+            onClick={() => toggle(i)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                toggle(i)
+              }
+            }}
           >
             {/* Left: day number + дней label + dashed connector */}
             <div className="flex w-14 shrink-0 flex-col items-center md:w-16">
@@ -154,7 +188,7 @@ export function ProgramTimeline({
               {isOpen && p.text ? (
                 // На телефоне тянем жёлтую плашку под колонку с номером дня,
                 // чтобы текст занимал всю ширину карточки (#5). На md — как есть.
-                // Сдвиг = ширина колонки (w-14=56px) + gap-2 (8px) = 64px → -ml-16.
+                // Сдвиг = ширина ко��онки (w-14=56px) + gap-2 (8px) = 64px → -ml-16.
                 <div className="mt-3 -ml-16 rounded bg-[#FFF9ED] px-3 py-4 text-base leading-relaxed text-ink md:ml-0 md:px-4">
                   {renderProgramText(p.text)}
                 </div>
