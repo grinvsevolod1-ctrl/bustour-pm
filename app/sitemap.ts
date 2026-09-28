@@ -68,6 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/helpful",
     "/helpful/transfery-v-aeroport",
     "/helpful/dictionary",
+    "/helpful/memos",
     "/contacts",
     "/reviews",
     ...LEGAL_SLUGS.map((slug) => legalPages[slug].path),

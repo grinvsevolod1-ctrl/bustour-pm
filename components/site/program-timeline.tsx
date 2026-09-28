@@ -129,7 +129,10 @@ export function ProgramTimeline({
             role="button"
             tabIndex={0}
             aria-expanded={isOpen}
-            className="flex cursor-pointer items-stretch gap-2 rounded-xl px-1 py-3 transition-colors [overflow-anchor:none] hover:bg-[#fafafa] focus-visible:outline-2 focus-visible:outline-brand md:gap-6 md:px-6"
+            // Grid вместо flex + -ml-16: раньше плашка текста на телефоне тянулась
+            // под колонку номера и наезжала на подпись «1–5 дней», если заголовок
+            // был в одну строку. Теперь текст дня — отдельная строка сетки.
+            className="grid cursor-pointer grid-cols-[3.5rem_minmax(0,1fr)] items-start gap-x-3 rounded-xl px-2 py-3 transition-colors [overflow-anchor:none] hover:bg-[#fafafa] focus-visible:outline-2 focus-visible:outline-brand md:grid-cols-[4rem_minmax(0,1fr)] md:gap-x-6 md:px-6"
             onClick={() => toggle(i)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -139,7 +142,7 @@ export function ProgramTimeline({
             }}
           >
             {/* Left: day number + дней label + dashed connector */}
-            <div className="flex w-14 shrink-0 flex-col items-center md:w-16">
+            <div className="flex flex-col items-center self-stretch md:row-span-2">
               <span
                 className={`whitespace-nowrap font-semibold leading-tight tabular-nums transition-colors ${
                   isRange ? "text-lg md:text-xl" : "text-2xl"
@@ -176,24 +179,23 @@ export function ProgramTimeline({
             {/* min-w-0 обязателен: без него flex-элемент не сжимается ниже
                 интринсик-ширины контента (длинные слова/таблицы в программе дня)
                 и раздувает строку шире карточки → горизонтальный скролл (#mobile-program). */}
-            <div className="flex min-w-0 flex-1 flex-col justify-center pb-2">
-              <div className="flex items-center justify-between gap-4">
-                <h3 className="text-lg font-semibold leading-snug text-ink">{label.fullTitle}</h3>
-                {isOpen ? (
-                  <ChevronDown className="h-5 w-5 shrink-0 text-brand" aria-hidden />
-                ) : (
-                  <ChevronRight className="h-5 w-5 shrink-0 text-brand" aria-hidden />
-                )}
-              </div>
-              {isOpen && p.text ? (
-                // На телефоне тянем жёлтую плашку под колонку с номером дня,
-                // чтобы текст занимал всю ширину карточки (#5). На md — как есть.
-                // Сдвиг = ширина ко��онки (w-14=56px) + gap-2 (8px) = 64px → -ml-16.
-                <div className="mt-3 -ml-16 rounded bg-[#FFF9ED] px-3 py-4 text-base leading-relaxed text-ink md:ml-0 md:px-4">
-                  {renderProgramText(p.text)}
-                </div>
-              ) : null}
+            <div className="flex min-h-14 min-w-0 items-center justify-between gap-3 self-center">
+              <h3 className="min-w-0 text-pretty break-words text-base font-semibold leading-snug text-ink md:text-lg">
+                {label.fullTitle}
+              </h3>
+              {isOpen ? (
+                <ChevronDown className="h-5 w-5 shrink-0 text-brand" aria-hidden />
+              ) : (
+                <ChevronRight className="h-5 w-5 shrink-0 text-brand" aria-hidden />
+              )}
             </div>
+            {isOpen && p.text ? (
+              // На телефоне текст дня занимает всю ширину карточки под номером и
+              // заголовком (col-span-2); на md — только правую колонку.
+              <div className="col-span-2 mt-3 min-w-0 rounded-lg bg-[#FFF9ED] px-3 py-4 text-base leading-relaxed text-ink md:col-span-1 md:col-start-2 md:px-4">
+                {renderProgramText(p.text)}
+              </div>
+            ) : null}
           </div>
         )
       })}

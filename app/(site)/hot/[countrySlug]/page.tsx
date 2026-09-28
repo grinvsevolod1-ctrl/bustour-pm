@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { HotToursWidget } from "@/components/site/hot-tours-widget"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { TitleUnderline } from "@/components/site/title-underline"
-import { DESTINATION_DEFAULT_SECTION_ORDER } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { PageAlert } from "@/components/site/alert"
 import { HotSidebar } from "@/components/site/hot-sidebar"
@@ -79,6 +79,31 @@ export default async function HotCountryPage({ params, searchParams }: Props) {
     return [...DESTINATION_DEFAULT_SECTION_ORDER]
   })()
 
+  // Виджет стоит на месте ключа «search» — «Есть вопросы» можно поднять выше.
+  const split = splitOrderAroundSearch(sectionOrder)
+  const showSearch = isOn(settings, `${p}.section.search`)
+
+  const renderCmsSections = (order: string[]) => (
+    <DestinationSectionMap
+      sectionOrder={order}
+      settings={settings}
+      settingsPrefix={p}
+      resortBlocks={resortBlocks}
+      faqs={faqs}
+      faqDefaultTitle={settings["title.faq"] || "Частые вопросы"}
+      citiesSection={
+        countryCities.length ? (
+          <section className="space-y-4">
+            <TitleUnderline as="h2">
+              {get("citiesTitle") || `Популярные курорты в ${country.name}`}
+            </TitleUnderline>
+            <ResortCards cities={countryCities} basePath={`/hot/${liveCountrySlug}`} category="hot" settings={settings} settingsPrefix={p} />
+          </section>
+        ) : null
+      }
+    />
+  )
+
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
@@ -100,34 +125,18 @@ export default async function HotCountryPage({ params, searchParams }: Props) {
           />
           <div className="space-y-8">
             <div className="space-y-4">
-            <TitleUnderline as="h1">
-              <ParsedText text={get("h1") || `Горящие туры в ${country.name}`} />
-            </TitleUnderline>
-            <PageAlert settings={settings} prefix={p} />
-            {resolveCmsText(get("intro")) ? (
-              <RichContent html={resolveCmsText(get("intro"))} />
-            ) : null}
+              <TitleUnderline as="h1">
+                <ParsedText text={get("h1") || `Горящие туры в ${country.name}`} />
+              </TitleUnderline>
+              <PageAlert settings={settings} prefix={p} />
+              {renderCmsSections(split.top)}
+              {resolveCmsText(get("intro")) ? (
+                <RichContent html={resolveCmsText(get("intro"))} />
+              ) : null}
             </div>
-
-          {useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget />}
-
-            <DestinationSectionMap
-              sectionOrder={sectionOrder}
-              settings={settings}
-              settingsPrefix={p}
-              resortBlocks={resortBlocks}
-              faqs={faqs}
-              citiesSection={
-                countryCities.length ? (
-                  <section className="space-y-4">
-                    <TitleUnderline as="h2">
-                      {get("citiesTitle") || `Популярные курорты в ${country.name}`}
-                    </TitleUnderline>
-                    <ResortCards cities={countryCities} basePath={`/hot/${liveCountrySlug}`} category="hot" settings={settings} settingsPrefix={p} />
-                  </section>
-                ) : null
-              }
-            />
+            {renderCmsSections(split.beforeSearch)}
+            {showSearch ? useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget /> : null}
+            {renderCmsSections(split.afterSearch)}
           </div>
         </div>
       </div>

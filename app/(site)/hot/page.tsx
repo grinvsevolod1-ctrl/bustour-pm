@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { HotToursWidget } from "@/components/site/hot-tours-widget"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { TitleUnderline } from "@/components/site/title-underline"
-import { DESTINATION_DEFAULT_SECTION_ORDER } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { PageAlert } from "@/components/site/alert"
 import { HotSidebar } from "@/components/site/hot-sidebar"
@@ -52,6 +52,39 @@ export default async function HotToursPage() {
     return [...DESTINATION_DEFAULT_SECTION_ORDER]
   })()
 
+  // Как в авиа/автобусных: виджет стоит на месте ключа «search», поэтому
+  // «Есть вопросы» можно поднять над поиском и даже над вступлением.
+  const split = splitOrderAroundSearch(sectionOrder)
+  const showSearch = isOn(settings, `${p}.section.search`)
+
+  const renderCmsSections = (order: string[]) => (
+    <DestinationSectionMap
+      sectionOrder={order}
+      settings={settings}
+      settingsPrefix={p}
+      resortBlocks={resortBlocks}
+      faqs={faqs}
+      faqDefaultTitle={settings["title.faq"] || "Частые вопросы"}
+      citiesSection={
+        visibleCountries.length ? (
+          <section className="space-y-4">
+            <TitleUnderline as="h2">
+              <ParsedText text={get("citiesTitle") || "Популярные направления"} />
+            </TitleUnderline>
+            <ResortCards
+              cities={visibleCountries.map((c) => ({ slug: c.slug, name: c.name }))}
+              category="hot"
+              cardKind="country"
+              settings={settings}
+              settingsPrefix="hot"
+              hrefForCity={(country) => `/hot/${country.slug}/`}
+            />
+          </section>
+        ) : null
+      }
+    />
+  )
+
   return (
     <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
@@ -68,45 +101,22 @@ export default async function HotToursPage() {
           <Breadcrumb items={[{ label: "Главная", href: "/" }, { label: "Горящие туры" }]} />
           <div className="space-y-8">
             <div className="space-y-4">
-            <TitleUnderline as="h1">
-              <ParsedText text={resolvePublicCmsText(get("h1"), "Горящие туры")} />
-            </TitleUnderline>
-            <PageAlert settings={settings} prefix={p} />
-            <RichContent
-              html={resolvePublicCmsText(
-                get("intro"),
-                "Успейте забронировать горящие туры по специальным ценам с ближайшим вылетом.",
-                { minLength: 12 },
-              )}
-            />
+              <TitleUnderline as="h1">
+                <ParsedText text={resolvePublicCmsText(get("h1"), "Горящие туры")} />
+              </TitleUnderline>
+              <PageAlert settings={settings} prefix={p} />
+              {renderCmsSections(split.top)}
+              <RichContent
+                html={resolvePublicCmsText(
+                  get("intro"),
+                  "Успейте забронировать горящие туры по специальным ценам с ближайшим вылетом.",
+                  { minLength: 12 },
+                )}
+              />
             </div>
-
-            {useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget />}
-
-            <DestinationSectionMap
-              sectionOrder={sectionOrder}
-              settings={settings}
-              settingsPrefix={p}
-              resortBlocks={resortBlocks}
-              faqs={faqs}
-              citiesSection={
-                visibleCountries.length ? (
-                  <section className="space-y-4">
-                    <TitleUnderline as="h2">
-                      <ParsedText text={get("citiesTitle") || "Популярные направления"} />
-                    </TitleUnderline>
-                    <ResortCards
-                      cities={visibleCountries.map((c) => ({ slug: c.slug, name: c.name }))}
-                      category="hot"
-                      cardKind="country"
-                      settings={settings}
-                      settingsPrefix="hot"
-                      hrefForCity={(country) => `/hot/${country.slug}/`}
-                    />
-                  </section>
-                ) : null
-              }
-            />
+            {renderCmsSections(split.beforeSearch)}
+            {showSearch ? useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget /> : null}
+            {renderCmsSections(split.afterSearch)}
           </div>
         </div>
       </div>

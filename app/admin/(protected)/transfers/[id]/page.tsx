@@ -78,9 +78,15 @@ export default async function EditTransferPage({ params }: { params: Promise<{ i
     )
   }
 
+  const nonSeoGroups = seoWorkspace?.groupsWithoutSeo ?? page.groups.filter((g) => g.heading === "Алерт")
   const has = (keys: string[]) => keys.some((key) => Boolean(settings[key]?.trim()))
   const workspaceGroups: EditorWorkspaceGroup[] = [
-    { id: "main", label: "Основное", badge: Boolean(transfer.title || transfer.image || transfer.intro), anchorIds: ["s-transfer-base"] },
+    {
+      id: "main",
+      label: "Основное",
+      badge: Boolean(transfer.title || transfer.image || transfer.intro),
+      anchorIds: ["s-transfer-base", ...(nonSeoGroups.length > 0 ? ["s-transfer-alert"] : [])],
+    },
     {
       id: "content",
       label: "Контент",
@@ -115,6 +121,16 @@ export default async function EditTransferPage({ params }: { params: Promise<{ i
             pageHeadingValue={settings[`${pageKey}.h1`] ?? ""}
           />
         </FormSection>
+        {/* Группы конфига кроме SEO (сейчас это «Алерт») раньше уходили только
+            в buildSeoWorkspace и нигде не рендерились — поля алерта в админке
+            трансфера не было, хотя публичная страница его уже читала. */}
+        {nonSeoGroups.length > 0 ? (
+          <FormSection id="s-transfer-alert" title="Алерт" collapsible={false}>
+            {nonSeoGroups.map((group) => (
+              <SectionFieldsForm key={group.heading} fields={group.fields} settings={settings} />
+            ))}
+          </FormSection>
+        ) : null}
       </div>}
       workspaceExtraPanels={[
         ...(seoWorkspace ? [seoWorkspace.seoPanel] : []),
