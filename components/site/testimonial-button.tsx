@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ModalTestimonial } from "@/components/site/modals"
+import { LazyModalTestimonial, preloadModalTestimonial } from "@/components/site/modals/lazy"
 
 export function TestimonialButton({
   label = "Оставить отзыв",
@@ -17,11 +17,14 @@ export function TestimonialButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
+        onPointerEnter={preloadModalTestimonial}
+        onTouchStart={preloadModalTestimonial}
+        onFocus={preloadModalTestimonial}
         className="inline-block w-fit rounded bg-brand px-6 py-3 text-base font-semibold text-brand-foreground transition-opacity hover:opacity-90"
       >
         {label}
       </button>
-      <ModalTestimonial open={open} onClose={() => setOpen(false)} />
+      <LazyModalTestimonial open={open} onClose={() => setOpen(false)} />
     </>
   )
 }

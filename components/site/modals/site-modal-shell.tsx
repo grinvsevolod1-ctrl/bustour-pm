@@ -1,7 +1,8 @@
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { useCaptchaUi } from "./captcha-ui-context"
 import { Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { isRecaptchaEnabled, recaptchaSiteKey } from "@/lib/recaptcha-public"
@@ -57,24 +58,7 @@ export async function executeRecaptchaV3(action = "submit"): Promise<string> {
   return (await g.execute(siteKey, { action })).trim()
 }
 
-type CaptchaUiValue = { statusVisible: boolean }
-const CaptchaUiContext = createContext<CaptchaUiValue>({ statusVisible: false })
-
-export function CaptchaUiProvider({
-  statusVisible = false,
-  children,
-}: {
-  statusVisible?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <CaptchaUiContext.Provider value={{ statusVisible }}>{children}</CaptchaUiContext.Provider>
-  )
-}
-
-export function useCaptchaUi(): CaptchaUiValue {
-  return useContext(CaptchaUiContext)
-}
+export { CaptchaUiProvider, useCaptchaUi } from "./captcha-ui-context"
 
 /** Auto-close after success; clears timer on unmount (#34). */
 export function useScheduleModalClose(onClose: () => void, delayMs = 2500) {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ModalBusOrder } from "@/components/site/modals"
+import { LazyModalBusOrder, preloadModalBusOrder } from "@/components/site/modals/lazy"
 
 export function BusOrderButton({ busTitle, phone }: { busTitle: string; phone: string }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -13,6 +13,9 @@ export function BusOrderButton({ busTitle, phone }: { busTitle: string; phone: s
         <button
           type="button"
           onClick={() => setIsOpen(true)}
+          onPointerEnter={preloadModalBusOrder}
+          onTouchStart={preloadModalBusOrder}
+          onFocus={preloadModalBusOrder}
           className="inline-flex h-12 items-center justify-center rounded bg-brand px-6 text-base font-semibold text-brand-foreground transition-colors hover:bg-brand-dark"
         >
           Заказать автобус
@@ -40,7 +43,7 @@ export function BusOrderButton({ busTitle, phone }: { busTitle: string; phone: s
         ) : null}
       </div>
 
-      <ModalBusOrder open={isOpen} onClose={() => setIsOpen(false)} busTitle={busTitle} />
+      <LazyModalBusOrder open={isOpen} onClose={() => setIsOpen(false)} busTitle={busTitle} />
     </>
   )
 }

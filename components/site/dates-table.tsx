@@ -26,7 +26,7 @@ import {
 } from "@/lib/dates-table"
 import { formatMoney } from "@/lib/currencies"
 import { Alert } from "./alert"
-import { ModalTourOrder } from "@/components/site/modals"
+import { LazyModalTourOrder } from "@/components/site/modals/lazy"
 import { DateRangePicker, type DateRangePickerValue } from "@/components/ui/date-range-picker"
 
 function DatesFootnotes({
@@ -446,7 +446,7 @@ export function DatesTable({ data, tourTitle = "" }: { data: DatesTableData; tou
         className="hidden text-sm leading-relaxed text-ink lg:block"
       />
 
-      <ModalTourOrder
+      <LazyModalTourOrder
         open={orderOpen}
         onClose={() => setOrderOpen(false)}
         tourTitle={tourTitle}

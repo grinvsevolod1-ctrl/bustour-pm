@@ -4,7 +4,8 @@ import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { TourCard } from "@/components/site/tour-card"
 import { tourUrl } from "@/lib/tour-url"
-import type { Currency, Tour } from "@/lib/types"
+import type { Currency } from "@/lib/types"
+import type { TourCardData } from "@/lib/tour-card"
 
 const INITIAL = 4
 const STEP = 4
@@ -14,7 +15,7 @@ export function FeaturedTours({
   currencies = [],
   eagerIndex,
 }: {
-  tours: Tour[]
+  tours: TourCardData[]
   currencies?: Currency[]
   eagerIndex?: number
 }) {

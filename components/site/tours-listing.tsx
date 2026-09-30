@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { ChevronDown } from "lucide-react"
-import type { Tour } from "@/lib/data"
+import type { TourCardData } from "@/lib/tour-card"
 import type { Currency } from "@/lib/types"
 import {
   ALL_PERIODS_LABEL,
@@ -75,7 +75,7 @@ export function ToursListing({
   showSearch = true,
   restrictToCitySlug,
 }: {
-  tours: Tour[]
+  tours: TourCardData[]
   category: "bus" | "avia" | "hot"
   initialCountries?: string[]
   initialNights?: string
@@ -386,7 +386,7 @@ export function ToursListing({
         {sectionDescription ? (
           <div
             className="whitespace-pre-wrap text-base leading-relaxed text-ink-muted"
-            // sectionDescription приходит из CMS (site_settings) — санитайзим при рендере.
+            // sectionDescription приходит из CMS (site_settings) — санитайзим при рендер��.
             dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(sectionDescription) }}
           />
         ) : null}

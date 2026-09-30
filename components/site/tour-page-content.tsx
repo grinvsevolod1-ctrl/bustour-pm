@@ -2,6 +2,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { TourGallery } from "@/components/site/tour-gallery"
 import { BookingForm } from "@/components/site/booking-form"
 import { TourCard } from "@/components/site/tour-card"
+import { toTourCard } from "@/lib/tour-card"
 import { SectionTitle } from "@/components/site/section-title"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { PageExtras } from "@/components/site/page-extras"
@@ -55,7 +56,7 @@ export async function TourPageContent({
   const [tour, related, reviewsExpanded, currencies, settings, seoTitle, alertText] =
     await Promise.all([
       expandPublicDeep(rawTour),
-      expandPublicList(rawRelated),
+      expandPublicList(rawRelated.map(toTourCard)),
       expandPublicList(reviews),
       getCurrencies(),
       getPublicSettings(),

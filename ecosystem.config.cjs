@@ -43,6 +43,15 @@ const sharedEnv = {
   ...fileEnv,
 }
 
+// Число процессов Next.js. По умолчанию 1 (fork). WEB_INSTANCES=2..N в .env.local
+// включает pm2 cluster: рендер страниц перестаёт упираться в одно ядро.
+// При >1 процессе runtime-миграции/сид при старте отключаются автоматически —
+// иначе несколько инстансов гонялись бы за одной схемой; миграции применяет
+// deploy.sh (db:migrate:prod) до pm2 reload.
+const webInstances = Math.max(1, Number.parseInt(fileEnv.WEB_INSTANCES || "1", 10) || 1)
+const webEnv =
+  webInstances > 1 ? { ...sharedEnv, BASTUR_SKIP_RUNTIME_MIGRATIONS: "1" } : sharedEnv
+
 module.exports = {
   apps: [
     {
@@ -51,12 +60,12 @@ module.exports = {
       script: "node_modules/next/dist/bin/next",
       // Bind to localhost only — nginx is the public entrypoint and sets X-Real-IP.
       args: `start -p ${fileEnv.PORT || 3000} -H 127.0.0.1`,
-      instances: 1,
-      exec_mode: "fork",
+      instances: webInstances,
+      exec_mode: webInstances > 1 ? "cluster" : "fork",
       autorestart: true,
       max_memory_restart: "1200M",
       kill_timeout: 10_000,
-      env: sharedEnv,
+      env: webEnv,
       out_file: "logs/app.out.log",
       error_file: "logs/app.err.log",
       merge_logs: true,

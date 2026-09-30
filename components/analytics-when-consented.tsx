@@ -4,10 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Analytics } from "@vercel/analytics/next"
 import { useConsentCategory } from "consentium"
-import {
-  analyticsConfigFromSettings,
-  setAnalyticsRuntime,
-} from "@/lib/analytics"
+import { setAnalyticsRuntime, type AnalyticsConfig } from "@/lib/analytics"
 
 const YM_ID = /^\d{4,12}$/
 const GTM_ID = /^GTM-[A-Z0-9]+$/i
@@ -24,12 +21,15 @@ function appendScript(id: string, src: string, onLoad?: () => void) {
   document.head.appendChild(script)
 }
 
-/** Load analytics only after the visitor grants the analytics category. */
-export function AnalyticsWhenConsented({ settings }: { settings: Record<string, string> }) {
+/**
+ * Load analytics only after the visitor grants the analytics category.
+ * `config` вычисляется на сервере (analyticsConfigFromSettings): в клиент
+ * уходит десяток коротких строк, а не весь объект настроек CMS.
+ */
+export function AnalyticsWhenConsented({ config }: { config: AnalyticsConfig }) {
   const allowed = useConsentCategory("analytics")
   const marketingAllowed = useConsentCategory("marketing")
   const router = useRouter()
-  const config = analyticsConfigFromSettings(settings)
 
   useEffect(() => {
     setAnalyticsRuntime(config, allowed)

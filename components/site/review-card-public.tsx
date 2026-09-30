@@ -1,6 +1,6 @@
 "use client"
 
-import { useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Play } from "lucide-react"
 import type { Review } from "@/lib/types"
@@ -16,7 +16,16 @@ import { reviewAvatarTone, reviewPlainText } from "@/lib/review-utils"
 import { syncReviewRowClamps } from "@/lib/review-row-clamp"
 import { fallbackThumbnail, getEmbedUrl } from "@/lib/video-url"
 import { ImageLightbox } from "@/components/site/image-lightbox"
-import { SiteModalShell } from "@/components/site/modals/site-modal-shell"
+import dynamic from "next/dynamic"
+
+/**
+ * Shell модалки (motion) грузится отдельным чанком при первом «Читать
+ * полностью», а не вместе со списком отзывов на каждой странице с отзывами.
+ */
+const LazySiteModalShell = dynamic(
+  () => import("@/components/site/modals/site-modal-shell").then((m) => m.SiteModalShell),
+  { ssr: false },
+)
 import { cn } from "@/lib/utils"
 
 const MD_UP = "(min-width: 768px)"
@@ -161,11 +170,16 @@ export function ReviewFullTextModal({
   open: boolean
   onClose: () => void
 }) {
-  if (!review) return null
+  // После первого открытия остаёмся смонтированными ради exit-анимации shell.
+  const [everOpened, setEverOpened] = useState(open)
+  useEffect(() => {
+    if (open) setEverOpened(true)
+  }, [open])
+  if (!review || !(everOpened || open)) return null
   const body = reviewPlainText(review.text)
   const hasMedia = reviewHasMedia(review)
   return (
-    <SiteModalShell
+    <LazySiteModalShell
       open={open}
       onClose={onClose}
       title={review.name}
@@ -178,7 +192,7 @@ export function ReviewFullTextModal({
         <p className="whitespace-pre-wrap break-words text-base leading-relaxed text-ink">{body}</p>
         {hasMedia ? <ReviewMediaBlock review={review} /> : null}
       </div>
-    </SiteModalShell>
+    </LazySiteModalShell>
   )
 }
 

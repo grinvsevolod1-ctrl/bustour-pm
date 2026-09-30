@@ -3,10 +3,11 @@
 /* Vendored from shadcn (canary) dist/tailwind.css — the npm "shadcn" CLI package
    no longer ships this file in stable releases, so we keep a local copy. */
 @import '../styles/shadcn-tailwind.css';
+/* flatpickr остаётся здесь: ниже много переопределений .flatpickr-* той же
+   специфичности, и их порядок относительно базового CSS важен. */
 @import 'flatpickr/dist/flatpickr.css';
-/* Base ProseMirror styles (white-space handling, cursor, gap-cursor). Without
-   this import the editor logs "no stylesheet loaded" warnings at runtime. */
-@import 'prosemirror-view/style/prosemirror.css';
+/* Базовый CSS ProseMirror импортируется в app/admin/layout.tsx — витрине
+   стили редактора не нужны. */
 
 @custom-variant dark (&:is(.dark *));
 

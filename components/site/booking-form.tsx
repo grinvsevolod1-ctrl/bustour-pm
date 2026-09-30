@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ModalTourOrder } from "@/components/site/modals"
+import { LazyModalTourOrder, preloadModalTourOrder } from "@/components/site/modals/lazy"
 import { PriceSwitcher } from "./price-switcher"
 import type { Currency } from "@/lib/types"
 
@@ -45,11 +45,14 @@ export function BookingForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
+        onPointerEnter={preloadModalTourOrder}
+        onTouchStart={preloadModalTourOrder}
+        onFocus={preloadModalTourOrder}
         className="w-full rounded bg-brand px-4 py-3 text-base font-semibold text-brand-foreground transition-opacity hover:opacity-90"
       >
         Забронировать
       </button>
-      <ModalTourOrder open={open} onClose={() => setOpen(false)} tourTitle={tour ?? ""} />
+      <LazyModalTourOrder open={open} onClose={() => setOpen(false)} tourTitle={tour ?? ""} />
     </div>
   )
 }

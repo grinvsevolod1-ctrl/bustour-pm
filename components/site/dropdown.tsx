@@ -1,13 +1,13 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { ChevronDown } from "lucide-react"
-import {
-  menuTransition,
-  motionWillChangeOpacityTransform,
-} from "@/components/site/motion-presets"
 
+/**
+ * Анимация появления — CSS (tw-animate-css), а не motion: дропдаун стоит в
+ * фильтрах каталога, и ради fade+slide на 150 мс тянуть ~30 КБ gzip
+ * motion-рантайма в бандл всех страниц каталога не имеет смысла.
+ */
 export function Dropdown({
   value,
   options,
@@ -31,7 +31,6 @@ export function Dropdown({
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
     if (!open) return
@@ -57,37 +56,29 @@ export function Dropdown({
           className={`shrink-0 transition-transform ${chevronClassName} ${open ? "rotate-180" : ""}`}
         />
       </button>
-      <AnimatePresence>
-        {open ? (
-          <motion.ul
-            key="dropdown-menu"
-            role="listbox"
-            className={`absolute top-[calc(100%+4px)] z-20 max-h-64 min-w-[160px] overflow-auto rounded border border-line bg-white py-1 shadow-lg ${menuClassName || "left-0 w-full"}`}
-            style={motionWillChangeOpacityTransform}
-            initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-            transition={reduceMotion ? { duration: 0 } : menuTransition}
-          >
-            {options.map((opt) => (
-              <li key={opt} role="option" aria-selected={opt === value}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(opt)
-                    setOpen(false)
-                  }}
-                  className={`block w-full px-3 py-2 text-left text-sm hover:bg-cream ${
-                    opt === value ? "font-semibold text-cyan-accent" : "text-ink"
-                  }`}
-                >
-                  {opt}
-                </button>
-              </li>
-            ))}
-          </motion.ul>
-        ) : null}
-      </AnimatePresence>
+      {open ? (
+        <ul
+          role="listbox"
+          className={`absolute top-[calc(100%+4px)] z-20 max-h-64 min-w-[160px] overflow-auto rounded border border-line bg-white py-1 shadow-lg animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none ${menuClassName || "left-0 w-full"}`}
+        >
+          {options.map((opt) => (
+            <li key={opt} role="option" aria-selected={opt === value}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(opt)
+                  setOpen(false)
+                }}
+                className={`block w-full px-3 py-2 text-left text-sm hover:bg-cream ${
+                  opt === value ? "font-semibold text-cyan-accent" : "text-ink"
+                }`}
+              >
+                {opt}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   )
 }

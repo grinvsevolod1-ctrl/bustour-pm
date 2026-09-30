@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import type { TransferSchedule } from "@/lib/types"
-import { ModalTourOrder } from "@/components/site/modals"
+import { LazyModalTourOrder } from "@/components/site/modals/lazy"
 import {
   publicColStyle,
   resolveTransferScheduleColWidths,
@@ -235,7 +235,7 @@ export function TransferScheduleTable({
         ) : null}
       </div>
 
-      <ModalTourOrder
+      <LazyModalTourOrder
         open={orderOpen}
         onClose={() => setOrderOpen(false)}
         tourTitle={bookingTitle}

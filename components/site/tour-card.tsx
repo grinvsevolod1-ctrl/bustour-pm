@@ -1,7 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
-import type { Tour } from "@/lib/data"
 import type { Currency } from "@/lib/types"
+import type { TourCardData } from "@/lib/tour-card"
 import { tourUrl } from "@/lib/tour-url"
 import { PriceSwitcher } from "./price-switcher"
 
@@ -18,7 +18,8 @@ export function TourCard({
   hidePerPersonSuffix = false,
   isBusTour = true,
 }: {
-  tour: Tour
+  /** Полный Tour тоже подходит (надтип), но в клиентские деревья передавайте DTO. */
+  tour: TourCardData
   price?: string
   currencies?: Currency[]
   currencyCode?: string
@@ -30,8 +31,8 @@ export function TourCard({
   hidePerPersonSuffix?: boolean
   isBusTour?: boolean
 }) {
-  const hasStructuredPrice = (tour as Tour & { priceAmount?: number }).priceAmount
-  const effectiveIsBus = isBusTour ?? (tour as Tour & { category?: string }).category === "bus"
+  const hasStructuredPrice = tour.priceAmount
+  const effectiveIsBus = isBusTour ?? (tour as TourCardData & { category?: string }).category === "bus"
   const fallbackPrice = price ?? tour.price
   const cardPrice = hidePerPersonSuffix
     ? fallbackPrice.replace(/\s+за человека$/, "")
@@ -77,15 +78,15 @@ export function TourCard({
           <div className={effectiveIsBus ? "inline-flex min-w-0 max-w-[64%] shrink-0 items-center justify-center rounded bg-[#E84242] px-4 py-3 text-center leading-tight shadow-sm text-white [&_*]:text-white [&_*]:!text-white" : "inline-flex min-w-0 max-w-[64%] shrink-0 items-center justify-center rounded bg-white/95 px-4 py-3 leading-tight shadow-sm"} style={{ height: "48px" }}>
             {hasStructuredPrice ? (
               <PriceSwitcher
-                amount={(tour as Tour & { priceAmount?: number }).priceAmount || 0}
-                amountCurrency={(tour as Tour & { datesCurrency?: string }).datesCurrency || ""}
+                amount={tour.priceAmount || 0}
+                amountCurrency={tour.datesCurrency || ""}
                 currencies={currencies}
                 initialCurrencyCode={currencyCode}
                 showCurrencySelector={false}
                 showPerPerson={!effectiveIsBus && (hidePerPersonSuffix ? false : showPerPerson)}
                 compact
-                extraPriceAmount={(tour as Tour & { extraPriceAmount?: number }).extraPriceAmount || 0}
-                extraPriceCurrency={(tour as Tour & { extraPriceCurrency?: string }).extraPriceCurrency || ""}
+                extraPriceAmount={tour.extraPriceAmount || 0}
+                extraPriceCurrency={tour.extraPriceCurrency || ""}
                 shrink
               />
             ) : (

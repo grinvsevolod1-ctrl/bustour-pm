@@ -9,18 +9,26 @@ import { SocialIconGlyph, socialCircleWrapperClass } from "./social-icon"
 import { useCallbackModal } from "./callback-modal"
 import { navItems } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import type { SiteSettings } from "@/lib/types"
-import { getPrimaryPhone } from "@/lib/contact-settings"
-import { socialsForHeader } from "@/lib/social-links"
+import type { DisplayPhone } from "@/lib/contact-settings"
+import type { SocialLink } from "@/lib/social-links"
 
-export function SiteHeader({ settings }: { settings: SiteSettings }) {
+export type SiteHeaderProps = {
+  phone: DisplayPhone | null
+  hours: string
+  hoursNote: string
+  socials: SocialLink[]
+}
+
+/**
+ * Получает только то, что реально показывает. Полный объект настроек CMS
+ * сюда передавать нельзя — он целиком уходит в HTML каждой страницы.
+ */
+export function SiteHeader({ phone: primaryPhone, hours, hoursNote, socials: headerSocials }: SiteHeaderProps) {
   const [open, setOpen] = useState(false)
   const [hidden, setHidden] = useState(false)
   const lastY = useRef(0)
   const pathname = usePathname()
-  const { open: openCallback } = useCallbackModal()
-  const primaryPhone = getPrimaryPhone(settings)
-  const headerSocials = socialsForHeader(settings)
+  const { open: openCallback, preload: preloadCallback } = useCallbackModal()
 
   useEffect(() => {
     const onScroll = () => {
@@ -55,8 +63,8 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
             <div className="hidden items-center gap-2 lg:flex">
               <Clock className="h-8 w-8 text-brand" strokeWidth={1.5} aria-hidden />
               <div className="flex flex-col leading-tight">
-                <span className="text-base text-ink-muted md:text-lg">{settings["site.hours"]}</span>
-                <span className="text-xs text-ink md:text-sm">{settings["site.hoursNote"]}</span>
+                <span className="text-base text-ink-muted md:text-lg">{hours}</span>
+                <span className="text-xs text-ink md:text-sm">{hoursNote}</span>
               </div>
             </div>
 
@@ -79,6 +87,9 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
             <button
               type="button"
               onClick={openCallback}
+              onTouchStart={preloadCallback}
+              onPointerEnter={preloadCallback}
+              onFocus={preloadCallback}
               aria-label="Заказать звонок"
               className="grid h-10 w-10 shrink-0 place-items-center rounded text-brand transition-opacity hover:opacity-80 lg:hidden"
             >
@@ -96,6 +107,8 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
                 <button
                   type="button"
                   onClick={openCallback}
+                  onPointerEnter={preloadCallback}
+                  onFocus={preloadCallback}
                   className="text-sm text-cyan-accent hover:underline"
                 >
                   Заказать звонок

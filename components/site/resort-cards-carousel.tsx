@@ -3,7 +3,6 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState, useSyncExternalStore } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { resortCardsPageSize, type ResortCardsLayout } from "@/lib/resort-cards-settings"
 import { cn } from "@/lib/utils"
@@ -120,7 +119,6 @@ function DesktopGridPager({
   rows: ResortCardsLayout["rows"]
   paginate: boolean
 }) {
-  const reduceMotion = useReducedMotion()
   const pageSize = resortCardsPageSize(cols, rows)
   const shouldPage = paginate && items.length > pageSize
   const pageCount = shouldPage ? Math.ceil(items.length / pageSize) : 1
@@ -176,34 +174,29 @@ function DesktopGridPager({
       ) : null}
 
       <div className="overflow-hidden" aria-roledescription={shouldPage ? "carousel" : undefined}>
-        <AnimatePresence mode="wait" initial={false} custom={dir}>
-          <motion.div
-            key={shouldPage ? `page-${safePage}-c${cols}-r${rows}` : "all"}
-            custom={dir}
-            initial={
-              reduceMotion || !shouldPage
-                ? false
-                : { opacity: 0, x: dir * 28 }
-            }
-            animate={{ opacity: 1, x: 0 }}
-            exit={reduceMotion || !shouldPage ? undefined : { opacity: 0, x: dir * -28 }}
-            transition={
-              reduceMotion
-                ? { duration: 0 }
-                : { type: "spring", stiffness: 380, damping: 34, mass: 0.8 }
-            }
-            style={{ willChange: reduceMotion || !shouldPage ? undefined : "transform, opacity" }}
-            className={cn("grid gap-4", gridClass)}
-          >
-            {visible.map((city, i) => (
-              <ResortCard
-                key={`${city.slug}-${city.href}`}
-                city={city}
-                priority={safePage === 0 && i < cols}
-              />
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        {/* Смена страницы анимируется CSS (tw-animate-css): key перемонтирует
+            сетку, и она въезжает со стороны направления листания. Motion-рантайм
+            (~40 КБ gzip) ради этого на страницах каталога не грузим. */}
+        <div
+          key={shouldPage ? `page-${safePage}-c${cols}-r${rows}` : "all"}
+          className={cn(
+            "grid gap-4",
+            gridClass,
+            shouldPage &&
+              cn(
+                "animate-in fade-in-0 duration-300 ease-out motion-reduce:animate-none",
+                dir > 0 ? "slide-in-from-right-6" : "slide-in-from-left-6",
+              ),
+          )}
+        >
+          {visible.map((city, i) => (
+            <ResortCard
+              key={`${city.slug}-${city.href}`}
+              city={city}
+              priority={safePage === 0 && i < cols}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
