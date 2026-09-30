@@ -97,7 +97,14 @@ ecosystem.config.cjs  # pm2: процессы bastur-app + bastur-media-worker
 - pm2-процессы: `bastur-app` (web) и `bastur-media-worker`. Логи:
   `pm2 logs bastur-app --lines 50 --nostream`. Ротация — pm2-logrotate
   (ставится deploy.sh автоматически).
-- HTTPS: nginx + certbot с автопродлением.
+- HTTPS: nginx + certbot с автопродлением. Конфиг nginx — в git
+  (`ops/nginx/snippets/*`), на каждом деплое его генерирует и применяет
+  `ops/nginx/apply.sh` (HTTP/2, brotli при наличии модуля, микрокеш HTML,
+  HSTS) с `nginx -t` и откатом. Правки на сервере затираются — меняй в репо.
+- Кеш публичных данных: сайт читает БД через `lib/public/*` (unstable_cache,
+  тег `site-data`, TTL 5 мин), админка — напрямую через `lib/queries` и др.
+  Сброс — `revalidateSiteData()` из `writeAudit`/`withAdminAction`. Новую
+  публичную read-функцию оборачивай в `lib/public/*`, а не импортируй сырую.
 - Перед коммитом локально прогоняй: `npx tsc --noEmit`, `npm test`,
   при больших изменениях `npm run build`.
 

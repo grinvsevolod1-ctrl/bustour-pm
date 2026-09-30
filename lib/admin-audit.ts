@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { adminAuditLog } from "@/lib/db/schema"
 import { ensureDb } from "@/lib/db/init"
 import { pageKeyFromSettingKey } from "@/lib/orphan-cms-cleanup"
+import { revalidateSiteData } from "@/lib/site-data-cache"
 
 export type AuditActor = { id: number; username: string } | null | undefined
 
@@ -96,6 +97,9 @@ export async function writeAudit(input: {
   after?: unknown
   meta?: unknown
 }): Promise<void> {
+  // Аудит пишут все admin-мутации — единая точка сброса кеша публичных данных
+  // (в т.ч. для actions, которые не идут через withAdminAction).
+  revalidateSiteData()
   try {
     await ensureDb()
     const username = (input.admin?.username || input.username || "").trim()

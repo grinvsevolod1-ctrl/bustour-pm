@@ -36,7 +36,6 @@ export function FeaturedTours({
             tour={tour}
             currencies={currencies}
             loading={i === eagerIndex ? "eager" : "lazy"}
-            priority={i === eagerIndex}
           />
         ))}
       </div>

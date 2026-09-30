@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation"
 import type { Metadata } from "next"
-import { getTour, getTourById, getTours, getRelatedTours, getReviewsByTour, getSlugMaps } from "@/lib/queries"
+import { getTour, getTourById, getTours, getRelatedTours, getReviewsByTour, getSlugMaps } from "@/lib/public/queries"
 import { TourPageContent } from "@/components/site/tour-page-content"
 import { isTourVisible } from "@/lib/cms"
 import { getPublicSettings } from "@/lib/cms"

@@ -3,7 +3,7 @@
 # БасТур — деплой одной командой на VPS (pm2, без Docker).
 #
 # Использование (на VPS, из корня проекта):
-#   ./deploy.sh              обычный деплой: git pull → deps → build → migrate → pm2 reload
+#   ./deploy.sh              обычный деплой: git pull → deps → build → migrate → pm2 reload → nginx sync
 #   ./deploy.sh --setup      первый запуск: установит pm2/PostgreSQL/nginx при необходимости
 #   ./deploy.sh --no-pull    задеплоить текущий код без git pull
 #
@@ -92,16 +92,7 @@ if [ "$DO_SETUP" -eq 1 ]; then
     log "Устанавливаю ffmpeg (конвертация видео в WebM)"
     sudo apt-get install -y -qq ffmpeg
   fi
-  if [ ! -f /etc/nginx/sites-available/bastur.conf ]; then
-    log "Ставлю nginx-конфиг (ops/nginx/bastur.conf)"
-    sudo cp ops/nginx/bastur.conf /etc/nginx/sites-available/bastur.conf
-    sudo ln -sf /etc/nginx/sites-available/bastur.conf /etc/nginx/sites-enabled/bastur.conf
-    sudo rm -f /etc/nginx/sites-enabled/default
-    # Директория для proxy_cache_path из конфига — без неё nginx -t падает
-    sudo mkdir -p /var/cache/nginx/bastur
-    sudo chown -R www-data:www-data /var/cache/nginx
-    sudo nginx -t && sudo systemctl reload nginx
-  fi
+  # nginx-конфиг ставит шаг 6b (ops/nginx/apply.sh) — на каждом деплое, не только в --setup
 
   mkdir -p logs
 fi
@@ -199,6 +190,21 @@ if ! pm2 ls | grep -q pm2-logrotate; then
   pm2 set pm2-logrotate:retain 14
   pm2 set pm2-logrotate:compress true
   pm2 set pm2-logrotate:rotateInterval '0 3 * * *'
+fi
+
+# --- 6b. nginx: синхронизация конфига из репозитория ---------------------------
+# HTTP/2, brotli, микрокеш, заголовки — всё из ops/nginx/*. Идемпотентно,
+# с nginx -t и откатом к бэкапу; ошибка здесь деплой приложения не блокирует.
+if command -v nginx >/dev/null 2>&1; then
+  log "nginx: синхронизирую конфиг (ops/nginx/apply.sh)"
+  if [ "$(id -u)" -eq 0 ]; then
+    bash ops/nginx/apply.sh || log "nginx: apply.sh завершился с ошибкой — конфиг nginx не менялся"
+  elif sudo -n true 2>/dev/null; then
+    sudo -n env NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-}" bash ops/nginx/apply.sh \
+      || log "nginx: apply.sh завершился с ошибкой — конфиг nginx не менялся"
+  else
+    log "nginx: нет sudo без пароля — конфиг не синхронизирован. Вручную: sudo bash ops/nginx/apply.sh"
+  fi
 fi
 
 # --- 7. Health-check ----------------------------------------------------------

@@ -6,6 +6,7 @@ import { requireAdmin, requireCapability, type SessionAdmin } from "@/lib/auth"
 import { writeAudit } from "@/lib/admin-audit"
 import { mapDbError } from "@/lib/db-errors"
 import type { AdminCapability } from "@/lib/admin-roles"
+import { revalidateSiteData } from "@/lib/site-data-cache"
 
 /** A path to revalidate; use ["/", "layout"] to revalidate a whole layout subtree. */
 export type RevalidateTarget = string | readonly [path: string, type: "layout" | "page"]
@@ -39,6 +40,9 @@ function revalidateTargets(targets: readonly RevalidateTarget[] | undefined) {
   // статья, тумблер видимости) — сбрасываем кэш карты сайта, иначе новый
   // тур появлялся в sitemap только через час.
   revalidatePath("/sitemap.xml")
+  // Межзапросный кеш публичных выборок (lib/public/*) — сбрасываем всегда,
+  // даже если действие не вернуло audit.
+  revalidateSiteData()
 }
 
 /**

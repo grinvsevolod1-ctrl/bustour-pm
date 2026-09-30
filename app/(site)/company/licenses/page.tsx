@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { ImageLightbox } from "@/components/site/image-lightbox"
 import { PageExtras } from "@/components/site/page-extras"
 import { CmsText } from "@/components/site/cms-text"
-import { getCertSectionsWithItems } from "@/lib/queries"
+import { getCertSectionsWithItems } from "@/lib/public/queries"
 import { getPublicSettings } from "@/lib/cms"
 import { metadataFromSettings } from "@/lib/seo-metadata"
 

@@ -74,13 +74,15 @@ const nextConfig = {
       },
     ];
   },
-  // gzip отдаёт nginx (см. ops/nginx/bastur.conf) — не тратим CPU node-процесса.
+  // gzip/brotli отдаёт nginx (см. ops/nginx/snippets/) — не тратим CPU node-процесса.
   compress: false,
   images: {
     // Оптимизация включена: sharp установлен, на VPS (pm2 + next start)
     // ресайз и конвертация в AVIF/WebP работают из коробки.
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    // 384/480 — для карточек ~330 px на десктопе (sizes="…, 330px"): без них
+    // srcset начинался с 640 и 1x-экраны тянули вдвое большую картинку.
+    deviceSizes: [384, 480, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     // Оптимизированные версии кешируются на диске (.next/cache/images) на 31 день.
     minimumCacheTTL: 2678400,

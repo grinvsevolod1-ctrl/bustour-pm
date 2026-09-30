@@ -51,7 +51,7 @@ NEXT_PUBLIC_SITE_URL=https://bus-tour.by   # сейчас
 # NEXT_PUBLIC_SITE_URL=https://bus-tour.by     # после переезда — просто поменять и ./deploy.sh --no-pull
 ```
 
-`ops/nginx/bastur.conf` уже содержит оба домена в `server_name` — при переезде ничего менять не нужно, только выпустить сертификат.
+nginx-конфиг генерируется на каждом деплое (`ops/nginx/apply.sh`): `server_name` берётся из `NEXT_PUBLIC_SITE_URL` (+ `www.`) плюс имена из текущего конфига, так что при переезде ничего менять не нужно — только выпустить сертификат.
 
 ## TLS (HTTPS)
 
@@ -68,17 +68,27 @@ sudo certbot --nginx -d bus-tour.by -d www.bus-tour.by
 
 ## Производительность (nginx)
 
-`ops/nginx/bastur.conf` включает:
+Конфиг nginx живёт в git (`ops/nginx/snippets/*`) и применяется на каждом
+деплое скриптом `ops/nginx/apply.sh` (шаг 6b в `deploy.sh`): правки на сервере
+в `/etc/nginx/sites-available/bastur.conf` затираются — меняйте файлы в репозитории.
+Скрипт прогоняет `nginx -t` и при ошибке откатывает к бэкапу
+(`/etc/nginx/bastur-backup/`), ручной запуск: `sudo bash ops/nginx/apply.sh`.
 
-- **gzip** для HTML/CSS/JS/JSON/SVG;
-- **микрокеш HTML на 5 секунд** для анонимных посетителей — публичные страницы
-  рендерятся динамически (каждый запрос идёт в PostgreSQL), микрокеш снимает
-  нагрузку при всплесках трафика. Залогиненный админ (кука `bastur_admin`)
-  и раздел `/admin` кеш обходят полностью, свежесть контента после правок
-  в админке — максимум 5 секунд;
+Что включено:
+
+- **HTTP/2** на 443 (сертификаты и `options-ssl-nginx.conf` берутся у certbot);
+  HSTS `max-age=63072000` только на https;
+- **brotli**, если модуль `libnginx-mod-http-brotli-filter` есть в репозитории
+  дистрибутива (Ubuntu 24.04+), иначе **gzip** для HTML/CSS/JS/JSON/SVG;
+- **микрокеш HTML на 10 секунд** для анонимных посетителей — публичные страницы
+  рендерятся динамически, микрокеш снимает нагрузку при всплесках трафика.
+  Залогиненный админ (кука `bastur_admin`) и раздел `/admin` кеш обходят
+  полностью;
 - заголовок `X-Cache-Status` (HIT/MISS/BYPASS) для диагностики.
 
-Проверка: `curl -sI https://bus-tour.by/ | grep -i x-cache-status`
+Проверка: `curl -sI https://bus-tour.by/ | grep -iE "x-cache-status|strict-transport|^HTTP/"`
+(вторая строка подряд — `HIT`, протокол — `HTTP/2`).
+Brotli: `curl -sI -H "Accept-Encoding: br" https://bus-tour.by/ | grep -i content-encoding`.
 
 ## Полезные команды
 

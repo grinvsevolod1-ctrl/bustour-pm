@@ -4,7 +4,7 @@ import { UserCircle2 } from "lucide-react"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { PageExtras } from "@/components/site/page-extras"
 import { CmsText } from "@/components/site/cms-text"
-import { getStaff } from "@/lib/queries"
+import { getStaff } from "@/lib/public/queries"
 import { getPublicSettings } from "@/lib/cms"
 import { metadataFromSettings } from "@/lib/seo-metadata"
 

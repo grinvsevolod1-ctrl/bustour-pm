@@ -1,6 +1,6 @@
 import { FeaturedTours } from "@/components/site/featured-tours"
 import { ToursListing } from "@/components/site/tours-listing"
-import { getCurrencies } from "@/lib/currencies-server"
+import { getCurrencies } from "@/lib/public/currencies-server"
 import { expandPublicList } from "@/lib/expand-content-blocks"
 import { getShortcodesDict } from "@/lib/shortcodes"
 import { toTourCard } from "@/lib/tour-card"

@@ -5,7 +5,7 @@
  *   /avtobusnye-tury/{countrySlug}/{citySlug}/{tourSlug}/
  */
 import { notFound, redirect } from "next/navigation"
-import { getTour, getTours, getSlugMaps } from "@/lib/queries"
+import { getTour, getTours, getSlugMaps } from "@/lib/public/queries"
 import { tourUrl } from "@/lib/tour-url"
 import { isTourVisible } from "@/lib/cms"
 

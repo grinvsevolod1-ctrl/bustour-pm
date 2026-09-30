@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
-import { getCityById, getCityDestination } from "@/lib/cities"
-import { getCountry, getCountryById } from "@/lib/countries"
+import { getCityById, getCityDestination } from "@/lib/public/cities"
+import { getCountry, getCountryById } from "@/lib/public/countries"
 import type { CityCategory, CityDestination, Country } from "@/lib/types"
 import { previewAllows, readAuthorizedPreview } from "@/lib/preview-access"
 
