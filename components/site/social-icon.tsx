@@ -28,7 +28,20 @@ export function SocialIconGlyph({
 }) {
   const src = SOCIAL_ICON_SRC[icon]
   if (src) {
-    return <img src={src} alt="" className={`h-full w-full shrink-0 object-contain ${className || ""}`} />
+    // loading="lazy" здесь не про экономию трафика: React 19 при SSR сам
+    // вставляет <link rel="preload" as="image"> для каждого <img> без lazy —
+    // четыре иконки шапки уходили в preload с высоким приоритетом и отбирали
+    // канал у hero-картинки (LCP) на мобильных. Иконки в видимой области
+    // браузер и так грузит сразу после раскладки.
+    return (
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className={`h-full w-full shrink-0 object-contain ${className || ""}`}
+      />
+    )
   }
   return <Send className={`h-full w-full shrink-0 object-contain ${className || ""}`} aria-hidden />
 }

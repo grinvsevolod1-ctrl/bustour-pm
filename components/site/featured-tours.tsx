@@ -36,6 +36,9 @@ export function FeaturedTours({
             tour={tour}
             currencies={currencies}
             loading={i === eagerIndex ? "eager" : "lazy"}
+            // Без "low" React 19 добавил бы <link rel="preload"> для eager-картинки,
+            // и она соревновалась бы с hero (LCP) за канал на мобильных.
+            fetchPriority={i === eagerIndex ? "low" : undefined}
           />
         ))}
       </div>

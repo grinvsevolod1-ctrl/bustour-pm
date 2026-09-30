@@ -15,6 +15,7 @@ export function TourCard({
   citySlug,
   loading = "lazy",
   priority = false,
+  fetchPriority,
   hidePerPersonSuffix = false,
   isBusTour = true,
 }: {
@@ -28,6 +29,8 @@ export function TourCard({
   citySlug?: string | null
   loading?: "eager" | "lazy"
   priority?: boolean
+  /** "low" для eager-карточки: грузится сразу, но без SSR-preload от React (не конкурирует с LCP). */
+  fetchPriority?: "high" | "low" | "auto"
   hidePerPersonSuffix?: boolean
   isBusTour?: boolean
 }) {
@@ -52,6 +55,7 @@ export function TourCard({
         fill
         priority={priority}
         loading={loading}
+        fetchPriority={fetchPriority}
         sizes="(max-width: 768px) 100vw, 330px"
         className="object-cover transition-transform duration-500 group-hover:scale-105"
       />
