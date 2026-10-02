@@ -42,6 +42,11 @@ grep -q 'server_name bus-tour.by www.bus-tour.by 185.10.10.10;' "$SITE" || fail 
 grep -q 'return 301 https://$host$request_uri;' "$SITE" || fail "нет редиректа 80→443"
 grep -q 'include snippets/bastur-proxy.conf;' "$SITE" || fail "нет include сниппета"
 grep -q 'bastur_hsts' "$ETC/conf.d/bastur-http.conf" || fail "нет map bastur_hsts в conf.d"
+# Прямая раздача медиа: плейсхолдер заменён на реальный каталог, fallback на приложение есть
+grep -q "alias $ROOT/public/uploads/\$1;" "$ETC/snippets/bastur-proxy.conf" || fail "alias uploads не подставлен (ожидался $ROOT/public/uploads)"
+! grep -q '__BASTUR_UPLOADS_DIR__' "$ETC/snippets/bastur-proxy.conf" || fail "в сниппете остался плейсхолдер каталога загрузок"
+grep -q 'try_files "" @bastur_uploads_app;' "$ETC/snippets/bastur-proxy.conf" || fail "нет fallback @bastur_uploads_app для uploads"
+grep -q 'location @bastur_uploads_app' "$ETC/snippets/bastur-proxy.conf" || fail "нет named location @bastur_uploads_app"
 ! grep -q 'brotli on' "$ETC/conf.d/bastur-http.conf" || fail "brotli включён без модуля"
 [ -L "$ETC/sites-enabled/bastur.conf" ] || fail "нет симлинка sites-enabled"
 [ -f "$ETC/.bastur-brotli-unsupported" ] || fail "нет маркера brotli-unsupported"
@@ -66,5 +71,12 @@ echo "5) без сертификата → только :80 со сниппет�
 rm -rf "$LE/live" "$ETC/sites-available/bastur.conf"; fake_nginx 1.24.0 0; run
 ! grep -q 'listen 443' "$SITE" || fail "443 без сертификата"
 grep -q 'include snippets/bastur-proxy.conf;' "$SITE" || fail ":80 без сниппета"
+
+echo "6) UPLOADS_DIR из окружения → alias на него; недопустимые символы → раздаёт приложение"
+UPLOADS_DIR=/data/bastur-media/ run
+grep -q 'alias /data/bastur-media/$1;' "$ETC/snippets/bastur-proxy.conf" || fail "UPLOADS_DIR из окружения не попал в alias"
+UPLOADS_DIR='/data/with space;' run 2>/dev/null
+! grep -q 'alias ' "$ETC/snippets/bastur-proxy.conf" || fail "при опасном UPLOADS_DIR regex-location должен быть вырезан"
+grep -q 'location /uploads/ {' "$ETC/snippets/bastur-proxy.conf" || fail "проксирующий location /uploads/ пропал"
 
 echo "OK: ops/nginx/apply.sh — все сценарии прошли"

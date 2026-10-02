@@ -24,7 +24,10 @@ for (const text of [
 }
 assert.match(settings, /<SocialLinksEditor settings=/)
 assert.match(footer, /socialsForFooter/)
-assert.match(header, /socialsForHeader/)
+// Шапка — клиентский компонент: список соцсетей ей передаёт серверный layout.
+const siteLayout = readFileSync(join(root, "app/(site)/layout.tsx"), "utf8")
+assert.match(siteLayout, /socials=\{socialsForHeader\(settings\)\}/)
+assert.match(header, /socials: SocialLink\[\]/)
 assert.doesNotMatch(config, /heading:\s*"Соцсети"/, "old fixed Соцсети group must be gone")
 assert.match(header, /SocialIconGlyph|socialCircleWrapperClass/)
 assert.match(footer, /SocialIconGlyph|socialCircleWrapperClass/)

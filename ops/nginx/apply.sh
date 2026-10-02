@@ -115,7 +115,27 @@ fi
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-cp "$SRC/bastur-proxy.conf" "$TMP/proxy.conf"
+# --- Каталог загрузок для прямой раздачи nginx -------------------------------
+# Тот же источник правды, что у приложения (lib/upload-fs.ts): UPLOADS_DIR из
+# окружения/.env, иначе <репозиторий>/public/uploads. Плейсхолдер в сниппете
+# заменяем здесь; в пути допускаем только безопасные для nginx-конфига символы,
+# иначе остаёмся на проксировании через приложение.
+UPLOADS_DIR_VALUE="${UPLOADS_DIR:-}"
+if [ -z "$UPLOADS_DIR_VALUE" ] && [ -f "$ROOT/.env" ]; then
+  UPLOADS_DIR_VALUE="$(grep -E '^UPLOADS_DIR=' "$ROOT/.env" | tail -1 | cut -d= -f2- | tr -d "\"' ")"
+fi
+[ -n "$UPLOADS_DIR_VALUE" ] || UPLOADS_DIR_VALUE="$ROOT/public/uploads"
+UPLOADS_DIR_VALUE="${UPLOADS_DIR_VALUE%/}"
+if printf '%s' "$UPLOADS_DIR_VALUE" | grep -qE '^/[A-Za-z0-9._/-]+$'; then
+  awk -v dir="$UPLOADS_DIR_VALUE" '{ gsub(/__BASTUR_UPLOADS_DIR__/, dir); print }' "$SRC/bastur-proxy.conf" >"$TMP/proxy.conf"
+else
+  warn "UPLOADS_DIR содержит недопустимые для nginx символы ($UPLOADS_DIR_VALUE) — медиа раздаёт приложение"
+  awk '
+    /^location ~\* \^\/uploads\// { skip = 1 }
+    skip && /^}/ { skip = 0; next }
+    !skip { print }
+  ' "$SRC/bastur-proxy.conf" >"$TMP/proxy.conf"
+fi
 
 cp "$SRC/bastur-http.conf" "$TMP/http.conf"
 if [ "$BROTLI" -eq 1 ]; then

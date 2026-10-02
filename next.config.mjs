@@ -107,20 +107,22 @@ const nextConfig = {
       { source: "/info/:path*", destination: "/helpful/:path*", permanent: true },
       // Old country pages under /tours/[category]/country/[slug]
       // (must come before the generic /tours/... rules below)
-      { source: "/tours/bus/country/:slug", destination: "/avtobusnye-tury/:slug/", permanent: true },
-      { source: "/tours/avia/country/:slug", destination: "/aviatory/:slug/", permanent: true },
-      { source: "/tours/hot/country/:slug", destination: "/hot/:slug/", permanent: true },
-      { source: "/aviatory/:countrySlug/:citySlug/:tourSlug", destination: "/avtobusnye-tury/:countrySlug/:citySlug/:tourSlug/", permanent: true },
-      { source: "/hot/:countrySlug/:citySlug/:tourSlug", destination: "/avtobusnye-tury/:countrySlug/:citySlug/:tourSlug/", permanent: true },
+      // Цели без завершающего слэша: при trailingSlash=false Next иначе
+      // добавляет второй прыжок 308 («/hot/» → «/hot») к каждому старому URL.
+      { source: "/tours/bus/country/:slug", destination: "/avtobusnye-tury/:slug", permanent: true },
+      { source: "/tours/avia/country/:slug", destination: "/aviatory/:slug", permanent: true },
+      { source: "/tours/hot/country/:slug", destination: "/hot/:slug", permanent: true },
+      { source: "/aviatory/:countrySlug/:citySlug/:tourSlug", destination: "/avtobusnye-tury/:countrySlug/:citySlug/:tourSlug", permanent: true },
+      { source: "/hot/:countrySlug/:citySlug/:tourSlug", destination: "/avtobusnye-tury/:countrySlug/:citySlug/:tourSlug", permanent: true },
       // Old category listing pages > new canonical URLs (301 permanent)
-      { source: "/tours/bus", destination: "/avtobusnye-tury/", permanent: true },
-      { source: "/tours/avia", destination: "/aviatory/", permanent: true },
-      { source: "/tours/hot", destination: "/hot/", permanent: true },
-      { source: "/hot-tours", destination: "/hot/", permanent: true },
+      { source: "/tours/bus", destination: "/avtobusnye-tury", permanent: true },
+      { source: "/tours/avia", destination: "/aviatory", permanent: true },
+      { source: "/tours/hot", destination: "/hot", permanent: true },
+      { source: "/hot-tours", destination: "/hot", permanent: true },
       { source: "/hot-tours/:slug*", destination: "/hot/:slug*", permanent: true },
-      { source: "/avia-tours", destination: "/aviatory/", permanent: true },
+      { source: "/avia-tours", destination: "/aviatory", permanent: true },
       { source: "/avia-tours/:slug*", destination: "/aviatory/:slug*", permanent: true },
-      { source: "/bus-tours", destination: "/avtobusnye-tury/", permanent: true },
+      { source: "/bus-tours", destination: "/avtobusnye-tury", permanent: true },
       { source: "/bus-tours/:slug*", destination: "/avtobusnye-tury/:slug*", permanent: true },
       { source: "/company/reviews", destination: "/reviews", permanent: true },
   // Переименование публичных URL (301, 1:1). Старые адреса — на новые.
@@ -133,10 +135,10 @@ const nextConfig = {
       { source: "/company/documents", destination: "/company/licenses", permanent: true },
       { source: "/privacy", destination: "/legal/privacy", permanent: true },
       { source: "/privacy-policy", destination: "/legal/privacy", permanent: true },
-      { source: "/tours/all", destination: "/avtobusnye-tury/", permanent: true },
-      { source: "/tours/bus/:city", destination: "/avtobusnye-tury/", permanent: true },
-      { source: "/tours/avia/:city", destination: "/aviatory/", permanent: true },
-      { source: "/tours/hot/:city", destination: "/hot/", permanent: true },
+      { source: "/tours/all", destination: "/avtobusnye-tury", permanent: true },
+      { source: "/tours/bus/:city", destination: "/avtobusnye-tury", permanent: true },
+      { source: "/tours/avia/:city", destination: "/aviatory", permanent: true },
+      { source: "/tours/hot/:city", destination: "/hot", permanent: true },
     ];
   },
 };

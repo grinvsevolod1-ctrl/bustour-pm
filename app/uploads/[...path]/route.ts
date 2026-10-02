@@ -94,7 +94,11 @@ export async function GET(
 
   const baseHeaders: Record<string, string> = {
     "Content-Type": type,
-    "Cache-Control": "public, max-age=86400",
+    // Имя файла на диске — randomUUID (lib/media/service.ts): содержимое под
+    // одним URL никогда не меняется, замена картинки = новый URL. Поэтому
+    // кешируем на год с immutable — браузер не делает даже условных запросов,
+    // и повторные визиты не ходят на сервер за медиа вообще.
+    "Cache-Control": "public, max-age=31536000, immutable",
     "Accept-Ranges": "bytes",
     ETag: etag,
     "Last-Modified": info.mtime.toUTCString(),

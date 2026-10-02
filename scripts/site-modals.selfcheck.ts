@@ -69,14 +69,22 @@ assert.match(rev, /после проверки модератором/i)
 assert.ok(!rev.includes("Страна отдыха"), "simplified: no country")
 assert.ok(!rev.includes("Дата поездки"), "simplified: no trip date")
 
+// Провайдер — лёгкий (кнопка + контекст), сам диалог с LeadForm лежит в
+// отдельном ленивом чанке callback-dialog.tsx и грузится по первому клику.
 const provider = fs.readFileSync(
   path.join(import.meta.dirname, "../components/site/callback-modal.tsx"),
   "utf8",
 )
-assert.ok(provider.includes("LeadForm"), "callback uses previous LeadForm modal")
-assert.match(provider, /100dvh/, "float callback modal fits viewport")
-assert.match(provider, /min-h-0/, "float callback can shrink/scroll")
-assert.match(provider, /overscroll-contain/, "float callback overscroll")
+assert.match(provider, /import\("\.\/callback-dialog"\)/, "callback dialog is lazy-loaded")
+assert.ok(!provider.includes("LeadForm"), "provider must not import LeadForm eagerly")
+const dialog = fs.readFileSync(
+  path.join(import.meta.dirname, "../components/site/callback-dialog.tsx"),
+  "utf8",
+)
+assert.ok(dialog.includes("LeadForm"), "callback uses previous LeadForm modal")
+assert.match(dialog, /100dvh/, "float callback modal fits viewport")
+assert.match(dialog, /min-h-0/, "float callback can shrink/scroll")
+assert.match(dialog, /overscroll-contain/, "float callback overscroll")
 
 const leadForm = fs.readFileSync(
   path.join(import.meta.dirname, "../components/site/lead-form.tsx"),

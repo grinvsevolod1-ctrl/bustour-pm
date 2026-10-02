@@ -6,8 +6,12 @@ const source = readFileSync(join(process.cwd(), "components/site/testimonials.ts
 const videoCard = readFileSync(join(process.cwd(), "components/site/video-card.tsx"), "utf8")
 
 assert.match(source, /sm:grid-cols-2 lg:grid-cols-3/, "desktop/tablet responsive grid")
-assert.match(source, /space-y-6 sm:hidden/, "mobile layout is separate from desktop grid")
-assert.match(source, /const mobileReview = capped\[mobilePage\]/, "mobile renders one review")
+// Один DOM-список для мобайла и десктопа (без дубля первого отзыва в HTML):
+// видимость карточки переключают классы, на мобайле показан один отзыв.
+assert.match(source, /function cardVisibility\(index: number\)/, "single list, visibility by classes")
+assert.match(source, /const onMobile = index === mobilePage/, "mobile renders one review")
+assert.match(source, /if \(onMobile\) return "sm:hidden"/, "mobile-only card hidden from sm+")
+assert.match(source, /if \(onDesktop\) return "hidden sm:block"/, "desktop-only card hidden below sm")
 assert.match(source, /aria-live="polite"/, "mobile pagination announces current page")
 assert.match(source, /h-11 w-11/, "mobile pagination controls have 44px touch targets")
 assert.match(source, /VideoCard/, "home uses shared VideoCard")

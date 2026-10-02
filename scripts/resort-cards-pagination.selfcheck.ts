@@ -31,9 +31,11 @@ assert.ok(admin.includes("cities.rows"), "admin has cities.rows field")
 assert.ok(admin.includes("cities.paginate"), "admin has cities.paginate field")
 
 const carousel = fs.readFileSync(path.join(root, "components/site/resort-cards-carousel.tsx"), "utf8")
-assert.ok(carousel.includes('from "motion/react"'), "carousel uses motion/react")
-assert.ok(carousel.includes("useReducedMotion"), "respects reduced motion")
-assert.ok(carousel.includes("AnimatePresence"), "page flip via AnimatePresence")
+// Перелистывание — CSS-анимация (tailwindcss-animate), а не motion/react:
+// библиотека не нужна в клиентском бандле главной ради одного fade-in.
+assert.ok(!carousel.includes('from "motion/react"'), "carousel must not pull motion/react into the bundle")
+assert.ok(carousel.includes("animate-in fade-in-0"), "page flip via CSS fade-in")
+assert.ok(carousel.includes("motion-reduce:animate-none"), "respects reduced motion")
 // #31: mobile is horizontal snap strip, not vertical grid stack
 assert.ok(carousel.includes("snap-x"), "mobile uses snap-x carousel")
 assert.ok(carousel.includes("snap-mandatory"), "mobile snap-mandatory")

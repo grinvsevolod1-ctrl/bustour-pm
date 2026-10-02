@@ -16,9 +16,15 @@ const phones = getDisplayPhones({
 assert.equal(phones.length, 2)
 assert.ok(phones.every((p) => p.href.startsWith("tel:")))
 
+// Шапка — клиентский компонент без доступа к настройкам: часы и телефон ей
+// передаёт серверный layout (так в клиентский бандл не попадает вся CMS).
 const header = readFileSync(join(process.cwd(), "components/site/site-header.tsx"), "utf8")
-assert.match(header, /site\.hours/)
+assert.match(header, /hours: string/, "header receives hours via props")
 assert.match(header, /primaryPhone\.href|getPrimaryPhone/)
+
+const siteLayout = readFileSync(join(process.cwd(), "app/(site)/layout.tsx"), "utf8")
+assert.match(siteLayout, /hours=\{settings\["site\.hours"\]/, "layout feeds header hours from CMS")
+assert.match(siteLayout, /getPrimaryPhone\(settings\)/, "layout feeds header phone from CMS")
 
 const contacts = readFileSync(join(process.cwd(), "app/(site)/contacts/page.tsx"), "utf8")
 assert.match(contacts, /getDisplayPhones/)
@@ -28,11 +34,19 @@ assert.match(contacts, /href=\{phone\.href\}/)
 const footer = readFileSync(join(process.cwd(), "components/site/site-footer.tsx"), "utf8")
 assert.match(footer, /getDisplayPhones/)
 
+// Провайдер обратного звонка получает часы/телефон из layout (CMS), а сам
+// диалог — отдельный ленивый чанк (callback-dialog.tsx) с теми же пропсами.
 const callback = readFileSync(join(process.cwd(), "components/site/callback-modal.tsx"), "utf8")
-assert.match(callback, /getOfficeHoursLabel|site\.hours/, "callback hours from CMS")
-assert.match(callback, /getPrimaryPhone/, "callback shows company phone")
+assert.match(callback, /hours\?: string/, "callback provider receives hours via props")
+assert.match(callback, /phone\?: DisplayPhone \| null/, "callback provider receives company phone via props")
+assert.match(callback, /import\("\.\/callback-dialog"\)/, "callback dialog is a lazy chunk")
+assert.match(siteLayout, /hours=\{officeHours\}/, "layout feeds callback hours from CMS")
+assert.match(siteLayout, /getOfficeHoursLabel\(settings\)/, "callback hours come from CMS settings")
+
+const callbackDialog = readFileSync(join(process.cwd(), "components/site/callback-dialog.tsx"), "utf8")
+assert.match(callbackDialog, /\(\{hours\}\)/, "dialog copy renders hours from props")
 assert.doesNotMatch(
-  callback,
+  callbackDialog,
   /перезвоним в рабочее время \(10:00–18:00\)/,
   "no hardcoded office hours in callback copy",
 )
