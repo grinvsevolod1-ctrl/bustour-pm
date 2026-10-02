@@ -47,13 +47,13 @@ export function HolidayImportButton() {
       </button>
 
       {state === "done" && result && (
-        <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-1.5 text-xs text-emerald-600">
           <CheckCircle2 className="h-3.5 w-3.5" />
           Добавлено: {result.imported} · Пропущено: {result.skipped}
         </div>
       )}
       {state === "error" && result?.error && (
-        <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+        <div className="flex items-center gap-1.5 text-xs text-red-600">
           <AlertCircle className="h-3.5 w-3.5" />
           {result.error}
         </div>

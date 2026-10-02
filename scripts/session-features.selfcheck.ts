@@ -13,12 +13,15 @@ import { readQueriesSource } from "./lib/read-queries-source"
 
 // tourUrl still requires country+city
 assert.equal(tourUrl({ tourSlug: "x", countrySlug: "rossiya", citySlug: "" }), null)
-assert.ok(
+// Без завершающего слэша (trailingSlash=false) — иначе серверные редиректы
+// на тур делали второй прыжок 308.
+assert.equal(
   tourUrl({
     tourSlug: "tur-vyhodnogo-dnya-v-piter",
     countrySlug: "rossiya",
     citySlug: "sankt-peterburg",
-  })?.endsWith("/tur-vyhodnogo-dnya-v-piter/"),
+  }),
+  "/avtobusnye-tury/rossiya/sankt-peterburg/tur-vyhodnogo-dnya-v-piter",
 )
 
 assert.equal(isDateRangeOrdered("2026-07-01", "2026-07-10"), true)
