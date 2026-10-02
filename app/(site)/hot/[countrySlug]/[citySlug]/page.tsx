@@ -20,6 +20,7 @@ import { resolveCityPage, assertCityPreviewAccess } from "@/lib/preview-resolve"
 import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { ParsedText } from "@/components/site/parsed-text"
 import { getShortcodesDict } from "@/lib/shortcodes"
+import { tourvisorWidgetGeo } from "@/lib/tourvisor-directory"
 
 interface Props {
   params: Promise<{ countrySlug: string; citySlug: string }>
@@ -153,7 +154,13 @@ export default async function HotCityPage({ params, searchParams }: Props) {
             </div>
             {renderCmsSections(split.top)}
             {renderCmsSections(split.beforeSearch)}
-            {showSearch ? useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget /> : null}
+            {showSearch ? (
+              useAviaWidget ? (
+                <AviaTourSearchWidget {...tourvisorWidgetGeo(country, info)} />
+              ) : (
+                <HotToursWidget {...tourvisorWidgetGeo(country, info)} />
+              )
+            ) : null}
             {renderCmsSections(split.afterSearch)}
           </div>
         </div>

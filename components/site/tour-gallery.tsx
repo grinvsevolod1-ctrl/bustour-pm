@@ -1,66 +1,20 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
-import { createPortal } from "react-dom"
-import Image from "next/image"
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Play, X, Expand } from "lucide-react"
-import { extToType } from "@/lib/media/utils"
-import { ZoomableLightboxImage } from "@/components/site/image-lightbox"
+import dynamic from "next/dynamic"
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Play, Expand } from "lucide-react"
+import { SlideMedia, isVideoUrl, mediaLabel, type GallerySlide } from "./tour-gallery-media"
 
 type Direction = "left" | "right" | "none"
-type GallerySlide = { url: string; alt: string }
 
-function isVideoUrl(url: string) {
-  return extToType(url.split(/[?#]/, 1)[0] ?? url) === "video"
-}
+const loadLightbox = () => import("./tour-gallery-lightbox")
 
-function mediaLabel(slide: GallerySlide | undefined) {
-  return slide && isVideoUrl(slide.url) ? "видео" : "фото"
-}
-
-function SlideMedia({
-  slide,
-  priority,
-  sizes,
-  objectFit = "contain",
-  controls = false,
-  muted = false,
-  className,
-}: {
-  slide: GallerySlide
-  priority?: boolean
-  sizes: string
-  objectFit?: "contain" | "cover"
-  controls?: boolean
-  muted?: boolean
-  className?: string
-}) {
-  const fit = objectFit === "cover" ? "object-cover" : "object-contain"
-  if (isVideoUrl(slide.url)) {
-    return (
-      <video
-        src={slide.url}
-        className={`absolute inset-0 h-full w-full ${fit} ${className ?? ""}`}
-        controls={controls}
-        muted={muted}
-        playsInline
-        preload="metadata"
-        aria-label={slide.alt || undefined}
-      />
-    )
-  }
-  return (
-    <Image
-      src={slide.url || "/placeholder.svg"}
-      alt={slide.alt}
-      fill
-      sizes={sizes}
-      className={`${fit} ${className ?? ""}`}
-      priority={priority}
-      draggable={false}
-    />
-  )
-}
+/**
+ * Лайтбокс (портал + зум из image-lightbox.tsx) нужен только после клика по
+ * «развернуть» — грузим его отдельным чанком, прогревая по намерению
+ * (hover/focus/touch по кнопке). До клика страница тура его не исполняет.
+ */
+const TourGalleryLightbox = dynamic(() => loadLightbox().then((m) => m.TourGalleryLightbox), { ssr: false })
 
 function useSlider(total: number) {
   const [active, setActive] = useState(0)
@@ -93,118 +47,6 @@ function useSlider(total: number) {
   }, [])
 
   return { active, outgoing, direction, go, endAnim }
-}
-
-function Lightbox({
-  slides,
-  index,
-  onClose,
-  onNav,
-}: {
-  slides: GallerySlide[]
-  index: number
-  onClose: () => void
-  onNav: (i: number) => void
-}) {
-  const closeRef = useRef<HTMLButtonElement>(null)
-  const [zoomed, setZoomed] = useState(false)
-
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    closeRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-      if (e.key === "ArrowLeft") onNav((index - 1 + slides.length) % slides.length)
-      if (e.key === "ArrowRight") onNav((index + 1) % slides.length)
-    }
-    window.addEventListener("keydown", onKey)
-    return () => {
-      document.body.style.overflow = prev
-      window.removeEventListener("keydown", onKey)
-    }
-  }, [index, slides.length, onClose, onNav])
-
-  const slide = slides[index]
-  const caption =
-    slide?.alt && slides.length > 1 ? `${slide.alt} — ${mediaLabel(slide)} ${index + 1}` : slide?.alt || ""
-
-  return createPortal(
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center overscroll-none bg-black/90 backdrop-blur-sm ${
-        zoomed ? "p-0" : "overflow-hidden p-3 sm:p-4"
-      }`}
-      style={{
-        paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
-        paddingTop: "max(0.75rem, env(safe-area-inset-top))",
-        paddingLeft: "max(0.75rem, env(safe-area-inset-left))",
-        paddingRight: "max(0.75rem, env(safe-area-inset-right))",
-      }}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={caption || `Просмотр ${mediaLabel(slide)}`}
-    >
-      <button
-        ref={closeRef}
-        type="button"
-        onClick={onClose}
-        aria-label="Закрыть"
-        className="fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white touch-manipulation transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:right-4"
-      >
-        <X className="h-5 w-5" aria-hidden />
-      </button>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          onNav((index - 1 + slides.length) % slides.length)
-        }}
-        aria-label="Предыдущее"
-        className="fixed left-1 top-1/2 z-50 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white touch-manipulation transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:left-4 sm:h-12 sm:w-12"
-      >
-        <ChevronLeft className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden />
-      </button>
-
-      <div
-        className={
-          zoomed
-            ? "relative h-full w-full max-w-none max-h-none p-0"
-            : "relative mx-12 h-[min(85dvh,calc(100dvh-1.5rem))] w-full max-w-full sm:mx-16 md:max-w-[80vw]"
-        }
-        onClick={(e) => e.stopPropagation()}
-      >
-        {slide && isVideoUrl(slide.url) ? (
-          <SlideMedia
-            slide={{ ...slide, alt: caption }}
-            sizes="100vw"
-            controls
-            priority
-          />
-        ) : slide ? (
-          <ZoomableLightboxImage src={slide.url} alt={caption} onZoomChange={setZoomed} />
-        ) : null}
-      </div>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation()
-          onNav((index + 1) % slides.length)
-        }}
-        aria-label="Следующее"
-        className="fixed right-1 top-1/2 z-50 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white touch-manipulation transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:right-4 sm:h-12 sm:w-12"
-      >
-        <ChevronRight className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden />
-      </button>
-
-      <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 text-sm text-white/60">
-        {index + 1} / {slides.length}
-      </div>
-    </div>,
-    document.body,
-  )
 }
 
 export function TourGallery({
@@ -373,6 +215,9 @@ export function TourGallery({
           <button
             type="button"
             onClick={() => setLightbox(active)}
+            onPointerEnter={() => void loadLightbox()}
+            onTouchStart={() => void loadLightbox()}
+            onFocus={() => void loadLightbox()}
             aria-label="Открыть полноэкранный просмотр"
             className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-white touch-manipulation backdrop-blur-sm transition-colors hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:right-4 sm:top-4"
           >
@@ -485,7 +330,7 @@ export function TourGallery({
       </div>
 
       {lightbox !== null && (
-        <Lightbox
+        <TourGalleryLightbox
           slides={slides}
           index={lightbox}
           onClose={() => setLightbox(null)}

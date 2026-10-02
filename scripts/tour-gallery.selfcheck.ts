@@ -12,7 +12,10 @@ assert.ok(gallery.includes("min-h-[180px]"), "mobile min-height guard")
 assert.ok(gallery.includes("shrink-0"), "mobile shrink-0 against flex collapse")
 assert.ok(!/animating && \(\s*<div[^>]*>\s*\{\/\* previous/.test(gallery), "no empty exit shell")
 assert.ok(css.includes("animate-slide-in-left"), "slide keyframes wired")
+const galleryMedia = readFileSync(join(root, "components/site/tour-gallery-media.tsx"), "utf8")
 assert.ok(gallery.includes("isVideoUrl"), "video URL detection")
-assert.ok(gallery.includes("<video"), "renders video player")
+assert.ok(galleryMedia.includes("<video"), "renders video player")
+// Лайтбокс — отдельный чанк по клику, а не часть первоначального бандла страницы тура.
+assert.ok(gallery.includes('import("./tour-gallery-lightbox")'), "lightbox is lazy-loaded")
 
 console.log("tour-gallery.selfcheck: ok")

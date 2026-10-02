@@ -73,9 +73,22 @@ export function isOn(settings: SiteSettings, key: string): boolean {
   return v === undefined ? true : v === "1"
 }
 
-export async function isTourVisible(slug: string): Promise<boolean> {
-  const siteSettings = await getSettings()
+/** Флаг видимости тура по уже загруженным настройкам (без похода в БД). */
+export function isTourVisibleIn(siteSettings: SiteSettings, slug: string): boolean {
   return siteSettings[`tour:${slug}.visible`] !== "0"
+}
+
+/** Админка: всегда свежее значение (полная выборка site_settings). */
+export async function isTourVisible(slug: string): Promise<boolean> {
+  return isTourVisibleIn(await getSettings(), slug)
+}
+
+/**
+ * Публичные страницы: читает кешированные настройки (getPublicSettings), а не
+ * сканирует таблицу на каждый просмотр тура. Инвалидируется вместе с ними.
+ */
+export async function isTourVisiblePublic(slug: string): Promise<boolean> {
+  return isTourVisibleIn(await getPublicSettings(), slug)
 }
 
 export async function getHiddenTourSlugs(): Promise<Set<string>> {

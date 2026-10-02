@@ -27,6 +27,7 @@ function mapCountry(row: typeof countries.$inferSelect): Country {
     category: (row.category === "avia" ? "avia" : row.category === "hot" ? "hot" : "bus") as "bus" | "avia" | "hot",
     intro: row.intro,
     seoHtml: row.seoHtml,
+    tourvisorId: row.tourvisorId ?? null,
     sortOrder: row.sortOrder,
     archived: row.archived,
   }
@@ -88,6 +89,8 @@ export type CountryInput = {
   category: "bus" | "avia" | "hot"
   intro: string
   seoHtml: string
+  /** ID страны в Tourvisor; undefined = не трогать, null = сбросить на автоподбор. */
+  tourvisorId?: number | null
 }
 
 export async function createCountry(input: CountryInput, executor: DbExecutor = db): Promise<number> {
@@ -108,6 +111,7 @@ export async function createCountry(input: CountryInput, executor: DbExecutor = 
       category: input.category,
       intro: input.intro,
       seoHtml: input.seoHtml,
+      tourvisorId: input.tourvisorId ?? null,
       sortOrder: nextOrder,
       createdAt: Date.now(),
     })
@@ -127,7 +131,14 @@ export async function updateCountry(id: number, input: CountryInput, executor: D
   }
   await executor
     .update(countries)
-    .set({ slug: input.slug || slugify(input.name), name: input.name, category: input.category, intro: input.intro, seoHtml: input.seoHtml })
+    .set({
+      slug: input.slug || slugify(input.name),
+      name: input.name,
+      category: input.category,
+      intro: input.intro,
+      seoHtml: input.seoHtml,
+      ...(input.tourvisorId !== undefined ? { tourvisorId: input.tourvisorId } : {}),
+    })
     .where(eq(countries.id, id))
 }
 

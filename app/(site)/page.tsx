@@ -1,7 +1,7 @@
 import { Hero } from "@/components/site/hero"
 import { SearchForm } from "@/components/site/search-form"
 import { SectionTitle } from "@/components/site/section-title"
-import { PublicFeaturedTours } from "@/components/site/public-tours"
+import { PublicFeaturedTours } from "@/components/site/public-featured-tours"
 import { Advantages } from "@/components/site/advantages"
 import { OrderedFaqSection } from "@/components/site/ordered-faq-section"
 import { getHomeTourOffers, getApprovedReviews } from "@/lib/public/queries"
@@ -61,7 +61,10 @@ export default async function HomePage() {
       return (
         <section key={key} className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-6">
           <SectionTitle>{settings["title.featured"]}</SectionTitle>
-          <PublicFeaturedTours tours={featured} eagerIndex={0} />
+          {/* Все карточки lazy: eager на первой заставлял React 19 (Fizz) эмитить
+              <link rel=preload> для картинки, которая на мобильном лежит ниже
+              первого экрана, — она конкурировала за канал с LCP-слайдом hero. */}
+          <PublicFeaturedTours tours={featured} />
         </section>
       )
     }

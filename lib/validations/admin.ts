@@ -1,4 +1,7 @@
 import { z } from "zod"
+import { TOURVISOR_ID_FIELD } from "@/lib/tourvisor-widget"
+
+export { TOURVISOR_ID_FIELD }
 
 /** URL slug: lowercase latin, digits, hyphens, underscores; 1–120 chars. */
 export const slugSchema = z
@@ -9,6 +12,29 @@ export const slugSchema = z
   .regex(/^[a-z0-9_]+(?:[-_][a-z0-9_]+)*$/, "Slug: только a-z, 0-9, дефис и _")
 
 export const categorySchema = z.enum(["bus", "avia", "hot"])
+
+/** Поле «ID в Tourvisor» формы страны/курорта: пусто = автоподбор по названию. */
+export const tourvisorIdSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{0,9}$/, "ID в Tourvisor — целое положительное число")
+  .transform((value) => (value ? Number(value) : null))
+
+export type TourvisorIdField =
+  | {
+      ok: true
+      /** undefined — поля в форме не было (БД не трогаем); null — пусто (автоподбор); число — ручной ID. */
+      value: number | null | undefined
+    }
+  | { ok: false; error: string }
+
+export function parseTourvisorIdField(formData: FormData): TourvisorIdField {
+  const raw = formData.get(TOURVISOR_ID_FIELD)
+  if (raw === null) return { ok: true, value: undefined }
+  const parsed = tourvisorIdSchema.safeParse(String(raw))
+  if (!parsed.success) return { ok: false, error: zodFirstError(parsed.error) }
+  return { ok: true, value: parsed.data === 0 ? null : parsed.data }
+}
 
 export const tourSaveSchema = z.object({
   slug: slugSchema,

@@ -53,11 +53,6 @@ export default async function ReviewsPage() {
         reviews={reviews}
         brandName={settings["site.brand"] || "БасТур"}
         url={`${siteUrl}/reviews`}
-        itemReviewed={{
-          "@type": "TravelAgency",
-          name: settings["site.brand"] || "БасТур",
-          url: siteUrl,
-        }}
       />
       <main className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-6">
         <Breadcrumb

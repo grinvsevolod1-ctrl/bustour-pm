@@ -555,7 +555,7 @@ export const settingsGroups: SettingsGroup[] = [
         type: "textarea",
         rows: 2,
         placeholder: "info@bus-tour.by\nmanager@bus-tour.by",
-        hint: "По одному адресу на ст��оку (или через запятую). Пусто — использовать адрес из переменной окружения LEAD_EMAIL_TO.",
+        hint: "По одному адресу на строку (или через запятую). Пусто — использовать адрес из переменной окружения LEAD_EMAIL_TO.",
       },
       {
         key: "notify.emailFrom",

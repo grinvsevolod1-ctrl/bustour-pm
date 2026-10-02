@@ -22,6 +22,7 @@ import { buildSectionTitles } from "@/lib/section-titles"
 import { DESTINATION_DEFAULT_SECTION_ORDER, resolveInitialOrder } from "@/lib/section-order"
 import { buildFaqFormIds } from "@/lib/faq-slots"
 import { adminCountryOpenHref } from "@/lib/admin-public-href"
+import { countryTourvisorFieldData } from "@/lib/tourvisor-admin"
 
 export const metadata: Metadata = { title: "Страна — Админ-панель" }
 
@@ -233,7 +234,10 @@ export default async function EditCountryPage({
               title="Основные данные"
               collapsible={false}
             >
-              <CountryBaseForm country={country} />
+              <CountryBaseForm
+                country={country}
+                tourvisor={isBus ? undefined : countryTourvisorFieldData(country)}
+              />
             </FormSection>
             {staticGroups.map((group) => (
               <FormSection

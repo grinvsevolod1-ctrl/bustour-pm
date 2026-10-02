@@ -20,6 +20,7 @@ import { resolveCountryPage, assertCountryPreviewAccess } from "@/lib/preview-re
 import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { ParsedText } from "@/components/site/parsed-text"
 import { getShortcodesDict } from "@/lib/shortcodes"
+import { tourvisorWidgetGeo } from "@/lib/tourvisor-directory"
 
 interface Props {
   params: Promise<{ countrySlug: string }>
@@ -135,7 +136,13 @@ export default async function HotCountryPage({ params, searchParams }: Props) {
             </div>
             {renderCmsSections(split.top)}
             {renderCmsSections(split.beforeSearch)}
-            {showSearch ? useAviaWidget ? <AviaTourSearchWidget /> : <HotToursWidget /> : null}
+            {showSearch ? (
+              useAviaWidget ? (
+                <AviaTourSearchWidget {...tourvisorWidgetGeo(country)} />
+              ) : (
+                <HotToursWidget {...tourvisorWidgetGeo(country)} />
+              )
+            ) : null}
             {renderCmsSections(split.afterSearch)}
           </div>
         </div>

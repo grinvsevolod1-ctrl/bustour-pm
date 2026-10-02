@@ -4,6 +4,9 @@ export const TOURVISOR_WIDGET_HINT =
 
 export const TOURVISOR_INIT_SRC = "https://tourvisor.ru/module/init.js"
 
+/** Имя поля «ID в Tourvisor» в формах страны/курорта (admin) — общее для клиента и server actions. */
+export const TOURVISOR_ID_FIELD = "tourvisorId"
+
 /** Marks scripts we inject; never touch next/script SearchForm nodes. */
 export const TOURVISOR_INJECT_ATTR = "data-tv-inject"
 

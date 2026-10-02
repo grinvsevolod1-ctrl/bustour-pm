@@ -132,6 +132,9 @@ export const config = {
   matcher: [
     // Match /aviatory/... and /{any-slug}/... but skip Next.js internals, static
     // files and runtime uploads (images/videos don't need the avia-slug DB lookup).
-    "/((?!_next/static|_next/image|favicon|api/|admin|uploads/).*)",
+    // Любой путь с расширением (/images/*.png, /sitemap.xml, /robots.txt,
+    // /manifest.webmanifest) тоже мимо: авиа-слаг не содержит точек (SLUG_RE),
+    // а каждый прогон middleware на статике — лишние ~1–3 мс на запрос.
+    "/((?!_next/static|_next/image|favicon|api/|admin|uploads/|.*\\.[a-zA-Z0-9]+$).*)",
   ],
 }

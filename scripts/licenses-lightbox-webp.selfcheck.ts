@@ -33,7 +33,8 @@ async function main() {
   assert.match(lightbox, /overflow\s*=\s*[\"']hidden[\"']/, "body scroll lock while open")
 
   const gallery = readFileSync(join(root, "components/site/tour-gallery.tsx"), "utf8")
-  assert.match(gallery, /createPortal/, "tour gallery lightbox also portals")
+  const galleryLightbox = readFileSync(join(root, "components/site/tour-gallery-lightbox.tsx"), "utf8")
+  assert.match(galleryLightbox, /createPortal/, "tour gallery lightbox also portals")
   assert.match(gallery, /h-11 w-11/, "gallery expand/nav touch ≥44")
   assert.match(mediaService, /imageBytesForUpload|imageBytesToWebp/, "saveFile converts images via webp helper")
   assert.match(mediaService, /job\.type === \"image\"/, "only images go through WebP path")

@@ -22,6 +22,7 @@ import { buildSectionTitles } from "@/lib/section-titles"
 import { DESTINATION_DEFAULT_SECTION_ORDER, resolveInitialOrder } from "@/lib/section-order"
 import { buildFaqFormIds } from "@/lib/faq-slots"
 import { adminCityOpenHref } from "@/lib/admin-public-href"
+import { cityTourvisorFieldData } from "@/lib/tourvisor-admin"
 
 export const metadata: Metadata = { title: "Город — Админ-панель" }
 
@@ -158,6 +159,8 @@ export default async function EditCityPage({
   })
 
   const countriesOptions = allCountries.map((c) => ({ id: c.id, name: c.name }))
+  const parentCountry = allCountries.find((c) => c.id === city.countryId) ?? allCountries.find((c) => c.name === city.country)
+  const tourvisorField = isBus ? undefined : cityTourvisorFieldData(city, parentCountry)
   const homeVisKey = isHot ? "hot.visible" : isBus ? "bustours.visible" : "aviatory.visible"
   const homeVisible = homeVisKey ? settings[homeVisKey] !== "0" : true
   const countryVisible = countrySlug === "_" || settings[`country:${category}:${countrySlug}.visible`] !== "0"
@@ -243,7 +246,7 @@ export default async function EditCityPage({
               title="Основные данные"
               collapsible={false}
             >
-              <CityBaseForm city={city} countries={countriesOptions} />
+              <CityBaseForm city={city} countries={countriesOptions} tourvisor={tourvisorField} />
             </FormSection>
             {staticGroups.map((group) => (
               <FormSection

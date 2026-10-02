@@ -4,7 +4,8 @@ import { join } from "node:path"
 
 const root = process.cwd()
 const lightbox = readFileSync(join(root, "components/site/image-lightbox.tsx"), "utf8")
-const gallery = readFileSync(join(root, "components/site/tour-gallery.tsx"), "utf8")
+// Лайтбокс галереи вынесен в отдельный лениво загружаемый модуль.
+const gallery = readFileSync(join(root, "components/site/tour-gallery-lightbox.tsx"), "utf8")
 
 assert.match(lightbox, /export function ZoomableLightboxImage/, "shared zoomable lightbox image exists")
 assert.match(lightbox, /max-md:w-full/, "mobile image expands to viewport width")

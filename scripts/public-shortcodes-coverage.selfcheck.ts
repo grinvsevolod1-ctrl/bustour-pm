@@ -124,12 +124,16 @@ async function main() {
   const tour = readFileSync(join(process.cwd(), "components/site/tour-page-content.tsx"), "utf8")
   assert.match(tour, /expandPlainText\(rawTour\.seoTitle\)/)
   assert.match(tour, /expandPublicDeep\(rawTour\)/)
-  assert.match(tour, /expandPublicList\(rawRelated\)/)
+  // Похожие туры сначала режутся до карточки (toTourCard), потом раскрываются шорткоды.
+  assert.match(tour, /expandPublicList\(rawRelated(\.map\(toTourCard\))?\)/)
 
   const publicTours = readFileSync(join(process.cwd(), "components/site/public-tours.tsx"), "utf8")
   assert.match(publicTours, /expandPublicList/)
   assert.match(publicTours, /PublicToursListing/)
-  assert.match(publicTours, /PublicFeaturedTours/)
+  // Блок главной — отдельный server boundary (см. комментарий в файле).
+  const publicFeatured = readFileSync(join(process.cwd(), "components/site/public-featured-tours.tsx"), "utf8")
+  assert.match(publicFeatured, /expandPublicList/)
+  assert.match(publicFeatured, /PublicFeaturedTours/)
 
   const home = readFileSync(join(process.cwd(), "app/(site)/page.tsx"), "utf8")
   assert.match(home, /PublicFeaturedTours/)

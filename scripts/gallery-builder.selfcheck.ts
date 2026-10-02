@@ -17,7 +17,8 @@ assert.match(builder, /accept=\{\["image", "video"\]\}/, "gallery accepts image+
 assert.match(uploader, /moveMediaAt/, "uploader reorders via moveMediaAt")
 assert.match(tiles, /draggable=\{canReorder\}/, "uploader DnD when multiple")
 assert.match(tiles, /aria-label="Выше"/, "uploader up button")
+const galleryMedia = readFileSync(join(root, "components/site/tour-gallery-media.tsx"), "utf8")
 assert.match(gallery, /isVideoUrl/, "public gallery detects video")
-assert.match(gallery, /<video/, "public gallery renders video element")
+assert.match(galleryMedia, /<video/, "public gallery renders video element")
 
 console.log("gallery-builder.selfcheck: ok")

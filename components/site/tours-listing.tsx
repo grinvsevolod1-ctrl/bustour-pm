@@ -220,7 +220,7 @@ export function ToursListing({
       }),
     )
 
-    // Страница конкретного города — жёст��о ограничиваем список этим городом
+    // Страница конкретного города — жёстко ограничиваем список этим городом
     // (фильтр «Куда» на такой странице скрыт).
     if (restrictToCitySlug) {
       list = list.filter(
@@ -386,7 +386,7 @@ export function ToursListing({
         {sectionDescription ? (
           <div
             className="whitespace-pre-wrap text-base leading-relaxed text-ink-muted"
-            // sectionDescription приходит из CMS (site_settings) — санитайзим при рендер��.
+            // sectionDescription приходит из CMS (site_settings) — санитайзим при рендере.
             dangerouslySetInnerHTML={{ __html: sanitizeCmsHtml(sectionDescription) }}
           />
         ) : null}

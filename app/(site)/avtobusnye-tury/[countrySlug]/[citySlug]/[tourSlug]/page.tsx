@@ -2,7 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation"
 import type { Metadata } from "next"
 import { getTour, getTourById, getTours, getRelatedTours, getReviewsByTour, getSlugMaps } from "@/lib/public/queries"
 import { TourPageContent } from "@/components/site/tour-page-content"
-import { isTourVisible } from "@/lib/cms"
+import { isTourVisiblePublic } from "@/lib/cms"
 import { getPublicSettings } from "@/lib/cms"
 import { expandPlainText } from "@/lib/expand-content-blocks"
 import { metadataFromSettings } from "@/lib/seo-metadata"
@@ -71,7 +71,7 @@ export default async function BusTourPage({
   if (!tour) notFound()
   if (tour.archived) {
     if (!(await previewAllows(searchParams, "tour", tour.id))) notFound()
-  } else if (!(await isTourVisible(tour.slug))) {
+  } else if (!(await isTourVisiblePublic(tour.slug))) {
     notFound()
   }
 

@@ -1,14 +1,26 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import dynamic from "next/dynamic"
 import { ChevronDown } from "lucide-react"
 import { formatPrice } from "@/lib/format"
 import { clamp, type DepartureRange } from "@/lib/tours-listing-utils"
 import { DateRangePicker, type DateRangePickerValue } from "@/components/ui/date-range-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Slider } from "@/components/ui/slider"
 
 // Пикеры фильтра каталога, вынесенные из ToursListing: диапазон цены и период выезда.
+
+const loadSlider = () => import("@/components/ui/slider")
+
+/**
+ * Слайдер (@radix-ui/react-slider, ~25 КБ) нужен только внутри открытого
+ * поповера цены — грузим его отдельным чанком при открытии, а не на каждой
+ * странице каталога. Плейсхолдер той же высоты (h-5), чтобы поповер не прыгал.
+ */
+const Slider = dynamic(() => loadSlider().then((m) => m.Slider), {
+  ssr: false,
+  loading: () => <div className="h-5" aria-hidden />,
+})
 
 export function PriceRangePicker({
   value,
@@ -54,6 +66,9 @@ export function PriceRangePicker({
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
+            onPointerEnter={() => void loadSlider()}
+            onTouchStart={() => void loadSlider()}
+            onFocus={() => void loadSlider()}
             aria-label="Стоимость"
             aria-expanded={open}
             className="flex h-[52px] w-full items-center justify-between rounded bg-white px-4 text-left text-base text-ink"

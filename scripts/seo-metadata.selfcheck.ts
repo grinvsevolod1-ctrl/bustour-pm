@@ -99,8 +99,9 @@ async function main() {
   assert.deepEqual(plainMeta.alternates, { canonical: absoluteUrl("/") })
   assert.equal((plainMeta.openGraph as { title?: string } | undefined)?.title, "Home title")
   assert.equal((plainMeta.twitter as { card?: string } | undefined)?.card, "summary_large_image")
+  // OG-картинка всегда абсолютная: мессенджеры не резолвят относительные URL.
   assert.deepEqual((plainMeta.openGraph as { images?: { alt?: string }[] } | undefined)?.images, [
-    { url: "/og.jpg", alt: "Preview" },
+    { url: absoluteUrl("/og.jpg"), alt: "Preview" },
   ])
 
   // #44: поиск (<meta name="description">) берёт metaDescription, а превью-карточка
@@ -217,11 +218,11 @@ assert.ok(!absoluteUrl("/helpful/").endsWith("/"))
 assert.ok(absoluteUrl("/").endsWith("/"))
   assert.deepEqual(
     sitemapCountryPaths([{ slug: "egipet", category: "avia" }], "aviatory"),
-    ["/aviatury/egipet/"],
+    ["/aviatury/egipet"],
   )
   assert.deepEqual(
     sitemapCountryPaths([{ slug: "egipet", category: "avia" }], "custom-avia"),
-    ["/custom-avia/egipet/"],
+    ["/custom-avia/egipet"],
   )
 
   assert.equal(previewCountryBasePath("avia", "egipet"), "/aviatury/egipet/")

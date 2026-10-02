@@ -67,6 +67,7 @@ public/uploads/
 # перенос в .github/workflows/ci.yml делает владелец руками (см. шапку файла).
 .github/
 .v0/
+.v0-tmp/
 
 # Артефакты preflight — перезаписываются при каждом запуске
 .preflight/

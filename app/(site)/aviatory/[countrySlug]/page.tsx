@@ -19,6 +19,7 @@ import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { ParsedText } from "@/components/site/parsed-text"
 import { getShortcodesDict } from "@/lib/shortcodes"
 import { splitOrderAroundSearch } from "@/lib/section-order"
+import { tourvisorWidgetGeo } from "@/lib/tourvisor-directory"
 
 export const dynamic = "force-dynamic"
 
@@ -148,7 +149,7 @@ export default async function AviaCountryPage({
             </div>
             {renderSections(split.top)}
             {renderSections(split.beforeSearch)}
-            <AviaTourSearchWidget />
+            <AviaTourSearchWidget {...tourvisorWidgetGeo(country)} />
           </div>
           {renderSections(split.afterSearch)}
         </div>

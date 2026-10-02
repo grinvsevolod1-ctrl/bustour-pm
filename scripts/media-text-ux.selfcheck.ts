@@ -35,8 +35,14 @@ const row = emptyGridRow(3)
 assert.equal(row.length, 3)
 assert.ok(row.every((cell) => cell.type === "mediaGridCell"))
 
-const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8")
-assert.match(css, /Пишите текст/)
+// Плейсхолдеры редактора — в app/admin/editor.css (только админка),
+// публичные правила .prose-content остаются в app/globals.css.
+const publicCss = readFileSync(join(process.cwd(), "app/globals.css"), "utf8")
+const editorCss = readFileSync(join(process.cwd(), "app/admin/editor.css"), "utf8")
+// Полный набор правил rich-текста (сайт + редактор), как до разделения файлов.
+const css = `${publicCss}\n${editorCss}`
+assert.match(editorCss, /Пишите текст/)
+assert.doesNotMatch(publicCss, /Пишите текст/, "editor-only placeholder must not ship in public CSS")
 assert.match(css, /prose-content \.seo-media-grid-cell \{[^}]*background:\s*transparent/s)
 assert.match(css, /prose-editor \.seo-media-grid-cell \{[^}]*background:\s*var\(--color-cream/s)
 /* Public + admin share the same track formula; TipTap host carries columns */

@@ -22,7 +22,13 @@ import { ensureCountry } from "@/lib/countries"
 import { getSettings, replacePageFaqs, saveSettings } from "@/lib/cms"
 import { parseFaqGroups, parseNamespacedFaqsFromAggregate, type NamespacedFaq } from "@/lib/faq-form"
 import { mapDbError } from "@/lib/db-errors"
-import { citySaveSchema, destinationPageSettingsSchema, zodFirstError } from "@/lib/validations/admin"
+import {
+  TOURVISOR_ID_FIELD,
+  citySaveSchema,
+  destinationPageSettingsSchema,
+  parseTourvisorIdField,
+  zodFirstError,
+} from "@/lib/validations/admin"
 import { rekeyPageScopedContent } from "@/lib/page-rekey"
 import { saveCityAggregate } from "@/lib/destination-aggregate"
 import { revalidateCatalogDestination } from "@/lib/revalidate-catalog"
@@ -80,6 +86,9 @@ export async function saveCityAction(_prev: unknown, formData: FormData) {
   const input = cityFromForm(formData)
   const validated = citySaveSchema.safeParse(input)
   if (!validated.success) return { error: zodFirstError(validated.error) }
+  const tourvisorField = parseTourvisorIdField(formData)
+  if (!tourvisorField.ok) return { error: tourvisorField.error }
+  input.tourvisorId = tourvisorField.value
   const id = Number(formData.get("id") || 0)
   const existing = id ? await getCityById(id) : undefined
   if (id && !existing) return { error: "Город не найден" }
@@ -125,6 +134,9 @@ export async function saveCityPageAction(_prev: unknown, formData: FormData) {
   input.category = existing.category
   const validated = citySaveSchema.safeParse(input)
   if (!validated.success) return { error: zodFirstError(validated.error) }
+  const tourvisorField = parseTourvisorIdField(formData)
+  if (!tourvisorField.ok) return { error: tourvisorField.error }
+  input.tourvisorId = tourvisorField.value
   const checked = destinationPageSettingsSchema.safeParse({
     metaTitle: formData.get(`${`city:${existing.category}:${existing.slug}`}.metaTitle`),
     metaDescription: formData.get(`${`city:${existing.category}:${existing.slug}`}.metaDescription`),
@@ -188,7 +200,7 @@ export async function saveCityPageAction(_prev: unknown, formData: FormData) {
     }
   }
   for (const [key, value] of formData.entries()) {
-    if (typeof value !== "string" || key.startsWith("__") || ["id", "name", "slug", "category", "country", "countryId"].includes(key)) continue
+    if (typeof value !== "string" || key.startsWith("__") || ["id", "name", "slug", "category", "country", "countryId", TOURVISOR_ID_FIELD].includes(key)) continue
     settingsPatch[key.startsWith(`${oldPageKey}.`) ? `${newPageKey}.${key.slice(oldPageKey.length + 1)}` : key] = value
   }
   const namespacedFaqs: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
@@ -333,6 +345,8 @@ export async function saveCityBaseAction(_prev: unknown, formData: FormData) {
   }
   const existing = await getCityById(id)
   if (!existing) return { error: "Город не найден" }
+  const tourvisorField = parseTourvisorIdField(formData)
+  if (!tourvisorField.ok) return { error: tourvisorField.error }
   let countryId = Number(formData.get("countryId") || 0)
   let resolvedCountry = countryName
   if (countryName) {
@@ -351,6 +365,7 @@ export async function saveCityBaseAction(_prev: unknown, formData: FormData) {
     intro: existing.intro ?? "",
     sections: existing.sections ?? [],
     seoHtml: existing.seoHtml ?? "",
+    tourvisorId: tourvisorField.value,
   }
   const slugError = await resolveSlugConflict(baseInput, id)
   if (slugError) return { error: slugError }

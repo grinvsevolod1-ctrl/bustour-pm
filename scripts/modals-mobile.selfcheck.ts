@@ -7,7 +7,8 @@ import { join } from "node:path"
 
 const root = process.cwd()
 const shell = readFileSync(join(root, "components/site/modals/site-modal-shell.tsx"), "utf8")
-const callback = readFileSync(join(root, "components/site/callback-modal.tsx"), "utf8")
+// Сам диалог живёт в callback-dialog.tsx (callback-modal.tsx — провайдер и ленивый импорт).
+const callback = readFileSync(join(root, "components/site/callback-dialog.tsx"), "utf8")
 const presets = readFileSync(join(root, "components/site/motion-presets.ts"), "utf8")
 const lightbox = readFileSync(join(root, "components/site/image-lightbox.tsx"), "utf8")
 const gallery = readFileSync(join(root, "components/site/tour-gallery.tsx"), "utf8")
@@ -29,7 +30,9 @@ assert.match(lightbox, /85dvh|min\(85dvh/, "lightbox uses dvh")
 assert.match(lightbox, /safe-area-inset/, "lightbox safe area")
 assert.doesNotMatch(lightbox, /mx-8/, "lightbox no large side margin on mobile")
 
-assert.match(gallery, /mx-12.*sm:mx-16|mx-12 w-full/, "gallery tighter margins on mobile")
+// Полноэкранный просмотр галереи — отдельный лениво загружаемый модуль.
+const galleryLightbox = readFileSync(join(root, "components/site/tour-gallery-lightbox.tsx"), "utf8")
+assert.match(galleryLightbox, /mx-12.*sm:mx-16|mx-12 w-full/, "gallery tighter margins on mobile")
 assert.match(gallery, /70dvh|maxHeight|max-h-\[70vh\]/, "gallery caps height on short phones")
 
 console.log("modals-mobile.selfcheck: ok")
