@@ -21,7 +21,13 @@ import { getSettings, replacePageFaqs, saveSettings } from "@/lib/cms"
 import { parseFaqGroups, parseNamespacedFaqsFromAggregate, type NamespacedFaq } from "@/lib/faq-form"
 import { aviaCountryPageGroups } from "@/lib/admin-config"
 import { mapDbError } from "@/lib/db-errors"
-import { countrySaveSchema, destinationPageSettingsSchema, zodFirstError } from "@/lib/validations/admin"
+import {
+  TOURVISOR_ID_FIELD,
+  countrySaveSchema,
+  destinationPageSettingsSchema,
+  parseTourvisorIdField,
+  zodFirstError,
+} from "@/lib/validations/admin"
 import { rekeyPageScopedContent } from "@/lib/page-rekey"
 import { saveCountryAggregate } from "@/lib/destination-aggregate"
 
@@ -50,6 +56,9 @@ export async function saveCountryAction(_prev: unknown, formData: FormData) {
   const input = countryFromForm(formData)
   const validated = countrySaveSchema.safeParse(input)
   if (!validated.success) return { error: zodFirstError(validated.error) }
+  const tourvisorField = parseTourvisorIdField(formData)
+  if (!tourvisorField.ok) return { error: tourvisorField.error }
+  input.tourvisorId = tourvisorField.value
   const id = Number(formData.get("id") || 0)
   const existing = id ? await getCountryById(id) : undefined
   if (id && !existing) return { error: "Страна не найдена" }
@@ -92,6 +101,9 @@ export async function saveCountryPageAction(_prev: unknown, formData: FormData) 
   const input = countryFromForm(formData); input.category = existing.category
   const validated = countrySaveSchema.safeParse(input)
   if (!validated.success) return { error: zodFirstError(validated.error) }
+  const tourvisorField = parseTourvisorIdField(formData)
+  if (!tourvisorField.ok) return { error: tourvisorField.error }
+  input.tourvisorId = tourvisorField.value
   const oldPageKey = `country:${existing.category}:${existing.slug}`
   const checked = destinationPageSettingsSchema.safeParse(Object.fromEntries(["metaTitle", "metaDescription", "metaShortDesc", "metaImage", "h1", "intro"].map((field) => [field, formData.get(`${oldPageKey}.${field}`)])))
   if (!checked.success) {
@@ -129,7 +141,7 @@ export async function saveCountryPageAction(_prev: unknown, formData: FormData) 
     }
   }
   for (const [key, value] of formData.entries()) {
-    if (typeof value !== "string" || key.startsWith("__") || ["id", "name", "slug", "category"].includes(key)) continue
+    if (typeof value !== "string" || key.startsWith("__") || ["id", "name", "slug", "category", TOURVISOR_ID_FIELD].includes(key)) continue
     settingsPatch[key.startsWith(`${oldPageKey}.`) ? `${newPageKey}.${key.slice(oldPageKey.length + 1)}` : key] = value
   }
   const namespacedFaqsPage: NamespacedFaq[] = parseNamespacedFaqsFromAggregate(formData)
@@ -149,6 +161,8 @@ export async function saveCountryBaseAction(_prev: unknown, formData: FormData) 
   const slug = String(formData.get("slug") || "").trim()
   const check = countrySaveSchema.safeParse({ slug, name, category: "bus" })
   if (!check.success) return { error: zodFirstError(check.error) }
+  const tourvisorField = parseTourvisorIdField(formData)
+  if (!tourvisorField.ok) return { error: tourvisorField.error }
   const existing = await getCountryById(id)
   if (!existing) return { error: "Страна не найдена" }
   // Category is fixed after creation — URLs and settings are scoped by it.
@@ -165,6 +179,7 @@ export async function saveCountryBaseAction(_prev: unknown, formData: FormData) 
       category: existing.category,
       intro: existing.intro ?? "",
       seoHtml: existing.seoHtml ?? "",
+      tourvisorId: tourvisorField.value,
     })
     await writeAudit({
       admin,

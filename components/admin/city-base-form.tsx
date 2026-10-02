@@ -6,11 +6,21 @@ import type { ComboboxOption } from "@/components/admin/combobox"
 import { AdminCombobox } from "@/components/admin/combobox"
 import { Input, Label } from "@/components/admin/ui"
 import { SlugField } from "@/components/admin/slug-field"
+import { TourvisorIdField, type TourvisorIdFieldData } from "@/components/admin/tourvisor-id-field"
 
 const CATEGORY_LABELS = { bus: "Автобусные туры", avia: "Авиатуры", hot: "Горящие туры" } as const
 const FORM_ID = "page-settings-form"
 
-export function CityBaseForm({ city, countries }: { city: CityDestination; countries: ComboboxOption[] }) {
+export function CityBaseForm({
+  city,
+  countries,
+  tourvisor,
+}: {
+  city: CityDestination
+  countries: ComboboxOption[]
+  /** Только для авиа/горящих — у автобусных направлений виджета Tourvisor нет. */
+  tourvisor?: TourvisorIdFieldData
+}) {
   const [countryValue, setCountryValue] = useState(city.country ?? "")
   return (
     <div id="city-base-form" className="space-y-4">
@@ -33,6 +43,15 @@ export function CityBaseForm({ city, countries }: { city: CityDestination; count
           <Label htmlFor="city-country" required>Страна</Label>
           <AdminCombobox name="country" form={FORM_ID} options={countries} value={countryValue} onChange={setCountryValue} placeholder="Выберите страну…" hint="Город появится в сайдбаре внутри этой страны." required />
         </div>
+        {tourvisor ? (
+          <TourvisorIdField
+            id="city-tourvisor-id"
+            form={FORM_ID}
+            kind="resort"
+            defaultValue={city.tourvisorId}
+            data={tourvisor}
+          />
+        ) : null}
       </div>
     </div>
   )

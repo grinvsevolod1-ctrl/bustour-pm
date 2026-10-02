@@ -22,6 +22,7 @@ import { buildSectionTitles } from "@/lib/section-titles"
 import { DESTINATION_DEFAULT_SECTION_ORDER, resolveInitialOrder } from "@/lib/section-order"
 import { buildFaqFormIds } from "@/lib/faq-slots"
 import { adminCountryOpenHref } from "@/lib/admin-public-href"
+import { countryTourvisorFieldData } from "@/lib/tourvisor-admin"
 
 export const metadata: Metadata = { title: "Страна — Админ-панель" }
 
@@ -233,7 +234,10 @@ export default async function EditCountryPage({
               title="Основные данные"
               collapsible={false}
             >
-              <CountryBaseForm country={country} />
+              <CountryBaseForm
+                country={country}
+                tourvisor={isBus ? undefined : countryTourvisorFieldData(country)}
+              />
             </FormSection>
             {staticGroups.map((group) => (
               <FormSection
@@ -295,7 +299,7 @@ export default async function EditCountryPage({
               ),
               cities: citiesGroup ? (
                 <div className="space-y-4">
-                  <p className="mb-4 text-sm text-admin-fg-muted">На сайте показываются курорты этой страницы, отмеченные как видимые; скрытые не отображаются. Управляйте видимостью в разделе «Курорты». Сейчас видимых на сайте: {visibleCountryCities.length} из {countryCities.length}.</p>
+                  <p className="mb-4 text-sm text-admin-fg-muted">На сайте показываются курорты этой страницы, отмеченные как видимые; скрытые не отображаются. Управляйте видимост��ю в разделе «Курорты». Сейчас видимых на сайте: {visibleCountryCities.length} из {countryCities.length}.</p>
                   <SectionFieldsForm fields={citiesGroup.fields} settings={settings} hideSubmit />
                 </div>
               ) : null,

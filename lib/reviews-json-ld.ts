@@ -5,24 +5,20 @@ import { reviewPlainText } from "@/lib/review-utils"
 
 export { serializeJsonLd }
 
-export type ReviewItemReviewedType = "TravelAgency" | "Organization" | "LocalBusiness" | "Product" | "Trip"
-
 export type ReviewSchemaItem = {
   name: string
   text: string
   rating: number
   /** ISO date YYYY-MM-DD when known */
   datePublished?: string
-  /** Tour title → itemReviewed Product/Trip when set */
-  tour?: string
 }
 
-export type ItemReviewedRef = {
-  "@type": ReviewItemReviewedType
-  name: string
-  url?: string
-}
-
+/**
+ * Вложенный отзыв (свойство `review` у Product/TravelAgency). itemReviewed здесь
+ * намеренно отсутствует: вложенный отзыв наследует объект от родителя, а
+ * отдельный Product с одним только name внутри отзыва Rich Results Test считал
+ * самостоятельным товаром без offers/aggregateRating и помечал ошибкой.
+ */
 export type ReviewJsonLdNode = {
   "@type": "Review"
   author: { "@type": "Person"; name: string }
@@ -34,7 +30,6 @@ export type ReviewJsonLdNode = {
     worstRating: number
   }
   datePublished?: string
-  itemReviewed: ItemReviewedRef
 }
 
 export type AggregateRatingJsonLd = {
@@ -59,8 +54,6 @@ export type BuildReviewsJsonLdOptions = {
   brandName: string
   url?: string
   organizationId?: string
-  /** Default itemReviewed for company reviews (no tour). */
-  itemReviewed?: ItemReviewedRef
 }
 
 /** Prefer sourceDate (ISO prefix), else createdAt epoch ms → YYYY-MM-DD. */
@@ -83,14 +76,6 @@ function clampRating(rating: number): number | null {
   return n
 }
 
-function defaultOrgReviewed(brandName: string, url?: string): ItemReviewedRef {
-  return {
-    "@type": "TravelAgency",
-    name: brandName,
-    ...(url ? { url } : {}),
-  }
-}
-
 export function normalizeReviewSchemaItems(items: ReviewSchemaItem[]): ReviewSchemaItem[] {
   return items
     .map((item) => {
@@ -99,13 +84,11 @@ export function normalizeReviewSchemaItems(items: ReviewSchemaItem[]): ReviewSch
       const name = reviewPlainText(item.name)
       const text = reviewPlainText(item.text)
       if (!name || !text) return null
-      const tour = item.tour ? reviewPlainText(item.tour) : ""
       return {
         name,
         text,
         rating,
         ...(item.datePublished ? { datePublished: item.datePublished } : {}),
-        ...(tour ? { tour } : {}),
       }
     })
     .filter((item): item is ReviewSchemaItem => item != null)
@@ -123,29 +106,19 @@ export function buildAggregateRating(reviews: ReviewSchemaItem[]): AggregateRati
   }
 }
 
-function buildReviewNodes(
-  reviews: ReviewSchemaItem[],
-  fallbackReviewed: ItemReviewedRef,
-  tourAs: "Product" | "Trip" = "Product",
-): ReviewJsonLdNode[] {
-  return reviews.map((r) => {
-    const itemReviewed: ItemReviewedRef = r.tour
-      ? { "@type": tourAs, name: r.tour }
-      : fallbackReviewed
-    return {
-      "@type": "Review" as const,
-      author: { "@type": "Person" as const, name: r.name },
-      reviewBody: r.text,
-      reviewRating: {
-        "@type": "Rating" as const,
-        ratingValue: r.rating,
-        bestRating: 5,
-        worstRating: 1,
-      },
-      ...(r.datePublished ? { datePublished: r.datePublished } : {}),
-      itemReviewed,
-    }
-  })
+function buildReviewNodes(reviews: ReviewSchemaItem[]): ReviewJsonLdNode[] {
+  return reviews.map((r) => ({
+    "@type": "Review" as const,
+    author: { "@type": "Person" as const, name: r.name },
+    reviewBody: r.text,
+    reviewRating: {
+      "@type": "Rating" as const,
+      ratingValue: r.rating,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    ...(r.datePublished ? { datePublished: r.datePublished } : {}),
+  }))
 }
 
 /** TravelAgency JSON-LD with AggregateRating + Review[]. Null when no valid reviews. */
@@ -157,8 +130,6 @@ export function buildReviewsPageJsonLd(
   if (!reviews.length) return null
 
   const brandName = reviewPlainText(options.brandName) || "БасТур"
-  const fallback =
-    options.itemReviewed ?? defaultOrgReviewed(brandName, options.url)
 
   return {
     "@context": "https://schema.org",
@@ -167,7 +138,7 @@ export function buildReviewsPageJsonLd(
     name: brandName,
     ...(options.url ? { url: options.url } : {}),
     aggregateRating: buildAggregateRating(reviews),
-    review: buildReviewNodes(reviews, fallback, "Product"),
+    review: buildReviewNodes(reviews),
   }
 }
 
@@ -178,10 +149,9 @@ export function withProductReviews<T extends { "@type": "Product"; name: string 
 ): (T & { aggregateRating: AggregateRatingJsonLd; review: ReviewJsonLdNode[] }) | T {
   const reviews = normalizeReviewSchemaItems(items)
   if (!reviews.length) return product
-  const fallback: ItemReviewedRef = { "@type": "Product", name: product.name }
   return {
     ...product,
     aggregateRating: buildAggregateRating(reviews),
-    review: buildReviewNodes(reviews, fallback, "Product"),
+    review: buildReviewNodes(reviews),
   }
 }

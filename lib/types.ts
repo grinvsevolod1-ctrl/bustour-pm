@@ -238,6 +238,8 @@ export type CityDestination = {
   intro: string
   sections: { title: string; body: string[] }[]
   seoHtml: string
+  /** ID курорта в Tourvisor (tv-resorts); null = подбор по названию. */
+  tourvisorId: number | null
   sortOrder: number
   archived: boolean
 }
@@ -250,6 +252,8 @@ export type Country = {
   category: "bus" | "avia" | "hot"
   intro: string
   seoHtml: string
+  /** ID страны в Tourvisor (tv-country); null = подбор по названию. */
+  tourvisorId: number | null
   sortOrder: number
   archived: boolean
 }

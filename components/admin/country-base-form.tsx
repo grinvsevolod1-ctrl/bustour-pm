@@ -3,11 +3,19 @@
 import type { Country } from "@/lib/types"
 import { Input, Label } from "@/components/admin/ui"
 import { SlugField } from "@/components/admin/slug-field"
+import { TourvisorIdField, type TourvisorIdFieldData } from "@/components/admin/tourvisor-id-field"
 
 const CATEGORY_LABELS = { bus: "Автобусные туры", avia: "Авиатуры", hot: "Горящие туры" } as const
 const FORM_ID = "page-settings-form"
 
-export function CountryBaseForm({ country }: { country: Country }) {
+export function CountryBaseForm({
+  country,
+  tourvisor,
+}: {
+  country: Country
+  /** Только для авиа/горящих — у автобусных стран виджета Tourvisor нет. */
+  tourvisor?: TourvisorIdFieldData
+}) {
   return (
     <div id="country-base-form" className="space-y-4">
       <input type="hidden" name="id" value={country.id} form={FORM_ID} />
@@ -24,6 +32,15 @@ export function CountryBaseForm({ country }: { country: Country }) {
           <Input id="country-category" value={CATEGORY_LABELS[country.category]} disabled />
           <p className="mt-1 text-xs text-admin-fg-muted">Категорию нельзя изменить после создания страницы.</p>
         </div>
+        {tourvisor ? (
+          <TourvisorIdField
+            id="country-tourvisor-id"
+            form={FORM_ID}
+            kind="country"
+            defaultValue={country.tourvisorId}
+            data={tourvisor}
+          />
+        ) : null}
       </div>
     </div>
   )

@@ -34,6 +34,7 @@ function mapCity(row: typeof cityDestinations.$inferSelect): CityDestination {
     intro: row.intro,
     sections: parseSections(row.sections),
     seoHtml: row.seoHtml,
+    tourvisorId: row.tourvisorId ?? null,
     sortOrder: row.sortOrder,
     archived: row.archived,
   }
@@ -136,6 +137,8 @@ export type CityInput = {
   intro: string
   sections: CityDestination["sections"]
   seoHtml: string
+  /** ID курорта в Tourvisor; undefined = не трогать, null = сбросить на автоподбор. */
+  tourvisorId?: number | null
 }
 
 function serializeCity(input: CityInput) {
@@ -148,6 +151,7 @@ function serializeCity(input: CityInput) {
     intro: input.intro,
     sections: JSON.stringify(input.sections),
     seoHtml: input.seoHtml,
+    ...(input.tourvisorId !== undefined ? { tourvisorId: input.tourvisorId } : {}),
   }
 }
 

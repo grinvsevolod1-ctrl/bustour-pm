@@ -32,15 +32,7 @@ const MD_UP = "(min-width: 768px)"
 
 export function ReviewStarRating({ rating }: { rating: number }) {
   return (
-    <div
-      className="flex gap-0.5"
-      itemProp="reviewRating"
-      itemScope
-      itemType="https://schema.org/Rating"
-      aria-label={`${rating} из 5 звёзд`}
-    >
-      <meta itemProp="ratingValue" content={String(rating)} />
-      <meta itemProp="bestRating" content="5" />
+    <div className="flex gap-0.5" role="img" aria-label={`${rating} из 5 звёзд`}>
       {Array.from({ length: 5 }, (_, i) => (
         <svg key={i} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path
@@ -76,13 +68,14 @@ function ReviewHeader({ review }: { review: Review }) {
   return (
     <div className="flex min-w-0 items-start gap-4">
       <ReviewAvatar name={review.name} />
-      <div className="flex min-w-0 flex-col gap-0.5" itemProp="author" itemScope itemType="https://schema.org/Person">
-        <p className="break-words text-lg font-semibold leading-snug text-ink" itemProp="name">
-          {review.name}
-        </p>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <p className="break-words text-lg font-semibold leading-snug text-ink">{review.name}</p>
         <ReviewStarRating rating={review.rating} />
-        {iso ? <meta itemProp="datePublished" content={iso} /> : null}
-        {date ? <p className="text-sm font-medium text-ink-muted">{date}</p> : null}
+        {date ? (
+          <time dateTime={iso} className="text-sm font-medium text-ink-muted">
+            {date}
+          </time>
+        ) : null}
       </div>
     </div>
   )
@@ -246,8 +239,6 @@ export function ReviewCardPublic({
   return (
     <article
       ref={articleRef}
-      itemScope
-      itemType="https://schema.org/Review"
       data-review-card=""
       data-has-media={hasMedia ? "1" : "0"}
       data-expanded={expanded ? "1" : "0"}
@@ -259,7 +250,6 @@ export function ReviewCardPublic({
         <div className="relative min-h-0 flex-1 overflow-hidden" data-review-text-slot="">
           <p
             ref={textRef}
-            itemProp="reviewBody"
             data-review-body=""
             className={cn(
               "break-words text-base leading-relaxed text-ink whitespace-pre-wrap",
