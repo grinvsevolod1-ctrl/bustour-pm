@@ -19,7 +19,10 @@ assert.match(gridSrc, /isolating:\s*false/)
 assert.match(gridSrc, /createGapCursor:\s*true/)
 assert.match(gridSrc, /extendNodeSchema/)
 
-const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8")
+// Правила gap-cursor — в app/admin/editor.css (подключается в app/admin/layout.tsx).
+const css = readFileSync(join(process.cwd(), "app/admin/editor.css"), "utf8")
+const adminLayout = readFileSync(join(process.cwd(), "app/admin/layout.tsx"), "utf8")
+assert.match(adminLayout, /import "\.\/editor\.css"/, "admin layout must load editor.css")
 assert.match(
   css,
   /prose-editor \.ProseMirror-focused \.ProseMirror-gapcursor \{[^}]*display:\s*block/s,

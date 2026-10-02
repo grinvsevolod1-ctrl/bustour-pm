@@ -1,0 +1,515 @@
+/* Стили редактора TipTap (.prose-editor) и полей шорткодов — только для админки.
+   Подключается из app/admin/layout.tsx. Общие правила вывода rich-текста,
+   одинаковые для редактора и сайта (.prose-content, .prose-editor), живут в
+   app/globals.css — там они нужны и посетителям. Сюда вынесено всё, что
+   описывает «хром» редактора: плейсхолдеры, карточки ячеек медиа-сетки, кнопки
+   перетаскивания/удаления, gap-cursor, токены шорткодов. Раньше эти ~700 строк
+   грузились на каждой публичной странице в составе render-blocking CSS. */
+
+/*
+ * Admin media-grid preview: chrome only. TipTap wraps cells in
+ * [data-node-view-content-react] — that host gets the same column tracks as
+ * public .seo-media-grid[data-cols], so 2/3/4-col match the site.
+ */
+.prose-editor .seo-media-grid-preview {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  border-radius: 0.5rem;
+  border: 1px dashed var(--color-admin-border, #d0d5dd);
+  background: color-mix(in oklab, var(--color-admin-muted, #f3f4f6) 40%, white);
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+.prose-editor .seo-media-grid-preview > .seo-media-grid[data-node-view-content] {
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  grid-template-columns: none !important;
+}
+.prose-editor .seo-media-grid [data-node-view-content-react] {
+  display: grid !important;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  box-sizing: border-box;
+}
+.prose-editor .seo-media-grid[data-cols="2"] [data-node-view-content-react],
+.prose-editor .seo-media-grid-preview[data-cols="2"] .seo-media-grid [data-node-view-content-react] {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.prose-editor .seo-media-grid[data-cols="3"] [data-node-view-content-react],
+.prose-editor .seo-media-grid-preview[data-cols="3"] .seo-media-grid [data-node-view-content-react] {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+.prose-editor .seo-media-grid[data-cols="4"] [data-node-view-content-react],
+.prose-editor .seo-media-grid-preview[data-cols="4"] .seo-media-grid [data-node-view-content-react] {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+.prose-editor .seo-media-grid-preview [data-node-view-content-react] > .react-renderer {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100%;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+.prose-editor .seo-media-grid .react-renderer,
+.prose-editor .seo-media-grid [data-node-view-wrapper].seo-media-grid-cell,
+.prose-editor .seo-media-grid .seo-media-grid-cell {
+  min-width: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.prose-editor .seo-media-grid > .seo-media,
+.prose-editor .seo-media-grid-cell .seo-media {
+  float: none;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+.prose-editor .seo-media > img,
+.prose-editor .seo-media > video,
+.prose-editor .seo-media > iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+/* Placeholder for the empty editor */
+.prose-editor.is-editor-empty:first-child::before,
+.prose-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-admin-fg-subtle);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Empty paragraphs — only when a standalone (non-grid) media node is selected */
+.prose-editor p.is-empty,
+.prose-editor p:has(> br.ProseMirror-trailingBreak:only-child) {
+  min-height: 1.25em;
+}
+.prose-editor:has(.seo-media.ProseMirror-selectednode):not(:has(.seo-media-grid .seo-media.ProseMirror-selectednode))
+  p.is-empty:not(.seo-media-grid p),
+.prose-editor:has(.seo-media.ProseMirror-selectednode):not(:has(.seo-media-grid .seo-media.ProseMirror-selectednode))
+  p:has(> br.ProseMirror-trailingBreak:only-child):not(.seo-media-grid p) {
+  min-height: 1.75em;
+  margin: 0.35em 0;
+  border-radius: 0.25rem;
+  outline: 1px dashed color-mix(in oklab, var(--color-admin-border, #d0d5dd) 80%, transparent);
+  outline-offset: 2px;
+}
+.prose-editor:has(.seo-media.ProseMirror-selectednode):not(:has(.seo-media-grid .seo-media.ProseMirror-selectednode))
+  p.is-empty:not(.seo-media-grid p)::before,
+.prose-editor:has(.seo-media.ProseMirror-selectednode):not(:has(.seo-media-grid .seo-media.ProseMirror-selectednode))
+  p:has(> br.ProseMirror-trailingBreak:only-child):not(.seo-media-grid p)::before {
+  content: "Пишите текст…";
+  color: var(--color-admin-fg-subtle, #98a2b3);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-size: 0.875em;
+}
+.prose-editor p.is-editor-empty:first-child.is-empty::before,
+.prose-editor p.is-editor-empty:first-child:has(> br.ProseMirror-trailingBreak:only-child)::before {
+  content: attr(data-placeholder);
+}
+
+/* Grid cells: chooser / text / media cards (table-like) */
+.prose-editor .seo-media-grid p.is-empty::before,
+.prose-editor .seo-media-grid p:has(> br.ProseMirror-trailingBreak:only-child)::before {
+  content: none !important;
+}
+
+.prose-editor .seo-media-grid-cell {
+  position: relative;
+  min-width: 0;
+  min-height: 7rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-line, #d9e1e2);
+  background: var(--color-cream, #fff9ed);
+}
+
+.prose-editor .seo-media-grid-cell--empty {
+  display: flex;
+  flex-direction: column;
+  border-style: dashed;
+  border-color: var(--color-admin-border, #d0d5dd);
+  background: color-mix(in oklab, var(--color-admin-muted, #f3f4f6) 65%, white);
+  overflow: hidden;
+}
+
+.prose-editor .seo-media-grid-cell-chrome {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0;
+}
+
+.prose-editor .seo-media-grid-cell-chrome-spacer {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+}
+
+.prose-editor .seo-media-grid-cell--empty .seo-media-grid-drag,
+.prose-editor .seo-media-grid-cell--empty .seo-media-grid-remove {
+  position: static;
+  flex-shrink: 0;
+  opacity: 1;
+}
+
+/* Media cells hug the image — no forced 4:3 / cream letterbox */
+.prose-editor .seo-media-grid-cell[data-cell-kind="media"] {
+  min-height: 0;
+  aspect-ratio: auto;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.prose-editor .seo-media-grid-cell[data-cell-kind="media"] .seo-media-grid-cell-content,
+.prose-editor .seo-media-grid-cell[data-cell-kind="media"] .seo-media-grid-cell-content > [data-node-view-content],
+.prose-editor .seo-media-grid-cell[data-cell-kind="media"] .seo-media-grid-cell-content > [data-node-view-content-react] {
+  min-height: 0;
+}
+
+.prose-editor .seo-media-grid-chooser {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 5.5rem;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.prose-editor .seo-media-grid-chooser-btn {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-admin-border, #d0d5dd);
+  background: white;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-admin-fg, #1a1a1a);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.prose-editor .seo-media-grid-chooser-btn:hover {
+  border-color: var(--color-admin-fg, #1a1a1a);
+  background: var(--color-admin-muted, #f3f4f6);
+}
+
+.prose-editor .seo-media-grid-chooser-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-admin-fg, #1a1a1a) 30%, transparent);
+}
+
+.prose-editor .seo-media-grid-cell--filled {
+  display: flex;
+  flex-direction: column;
+}
+
+.prose-editor .seo-media-grid-drag {
+  position: absolute;
+  left: 0.25rem;
+  top: 0.25rem;
+  z-index: 10;
+  display: grid;
+  height: 1.75rem;
+  width: 1.75rem;
+  place-items: center;
+  border-radius: 0.25rem;
+  border: 1px solid transparent;
+  background: white;
+  color: var(--color-admin-fg-muted, #667085);
+  opacity: 0;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-drag: element;
+  transition: opacity 150ms ease;
+}
+
+.prose-editor .seo-media-grid-cell--drop {
+  outline: 2px solid var(--color-admin-fg, #1a1a1a);
+  outline-offset: 2px;
+}
+
+.prose-editor .seo-media-grid-drag--dragging {
+  opacity: 0.45;
+}
+
+.prose-editor .seo-media-grid-cell--empty .seo-media-grid-drag {
+  opacity: 1;
+  background: color-mix(in oklab, white 88%, transparent);
+}
+
+.prose-editor .seo-media-grid-clear {
+  position: absolute;
+  right: 0.35rem;
+  top: 0.35rem;
+  z-index: 10;
+  display: grid;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  width: 2.75rem;
+  place-items: center;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  background: white;
+  color: var(--color-admin-danger, #e5484d);
+  opacity: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: opacity 150ms ease, background-color 150ms ease;
+}
+
+.prose-editor .seo-media-grid-remove {
+  position: absolute;
+  right: 0.35rem;
+  top: 0.35rem;
+  z-index: 11;
+  display: grid;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  width: 2.75rem;
+  place-items: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-admin-border, #d0d5dd);
+  background: white;
+  color: var(--color-admin-danger, #e5484d);
+  opacity: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.prose-editor .seo-media-grid-cell--empty .seo-media-grid-remove {
+  min-height: 1.75rem;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+.prose-editor .seo-media-grid-remove:not(:disabled):hover {
+  background: color-mix(in oklab, var(--color-admin-danger, #e5484d) 12%, white);
+}
+
+.prose-editor .seo-media-grid-remove:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-admin-fg, #1a1a1a) 30%, transparent);
+}
+
+.prose-editor .seo-media-grid-clear--media {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, white 55%, transparent);
+  background: color-mix(in oklab, #111111 55%, transparent);
+  color: white;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 4px color-mix(in oklab, #000 35%, transparent);
+}
+
+.prose-editor .seo-media-grid-cell--filled:hover .seo-media-grid-drag,
+.prose-editor .seo-media-grid-cell--filled[data-selected="1"] .seo-media-grid-drag,
+.prose-editor .seo-media-grid-cell--empty .seo-media-grid-drag,
+.prose-editor .seo-media-grid-cell--filled:hover .seo-media-grid-clear,
+.prose-editor .seo-media-grid-cell--filled[data-selected="1"] .seo-media-grid-clear {
+  opacity: 1;
+}
+
+.prose-editor .seo-media-grid-drag:focus-visible,
+.prose-editor .seo-media-grid-clear:focus-visible {
+  opacity: 1;
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-admin-fg, #1a1a1a) 30%, transparent);
+}
+
+.prose-editor .seo-media-grid-clear:hover {
+  background: color-mix(in oklab, var(--color-admin-danger, #e5484d) 12%, white);
+}
+
+.prose-editor .seo-media-grid-clear--media:hover {
+  background: color-mix(in oklab, #111111 72%, transparent);
+  color: white;
+}
+
+.prose-editor .seo-media-grid-clear--media:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in oklab, white 70%, transparent);
+}
+
+.prose-editor .seo-media-grid-cell-content,
+.prose-editor .seo-media-grid-cell-content > [data-node-view-content],
+.prose-editor .seo-media-grid-cell-content > [data-node-view-content-react] {
+  display: block;
+  min-height: 7rem;
+  width: 100%;
+}
+
+.prose-editor .seo-media-grid-cell-content--empty,
+.prose-editor .seo-media-grid-cell-content--empty > [data-node-view-content],
+.prose-editor .seo-media-grid-cell-content--empty > [data-node-view-content-react] {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.prose-editor .seo-media-grid-cell p,
+.prose-editor .seo-media-grid-cell h2,
+.prose-editor .seo-media-grid-cell h3,
+.prose-editor .seo-media-grid-cell blockquote,
+.prose-editor .seo-media-grid-cell ul,
+.prose-editor .seo-media-grid-cell ol {
+  margin: 0;
+  min-height: 0;
+  padding: 0.75rem 2rem 0.75rem 2rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  outline: none;
+}
+
+.prose-editor .seo-media-grid-cell ul,
+.prose-editor .seo-media-grid-cell ol {
+  padding-left: 2.75rem;
+  padding-right: 2rem;
+}
+
+.prose-editor .seo-media-grid-cell blockquote {
+  border-left: 3px solid var(--color-line, #d9e1e2);
+  padding-left: 2.25rem;
+}
+
+.prose-editor .seo-media-grid-cell p {
+  min-height: 7rem;
+}
+
+.prose-editor .seo-media-grid-cell p.is-empty,
+.prose-editor .seo-media-grid-cell p:has(> br.ProseMirror-trailingBreak:only-child) {
+  color: var(--color-admin-fg-subtle, #98a2b3);
+}
+
+.prose-editor .seo-media-grid-cell p.is-empty::after,
+.prose-editor .seo-media-grid-cell p:has(> br.ProseMirror-trailingBreak:only-child)::after {
+  content: "Пишите текст…";
+  pointer-events: none;
+}
+
+.prose-editor .seo-media-grid-cell .seo-media {
+  float: none;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: transparent;
+}
+
+.prose-editor .seo-media-grid-cell[data-cell-kind="media"] .seo-media {
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.prose-editor .seo-media-grid-cell[data-cell-kind="media"] .seo-media > img,
+.prose-editor .seo-media-grid-cell[data-cell-kind="media"] .seo-media > video {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  vertical-align: top;
+}
+
+.prose-editor .seo-media-grid > .seo-media,
+.prose-editor .seo-media-grid > p,
+.prose-editor .seo-media-grid > .seo-media-grid-cell {
+  float: none;
+  width: 100%;
+  max-width: none;
+}
+
+/* Gapcursor between atom / createGapCursor blocks (media grid, images, …).
+   Must not override TipTap’s focused display:block with bare display:none. */
+.prose-editor .ProseMirror-gapcursor {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+}
+.prose-editor .ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
+.prose-editor .ProseMirror-gapcursor:after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -2px;
+  width: 1.25rem;
+  border-top: 2px solid var(--color-admin-fg, #1a1a1a);
+}
+
+/* Global shortcodes `[Name]` — TipTap decoration */
+.prose-editor .shortcode-token,
+.shortcode-input .shortcode-token {
+  border-radius: 0.25rem;
+  background: #eef2f6;
+  padding: 0.05em 0.2em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.95em;
+  color: #0369a1;
+}
+
+.shortcode-input .ProseMirror:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-admin-fg-subtle);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Single-line shortcode fields — lock height (shortcode-input / shortcode-textarea) */
+.shortcode-input--single {
+  height: 2.5rem;
+  max-height: 2.5rem;
+}
+.shortcode-input--single .ProseMirror {
+  display: flex;
+  align-items: center;
+  height: 2.5rem;
+  max-height: 2.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0;
+  margin: 0;
+}
+.shortcode-input--single .ProseMirror p {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

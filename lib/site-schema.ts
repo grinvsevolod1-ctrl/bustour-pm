@@ -443,7 +443,7 @@ export function buildProductOfferJsonLd(input: {
   /** If seats/available dates known, flag availability. Default conservative = OutOfStock. */
   availableSeats?: number | null
   hasAvailability?: boolean
-  /** Дата актуальности цены (YYYY-MM-DD). По ум��лчанию �� конец следующего года. */
+  /** Дата актуальности цены (YYYY-MM-DD). По умолчанию — конец следующего года. */
   priceValidUntil?: string
 }): ProductOfferJsonLd | null {
   const name = stripFaqHtml(input.name)

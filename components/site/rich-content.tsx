@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 import { getShortcodesDict, parseShortcodes } from "@/lib/shortcodes"
 import { sanitizeCmsHtml } from "@/lib/sanitize-html"
 import { collectImageSrcs, injectImageAuthorCredits } from "@/lib/image-credits"
-import { getAuthorsByUrls } from "@/lib/media/service"
+import { getAuthorsByUrls } from "@/lib/public/media"
 
 // Renders trusted admin-authored HTML (Tiptap output). Content is sanitized
 // with an allowlist before rendering to prevent any accidental stored XSS

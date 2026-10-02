@@ -23,7 +23,7 @@ import { expandPlainText, expandPublicDeep, expandPublicList } from "@/lib/expan
 import { resolveTourLayout, anchoredSectionKeys } from "@/lib/tour-sections"
 import { stripHtmlToText } from "@/lib/seo-auto"
 import { buildGallerySlides, collectMediaIds } from "@/lib/media/node"
-import { getDefaultAltsByMediaIds } from "@/lib/media/service"
+import { getDefaultAltsByMediaIds } from "@/lib/public/media"
 import { getCanonicalOrigin } from "@/lib/canonical-origin"
 import {
   absoluteUrl,
@@ -143,7 +143,7 @@ export async function TourPageContent({
     .filter((s) => anchoredSectionKeys.includes(s.key) && s.key !== "documents")
     .map((s) => ({ id: s.key, label: s.label }))
   // Галерея живёт в hero-блоке слева (~75% ширины), рядом с карточкой цены
-  // справа — как бы��о исторически. Поэтому не рендерим её ещё раз ниже,
+  // справа — как было исторически. Поэтому не рендерим её ещё раз ниже,
   // но учитываем её видимость из настроек раздела.
   const galleryVisible = sections.some((s) => s.key === "gallery")
   const bodySections = sections.filter((s) => s.key !== "gallery")

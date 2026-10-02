@@ -29,7 +29,7 @@ const card = read("components/site/tour-card.tsx")
 const switcher = read("components/site/price-switcher.tsx")
 const tourPage = read("components/site/tour-page-content.tsx")
 const featured = read("components/site/featured-tours.tsx")
-const publicTours = read("components/site/public-tours.tsx")
+const publicTours = read("components/site/public-featured-tours.tsx")
 
 assert.match(schema, /export const tourDates[\s\S]*?extraPriceAmount/)
 assert.match(schema, /export const tourDates[\s\S]*?extraPriceCurrency/)

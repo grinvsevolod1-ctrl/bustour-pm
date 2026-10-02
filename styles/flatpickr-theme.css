@@ -1,0 +1,166 @@
+/* Календарь flatpickr (фильтр «Период выезда» в каталоге и таблице дат).
+   Файл подключается ТОЛЬКО из лениво загружаемого модуля календаря
+   (components/ui/date-range-picker-flatpickr.tsx), поэтому ни байта этих
+   стилей не попадает в критический CSS публичных страниц. Базовый CSS
+   flatpickr импортируется здесь же: ниже много переопределений .flatpickr-*
+   той же специфичности, и их порядок относительно базового CSS важен. */
+@import 'flatpickr/dist/flatpickr.css';
+
+/* Flatpickr range calendar used by bus tour departure filter. */
+.date-range-picker-trigger .flatpickr-input {
+  pointer-events: none;
+}
+
+.flatpickr-calendar {
+  width: 314px;
+  border: 0;
+  border-radius: 14px;
+  color: #111827;
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  box-shadow: 0 18px 50px rgb(17 24 39 / 18%);
+}
+
+.flatpickr-calendar::before {
+  border-width: 0 8px 8px 8px;
+  border-bottom-color: white;
+}
+
+.flatpickr-calendar::after {
+  border-width: 0 7px 7px 7px;
+  border-bottom-color: white;
+}
+
+.flatpickr-months {
+  align-items: center;
+  padding: 10px 12px 4px;
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border-radius: 999px;
+  color: #374151;
+  fill: #374151;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+  background: #f3f4f6;
+  color: #111827;
+  fill: #111827;
+}
+
+.flatpickr-current-month {
+  left: 12.5%;
+  width: 75%;
+  padding-top: 0;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  width: auto;
+  text-transform: capitalize;
+}
+
+.flatpickr-current-month input.cur-year {
+  min-width: 58px;
+  padding: 0;
+}
+
+.flatpickr-weekdays {
+  height: 32px;
+  padding: 0 14px;
+}
+
+span.flatpickr-weekday {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.flatpickr-innerContainer,
+.flatpickr-rContainer,
+.flatpickr-days,
+.dayContainer {
+  width: 314px;
+  min-width: 314px;
+  max-width: 314px;
+}
+
+.dayContainer {
+  padding: 0 14px 14px;
+}
+
+.flatpickr-day {
+  max-width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 0;
+  color: #111827;
+  line-height: 40px;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+  border-color: transparent;
+  background: #f3f4f6;
+}
+
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay,
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+  color: #d1d5db;
+}
+
+.flatpickr-day.inRange,
+.flatpickr-day.prevMonthDay.inRange,
+.flatpickr-day.nextMonthDay.inRange,
+.flatpickr-day.today.inRange {
+  border-color: #efefef;
+  border-radius: 0;
+  background: #efefef;
+  box-shadow: -5px 0 0 #efefef, 5px 0 0 #efefef;
+  color: #111827;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+  border-color: #4a90e2;
+  border-radius: 999px;
+  background: #4a90e2;
+  color: white;
+  font-weight: 800;
+  box-shadow: 0 0 0 4px rgb(74 144 226 / 16%);
+}
+
+.flatpickr-day.today:not(.selected):not(.startRange):not(.endRange) {
+  border-color: rgb(74 144 226 / 45%);
+  border-radius: 999px;
+}
+
+@media (max-width: 767px) {
+  .flatpickr-calendar.open {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto;
+    max-width: 360px;
+    margin-inline: auto;
+  }
+}

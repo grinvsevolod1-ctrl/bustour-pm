@@ -180,7 +180,7 @@ async function sendViaResend(apiKey: string, mail: LeadMail): Promise<SendResult
 
 /**
  * Доставка в e-mail канал. Транспорт: SMTP почтового хостинга, если
- * сконфигурирован; ин��че Resend.
+ * сконфигурирован; иначе Resend.
  */
 async function sendEmail(mail: Omit<LeadMail, "from" | "to">, config: NotifyChannelConfig): Promise<SendResult> {
   if (!config.emailEnabled || config.emailTo.length === 0) return SKIPPED

@@ -22,7 +22,8 @@ const rich = readFileSync(join(process.cwd(), "components/site/rich-content.tsx"
 assert.match(rich, /parseShortcodes/)
 assert.match(rich, /getShortcodesDict/)
 
-const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8")
+// Токены шорткодов — часть «хрома» редактора, живут в app/admin/editor.css.
+const css = readFileSync(join(process.cwd(), "app/admin/editor.css"), "utf8")
 assert.match(css, /\.shortcode-token/)
 
 console.log("shortcodes-ui.selfcheck: ok")

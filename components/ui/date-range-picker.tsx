@@ -1,11 +1,24 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
-import flatpickr from "flatpickr"
-import type { Instance } from "flatpickr/dist/types/instance"
-import { Russian } from "flatpickr/dist/l10n/ru"
 import { ChevronDown, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { RangePickerInstance } from "./date-range-picker-flatpickr"
+
+type FlatpickrModule = typeof import("./date-range-picker-flatpickr")
+
+/**
+ * flatpickr (JS + CSS ≈ 70 КБ raw) грузится отдельным чанком и только после
+ * первого намерения пользователя (наведение/фокус/тап по полю). До этого на
+ * странице стоит обычный readonly-инпут с текущим значением — SSR-разметка
+ * и доступность не меняются. Промис кешируется на модуль: повторные пикеры
+ * на странице (таблица дат + фильтр) не грузят чанк дважды.
+ */
+let flatpickrModule: Promise<FlatpickrModule> | null = null
+function loadFlatpickr(): Promise<FlatpickrModule> {
+  if (!flatpickrModule) flatpickrModule = import("./date-range-picker-flatpickr")
+  return flatpickrModule
+}
 
 export type DateRangePickerValue = {
   start: string
@@ -63,9 +76,12 @@ export function DateRangePicker({
   const inputRef = useRef<HTMLInputElement>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const labelMeasureRef = useRef<HTMLSpanElement>(null)
-  const pickerRef = useRef<Instance | null>(null)
+  const pickerRef = useRef<RangePickerInstance | null>(null)
   const onChangeRef = useRef(onChange)
   const syncingRef = useRef(false)
+  // Пользователь кликнул раньше, чем доехал чанк календаря: откроем сразу после создания.
+  const pendingOpenRef = useRef(false)
+  const [lib, setLib] = useState<FlatpickrModule | null>(null)
   const [open, setOpen] = useState(false)
   const [useCompactLabel, setUseCompactLabel] = useState(false)
   const fullLabel = formatDateRangePickerLabel(value, placeholder)
@@ -102,17 +118,15 @@ export function DateRangePicker({
     return () => observer.disconnect()
   }, [compactLabel, fullLabel, value.end, value.start])
 
+  const selectedDatesRef = useRef(selectedDates)
   useEffect(() => {
-    if (!inputRef.current) return
-    const picker = flatpickr(inputRef.current, {
-      mode: "range",
-      dateFormat: "d.m.Y",
-      ariaDateFormat: "d.m.Y",
+    selectedDatesRef.current = selectedDates
+  }, [selectedDates])
+
+  useEffect(() => {
+    if (!lib || !inputRef.current) return
+    const picker = lib.createRangePicker(inputRef.current, {
       minDate,
-      disableMobile: true,
-      showMonths: 1,
-      monthSelectorType: "dropdown",
-      locale: { ...Russian, rangeSeparator: " - ", firstDayOfWeek: 1 },
       onChange: (dates) => {
         if (syncingRef.current) return
         const start = dates[0] ? isoFromDate(dates[0]) : ""
@@ -122,12 +136,20 @@ export function DateRangePicker({
       onOpen: () => setOpen(true),
       onClose: () => setOpen(false),
     })
+    // Календарь создан позже первого рендера — сразу отдаём ему текущее значение.
+    syncingRef.current = true
+    picker.setDate(selectedDatesRef.current, false, "Y-m-d")
+    syncingRef.current = false
     pickerRef.current = picker
+    if (pendingOpenRef.current) {
+      pendingOpenRef.current = false
+      picker.open()
+    }
     return () => {
       picker.destroy()
       pickerRef.current = null
     }
-  }, [minDate])
+  }, [lib, minDate])
 
   useEffect(() => {
     const picker = pickerRef.current
@@ -137,8 +159,20 @@ export function DateRangePicker({
     syncingRef.current = false
   }, [selectedDates])
 
+  // Прогрев чанка по намерению (hover/focus/touchstart): к моменту клика
+  // календарь обычно уже загружен и открывается без паузы.
+  function preload() {
+    if (lib) return
+    void loadFlatpickr().then((mod) => setLib((current) => current ?? mod))
+  }
+
   function openPicker() {
-    pickerRef.current?.open()
+    if (pickerRef.current) {
+      pickerRef.current.open()
+      return
+    }
+    pendingOpenRef.current = true
+    preload()
   }
 
   function clear(event: MouseEvent<HTMLButtonElement>) {
@@ -161,6 +195,9 @@ export function DateRangePicker({
         role="button"
         tabIndex={0}
         onClick={openPicker}
+        onPointerEnter={preload}
+        onTouchStart={preload}
+        onFocus={preload}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") openPicker()
         }}
