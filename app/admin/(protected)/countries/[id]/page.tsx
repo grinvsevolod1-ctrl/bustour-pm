@@ -299,7 +299,7 @@ export default async function EditCountryPage({
               ),
               cities: citiesGroup ? (
                 <div className="space-y-4">
-                  <p className="mb-4 text-sm text-admin-fg-muted">На сайте показываются курорты этой страницы, отмеченные как видимые; скрытые не отображаются. Управляйте видимост��ю в разделе «Курорты». Сейчас видимых на сайте: {visibleCountryCities.length} из {countryCities.length}.</p>
+                  <p className="mb-4 text-sm text-admin-fg-muted">На сайте показываются курорты этой страницы, отмеченные как видимые; скрытые не отображаются. Управляйте видимостью в разделе «Курорты». Сейчас видимых на сайте: {visibleCountryCities.length} из {countryCities.length}.</p>
                   <SectionFieldsForm fields={citiesGroup.fields} settings={settings} hideSubmit />
                 </div>
               ) : null,

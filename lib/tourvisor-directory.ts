@@ -21,26 +21,36 @@ type Snapshot = {
   resorts: [number, number, number, string][]
 }
 
-const snapshot = directory as Snapshot
+// JSON выводится как (string|number)[][]; форма кортежей гарантируется скриптом синхронизации.
+const snapshot = directory as unknown as Snapshot
 
 /** Названия на сайте, отличающиеся от написания Tourvisor. */
-const COUNTRY_ALIASES: Record<string, string> = {
+const GEO_ALIASES: Record<string, string> = {
   "морокко": "марокко",
   "объединенные арабские эмираты": "оаэ",
   "доминиканская республика": "доминикана",
-  "шри ланка": "шри-ланка",
+  "анталия": "анталья",
+  "алания": "аланья",
+  "макади": "макади бей",
+  "сахл хашиш": "сахль хашиш",
 }
 
-/** Нормализация для сравнения: регистр, ё/е, пунктуация, лишние пробелы. */
+/** Маркетинговые префиксы страниц горящих туров: «Горящая Хургада», «Горящие туры в Турцию». */
+const MARKETING_PREFIX = /^(горящ\S*\s+)?(туры\s+(в|на)\s+|отдых\s+(в|на)\s+)?/u
+
+/**
+ * Нормализация для сравнения: регистр, ё/е, префиксы «Горящая…», а дефис и
+ * пробел считаются одним разделителем («Шарм-эль-Шейх» = «Шарм эль Шейх»).
+ */
 export function normalizeGeoName(value: string): string {
   const base = value
     .toLowerCase()
     .replace(/ё/g, "е")
-    .replace(/[^a-zа-я0-9-]+/gu, " ")
-    .replace(/\s*-\s*/g, "-")
+    .replace(MARKETING_PREFIX, "")
+    .replace(/[^a-zа-я0-9]+/gu, " ")
     .replace(/\s+/g, " ")
     .trim()
-  return COUNTRY_ALIASES[base] ?? base
+  return GEO_ALIASES[base] ?? base
 }
 
 export const TOURVISOR_DIRECTORY_FETCHED_AT = snapshot.fetchedAt

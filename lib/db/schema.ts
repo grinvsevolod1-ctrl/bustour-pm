@@ -293,7 +293,7 @@ export const admins = pgTable("admins", {
 })
 
 // Rate-limit логина, переживающий рестарты pm2: автодеплой перезапускает
-// процесс на каждый пуш в main, и in-memory счётчики брутф��рса обнулялись.
+// процесс на каждый пуш в main, и in-memory счётчики брутфорса обнулялись.
 export const rateLimits = pgTable("rate_limits", {
   key: text("key").primaryKey(), // "<bucket>:<ip|username>"
   count: integer("count").notNull().default(0),

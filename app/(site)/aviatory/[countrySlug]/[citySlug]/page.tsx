@@ -11,8 +11,9 @@ import { ResortCards } from "@/components/site/resort-cards"
 import { DestinationSectionMap } from "@/components/site/catalog/destination-section-map"
 import { getPublicSettings, getFaqBlocksForPage, isOn, getResortBlocksForPage } from "@/lib/cms"
 import { getCityDestinations, getCityDestination, getCitiesByCountry } from "@/lib/public/cities"
-import { getCountrySlugs, slugify, getAviaCountries } from "@/lib/public/countries"
+import { getCountrySlugs, slugify, getAviaCountries, getCountry } from "@/lib/public/countries"
 import { metadataFromSettings } from "@/lib/seo-metadata"
+import { tourvisorWidgetGeo } from "@/lib/tourvisor-directory"
 import { resolveCmsText } from "@/lib/catalog-cms-content"
 import { resolveAviaSlug } from "@/lib/avia-slug"
 import { resolveCityPage, assertCityPreviewAccess } from "@/lib/preview-resolve"
@@ -81,6 +82,8 @@ export default async function AviaCityPage({
 
   const aviaPrefix = `/${resolveAviaSlug(settings["aviatory.slug"])}`
   const relatedCities = (citiesByCountry[info.country] ?? []).filter((c) => c.slug !== liveCitySlug)
+  // Страна нужна виджету Tourvisor (tv-country / tv-resorts) — без неё модуль не найдёт курорт.
+  const parentCountry = parentCountrySlug ? await getCountry(parentCountrySlug, "avia") : undefined
   const sectionOrder = (() => {
     try {
       const raw = settings[`${p}.sections.order`]
@@ -141,7 +144,7 @@ export default async function AviaCityPage({
       </div>
       {renderSections(split.top)}
       {renderSections(split.beforeSearch)}
-      <AviaTourSearchWidget />
+      <AviaTourSearchWidget {...tourvisorWidgetGeo(parentCountry, info)} />
     </div>
   )
 

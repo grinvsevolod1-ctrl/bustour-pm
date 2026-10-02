@@ -17,6 +17,7 @@
     "sealed-env": "node scripts/sealed-env.mjs",
     "integrations:check": "node scripts/integrations-bootstrap.mjs",
     "admin:password": "npx tsx scripts/admin-password.ts",
+    "tourvisor:sync": "node scripts/tourvisor-directory-sync.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "check": "npx tsx scripts/preflight.ts",
