@@ -58,7 +58,11 @@ export default async function BusToursPage() {
   const visibleCountries = busCountries.filter((c) => settings[`country:bus:${c.slug}.visible`] !== "0")
 
   // ponytail: keep legacy category:bus FAQs until admin re-saves under bustours
-  const faqs = faqBlocksFromPage.length ? faqBlocksFromPage : legacyFaqs
+  // Слот-фильтр (faqBlocksForSlot) пропускает только page === p, поэтому старые
+  // блоки перепривязываем к ключу страницы — иначе FAQ молча не рендерится.
+  const faqs = faqBlocksFromPage.length
+    ? faqBlocksFromPage
+    : legacyFaqs.map((b) => ({ ...b, page: p }))
 
   const sectionOrder = (() => {
     try {

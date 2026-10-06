@@ -52,7 +52,11 @@ export default async function AviaToursPage() {
   ])
 
   // ponytail: keep legacy category:avia until admin re-saves under aviatory
-  const faqs = faqBlocksFromPage.length ? faqBlocksFromPage : legacyFaqs
+  // Слот-фильтр (faqBlocksForSlot) пропускает только page === p, поэтому старые
+  // блоки перепривязываем к ключу страницы — иначе FAQ молча не рендерится.
+  const faqs = faqBlocksFromPage.length
+    ? faqBlocksFromPage
+    : legacyFaqs.map((b) => ({ ...b, page: p }))
 
   const sectionOrder = (() => {
     try {
