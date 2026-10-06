@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { HotToursWidget } from "@/components/site/hot-tours-widget"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { TitleUnderline } from "@/components/site/title-underline"
-import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch, resolvePublicSectionOrder } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { PageAlert } from "@/components/site/alert"
 import { HotSidebar } from "@/components/site/hot-sidebar"
@@ -44,13 +44,7 @@ export default async function HotToursPage() {
 
   const get = (key: string) => settings[`${p}.${key}`] ?? ""
 
-  const sectionOrder = (() => {
-    try {
-      const raw = settings[`${p}.sections.order`]
-      if (raw) return JSON.parse(raw) as string[]
-    } catch {}
-    return [...DESTINATION_DEFAULT_SECTION_ORDER]
-  })()
+  const sectionOrder = resolvePublicSectionOrder(settings[`${p}.sections.order`])
 
   // Как в авиа/автобусных: виджет стоит на месте ключа «search», поэтому
   // «Есть вопросы» можно поднять над поиском и даже над вступлением.

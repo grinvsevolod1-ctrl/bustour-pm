@@ -18,7 +18,7 @@ import { resolveCountryPage, assertCountryPreviewAccess } from "@/lib/preview-re
 import { stripArchivedSuffix } from "@/lib/archive-slug"
 import { ParsedText } from "@/components/site/parsed-text"
 import { getShortcodesDict } from "@/lib/shortcodes"
-import { splitOrderAroundSearch } from "@/lib/section-order"
+import { splitOrderAroundSearch, resolvePublicSectionOrder } from "@/lib/section-order"
 import { tourvisorWidgetGeo } from "@/lib/tourvisor-directory"
 
 export const dynamic = "force-dynamic"
@@ -88,13 +88,7 @@ export default async function AviaCountryPage({
 
   // Collect ALL SEO sections (seo, seo2, seo3…) in the admin-defined order.
   // Each slot stores to `${p}.seoHtml{N}` / `${p}.seoTitle{N}` (N omitted for the first).
-  const sectionOrder = (() => {
-    try {
-      const raw = settings[`${p}.sections.order`]
-      if (raw) return JSON.parse(raw) as string[]
-    } catch {}
-    return ["search", "cities", "seo", "callus", "faq"]
-  })()
+  const sectionOrder = resolvePublicSectionOrder(settings[`${p}.sections.order`], ["search", "cities", "seo", "callus", "faq"])
 
   const get = (key: string) => settings[`${p}.${key}`] ?? ""
   const split = splitOrderAroundSearch(sectionOrder)

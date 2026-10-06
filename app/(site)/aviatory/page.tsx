@@ -5,7 +5,7 @@ import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { AviaSidebar } from "@/components/site/avia-sidebar"
 import { TitleUnderline } from "@/components/site/title-underline"
 import { PageAlert } from "@/components/site/alert"
-import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch, resolvePublicSectionOrder } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { ResortCards } from "@/components/site/resort-cards"
 import { DestinationSectionMap } from "@/components/site/catalog/destination-section-map"
@@ -58,15 +58,7 @@ export default async function AviaToursPage() {
     ? faqBlocksFromPage
     : legacyFaqs.map((b) => ({ ...b, page: p }))
 
-  const sectionOrder = (() => {
-    try {
-      const raw = settings[`${p}.sections.order`]
-      if (raw) return JSON.parse(raw) as string[]
-    } catch {
-      /* ignore */
-    }
-    return [...DESTINATION_DEFAULT_SECTION_ORDER]
-  })()
+  const sectionOrder = resolvePublicSectionOrder(settings[`${p}.sections.order`])
 
   const {
     top: topOrder,

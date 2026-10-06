@@ -114,3 +114,16 @@ export function resolveInitialOrder(
   ]
   return appended.length ? [...kept, ...appended] : kept
 }
+
+/**
+ * Порядок секций для ПУБЛИЧНОЙ страницы — тем же алгоритмом, что и админка.
+ * Почему: админка дозаписывает в старый сохранённый порядок недостающие секции
+ * (напр. «faq»), и редактор видит/заполняет блок; а публичная страница брала
+ * сырой JSON, и такой блок на сайте молча не выводился.
+ */
+export function resolvePublicSectionOrder(
+  savedOrder: string | undefined,
+  defaultOrder: readonly string[] = DESTINATION_DEFAULT_SECTION_ORDER,
+): string[] {
+  return resolveInitialOrder(savedOrder, [...defaultOrder], [...defaultOrder])
+}

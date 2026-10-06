@@ -4,7 +4,7 @@ import { Breadcrumb } from "@/components/site/breadcrumb"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
 import { AviaSidebar } from "@/components/site/avia-sidebar"
 import { TitleUnderline } from "@/components/site/title-underline"
-import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, splitOrderAroundSearch, resolvePublicSectionOrder } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { PageAlert } from "@/components/site/alert"
 import { ResortCards } from "@/components/site/resort-cards"
@@ -84,13 +84,7 @@ export default async function AviaCityPage({
   const relatedCities = (citiesByCountry[info.country] ?? []).filter((c) => c.slug !== liveCitySlug)
   // Страна нужна виджету Tourvisor (tv-country / tv-resorts) — без неё модуль не найдёт курорт.
   const parentCountry = parentCountrySlug ? await getCountry(parentCountrySlug, "avia") : undefined
-  const sectionOrder = (() => {
-    try {
-      const raw = settings[`${p}.sections.order`]
-      if (raw) return JSON.parse(raw) as string[]
-    } catch {}
-    return [...DESTINATION_DEFAULT_SECTION_ORDER]
-  })()
+  const sectionOrder = resolvePublicSectionOrder(settings[`${p}.sections.order`])
   const get = (key: string) => settings[`${p}.${key}`] ?? ""
   const split = splitOrderAroundSearch(sectionOrder)
 

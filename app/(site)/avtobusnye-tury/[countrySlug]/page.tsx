@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { PublicToursListing } from "@/components/site/public-tours"
 import { TitleUnderline } from "@/components/site/title-underline"
-import { DESTINATION_DEFAULT_SECTION_ORDER } from "@/lib/section-order"
+import { DESTINATION_DEFAULT_SECTION_ORDER, resolvePublicSectionOrder } from "@/lib/section-order"
 import { RichContent } from "@/components/site/rich-content"
 import { PageAlert } from "@/components/site/alert"
 import { ResortCards } from "@/components/site/resort-cards"
@@ -70,13 +70,7 @@ export default async function BusCountryPage({
   if (!country.archived && !isOn(settings, `${p}.visible`)) notFound()
 
   const get = (key: string) => settings[`${p}.${key}`] ?? ""
-  const sectionOrder = (() => {
-    try {
-      const raw = settings[`${p}.sections.order`]
-      if (raw) return JSON.parse(raw) as string[]
-    } catch {}
-    return [...DESTINATION_DEFAULT_SECTION_ORDER]
-  })()
+  const sectionOrder = resolvePublicSectionOrder(settings[`${p}.sections.order`])
 
   const searchIndex = sectionOrder.indexOf("search")
   const beforeSearchOrder = searchIndex < 0 ? [] : sectionOrder.slice(0, searchIndex)
