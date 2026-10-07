@@ -61,10 +61,12 @@ export async function PageExtras({
   const faqKey = sectionPrefix ? `${sectionPrefix}.section.faq` : `page.${pageKey}.faq`
   const defaultFaqTitle = settings["title.faq"] || "Частые вопросы"
   const groups = groupFaqBlocks(faqs, defaultFaqTitle)
+  // `section.faq` — тумблер главной; на страницах туров (pageKey="tour") он не должен гасить FAQ.
+  const homeFaqToggleApplies = !sectionPrefix && pageKey !== "tour"
   const showFaq =
     allowFaq &&
-    isOn(settings, sectionPrefix ? faqKey : "section.faq") &&
-    isOn(settings, faqKey) &&
+    (!homeFaqToggleApplies || isOn(settings, "section.faq")) &&
+    (sectionPrefix ? isOn(settings, faqKey) : isOn(settings, faqKey)) &&
     groups.some((g) => g.items.length > 0)
 
   if (!visibleCallus.length && !showFaq) return null
