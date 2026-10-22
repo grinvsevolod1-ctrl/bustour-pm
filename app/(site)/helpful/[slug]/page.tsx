@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound, permanentRedirect } from "next/navigation"
 import { getArticle, getArticles } from "@/lib/public/queries"
 import { articleUrl } from "@/lib/article-url"
+import { absoluteUrl } from "@/lib/seo-metadata"
 import { getAltTextByUrl } from "@/lib/media/service"
 import { expandShortcodes } from "@/lib/shortcodes"
 
@@ -34,6 +35,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    ...(article ? { alternates: { canonical: absoluteUrl(articleUrl(article)) } } : {}),
     ...(image
       ? {
           openGraph: {
