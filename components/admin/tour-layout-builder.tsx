@@ -214,15 +214,17 @@ export function TourLayoutBuilder({
             <button
               type="button"
               onClick={() => update(i, { visible: !s.visible })}
-              title={s.visible ? "Скрыть секцию на сайте" : "Показать секцию на сайте"}
+              title={s.visible ? "Нажмите, чтобы скрыть секцию на сайте" : "Нажмите, чтобы показать секцию на сайте"}
+              aria-pressed={s.visible}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors",
+                "inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 text-xs font-medium transition-colors",
                 s.visible
-                  ? "text-admin-fg-muted hover:bg-amber-50 hover:text-amber-700"
-                  : "text-green-700 hover:bg-green-50",
+                  ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
+                  : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100",
               )}
             >
-              {s.visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              {s.visible ? <Eye className="h-3.5 w-3.5" aria-hidden="true" /> : <EyeOff className="h-3.5 w-3.5" aria-hidden="true" />}
+              {s.visible ? "На сайте" : "Скрыто"}
             </button>
             <button
               type="button"

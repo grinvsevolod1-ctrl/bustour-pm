@@ -150,7 +150,9 @@ export default async function AdminHomePageSettings() {
           search: sectionNote("Заголовок — на вкладке «Основное»."),
           featured: sectionNote("Заголовок — на вкладке «Основное». Карточки — рекомендуемые туры из каталога."),
           advantages: sectionNote("Заголовок — на вкладке «Основное»."),
-          testimonials: sectionNote("Заголовок — на вкладке «Основное». Отзывы — в разделе «Отзывы»."),
+          testimonials: sectionNote(
+            "Только для главной страницы. Заголовок — на вкладке «Основное». Отзывы — в разделе «Отзывы». Блок отзывов на странице тура включается в карточке тура → «Порядок блоков» → «Отзывы».",
+          ),
           placement: sectionNote("Заголовок — на вкладке «Основное». Карта — в Настройках сайта (URL iframe)."),
           ...faqSlots,
           callus: sectionNote(
