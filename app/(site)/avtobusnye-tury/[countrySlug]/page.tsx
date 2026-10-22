@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { legacyNotFound } from "@/lib/legacy-redirect"
 import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { PublicToursListing } from "@/components/site/public-tours"
@@ -48,8 +49,8 @@ export default async function BusCountryPage({
 }) {
   const { countrySlug } = await params
   const country = await resolveCountryPage("bus", countrySlug, searchParams)
-  if (!country) notFound()
-  if (!(await assertCountryPreviewAccess(country, searchParams))) notFound()
+  if (!country) return legacyNotFound("bus", await params)
+  if (!(await assertCountryPreviewAccess(country, searchParams))) return legacyNotFound("bus", await params)
 
   const liveCountrySlug = stripArchivedSuffix(country.slug)
   const p = `country:bus:${liveCountrySlug}`
@@ -67,7 +68,7 @@ export default async function BusCountryPage({
       getResortBlocksForPage(p),
     ])
 
-  if (!country.archived && !isOn(settings, `${p}.visible`)) notFound()
+  if (!country.archived && !isOn(settings, `${p}.visible`)) return legacyNotFound("bus", await params)
 
   const get = (key: string) => settings[`${p}.${key}`] ?? ""
   const sectionOrder = resolvePublicSectionOrder(settings[`${p}.sections.order`])

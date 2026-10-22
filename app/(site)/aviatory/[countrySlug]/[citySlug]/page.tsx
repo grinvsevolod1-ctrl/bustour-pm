@@ -1,4 +1,5 @@
 import { notFound, permanentRedirect } from "next/navigation"
+import { legacyNotFound } from "@/lib/legacy-redirect"
 import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
@@ -52,8 +53,8 @@ export default async function AviaCityPage({
 }) {
   const { countrySlug, citySlug } = await params
   const info = await resolveCityPage("avia", citySlug, searchParams)
-  if (!info) notFound()
-  if (!(await assertCityPreviewAccess(info, searchParams))) notFound()
+  if (!info) return legacyNotFound("avia", await params)
+  if (!(await assertCityPreviewAccess(info, searchParams))) return legacyNotFound("avia", await params)
 
   const settings = await getPublicSettings()
   const liveCitySlug = stripArchivedSuffix(info.slug)
@@ -68,7 +69,7 @@ export default async function AviaCityPage({
   ])
 
   // 404 if avia home, parent country, or this city is hidden
-  if (!info.archived && !isOn(settings, "aviatory.visible")) notFound()
+  if (!info.archived && !isOn(settings, "aviatory.visible")) return legacyNotFound("avia", await params)
   // country slug for this city is stored in countrySlugs map (name → slug)
   // Fall back to a slugified country name when the country row was deleted.
   const parentCountrySlug = countrySlugs[info.country] ?? (info.country ? slugify(info.country) : undefined)
@@ -76,8 +77,8 @@ export default async function AviaCityPage({
   if (!info.archived) {
     if (parentCountrySlug && countrySlug !== parentCountrySlug)
       permanentRedirect(`/${resolveAviaSlug(settings["aviatory.slug"])}/${parentCountrySlug}/${liveCitySlug}/`)
-    if (parentCountrySlug && !isOn(settings, `country:avia:${parentCountrySlug}.visible`)) notFound()
-    if (!isOn(settings, `${p}.visible`)) notFound()
+    if (parentCountrySlug && !isOn(settings, `country:avia:${parentCountrySlug}.visible`)) return legacyNotFound("avia", await params)
+    if (!isOn(settings, `${p}.visible`)) return legacyNotFound("avia", await params)
   }
 
   const aviaPrefix = `/${resolveAviaSlug(settings["aviatory.slug"])}`

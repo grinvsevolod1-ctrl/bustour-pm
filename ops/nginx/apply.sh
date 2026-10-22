@@ -169,7 +169,9 @@ fi
     }
 
     location / {
-        return 301 https://$host$request_uri;
+EOF
+    echo "        return 301 https://$BARE\$request_uri;"
+    cat <<'EOF'
     }
 }
 
@@ -177,6 +179,12 @@ server {
 EOF
     echo "$LISTEN_443"
     echo "    server_name $NAMES;"
+    echo
+    # Единственный канонический хост: www/IP/старые домены отдавали 200 с копией
+    # сайта → в Search Console «Вариант страницы с тегом canonical» и «дубль».
+    echo "    if (\$host != \"$BARE\") {"
+    echo "        return 301 https://$BARE\$request_uri;"
+    echo "    }"
     echo
     echo "    ssl_certificate $CERT;"
     echo "    ssl_certificate_key $KEY;"

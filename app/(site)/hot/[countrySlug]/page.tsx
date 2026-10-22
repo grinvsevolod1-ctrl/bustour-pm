@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { legacyNotFound } from "@/lib/legacy-redirect"
 import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { HotToursWidget } from "@/components/site/hot-tours-widget"
@@ -48,13 +49,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function HotCountryPage({ params, searchParams }: Props) {
   const { countrySlug } = await params
   const country = await resolveCountryPage("hot", countrySlug, searchParams)
-  if (!country) notFound()
-  if (!(await assertCountryPreviewAccess(country, searchParams))) notFound()
+  if (!country) return legacyNotFound("hot", await params)
+  if (!(await assertCountryPreviewAccess(country, searchParams))) return legacyNotFound("hot", await params)
 
   const settings = await getPublicSettings()
   const liveCountrySlug = stripArchivedSuffix(country.slug)
-  if (!country.archived && !isOn(settings, "hot.visible")) notFound()
-  if (!country.archived && !isOn(settings, `country:hot:${liveCountrySlug}.visible`)) notFound()
+  if (!country.archived && !isOn(settings, "hot.visible")) return legacyNotFound("hot", await params)
+  if (!country.archived && !isOn(settings, `country:hot:${liveCountrySlug}.visible`)) return legacyNotFound("hot", await params)
 
   const p = `country:hot:${liveCountrySlug}`
 

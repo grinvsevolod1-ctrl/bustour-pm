@@ -1,4 +1,5 @@
 import { notFound, permanentRedirect } from "next/navigation"
+import { legacyNotFound } from "@/lib/legacy-redirect"
 import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { HotToursWidget } from "@/components/site/hot-tours-widget"
@@ -51,8 +52,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function HotCityPage({ params, searchParams }: Props) {
   const { countrySlug, citySlug } = await params
   const info = await resolveCityPage("hot", citySlug, searchParams)
-  if (!info) notFound()
-  if (!(await assertCityPreviewAccess(info, searchParams))) notFound()
+  if (!info) return legacyNotFound("hot", await params)
+  if (!(await assertCityPreviewAccess(info, searchParams))) return legacyNotFound("hot", await params)
 
   const settings = await getPublicSettings()
   const [sidebarData, citiesByCountry, countrySlugs, shortcodesDict] = await Promise.all([
@@ -62,7 +63,7 @@ export default async function HotCityPage({ params, searchParams }: Props) {
     getShortcodesDict(),
   ])
 
-  if (!info.archived && !isOn(settings, "hot.visible")) notFound()
+  if (!info.archived && !isOn(settings, "hot.visible")) return legacyNotFound("hot", await params)
 
   const liveCitySlug = stripArchivedSuffix(info.slug)
   const p = `city:hot:${liveCitySlug}`
@@ -72,8 +73,8 @@ export default async function HotCityPage({ params, searchParams }: Props) {
   if (!info.archived) {
     if (parentCountrySlug && countrySlug !== parentCountrySlug)
       permanentRedirect(`/hot/${parentCountrySlug}/${liveCitySlug}/`)
-    if (parentCountrySlug && !isOn(settings, `country:hot:${parentCountrySlug}.visible`)) notFound()
-    if (!isOn(settings, `${p}.visible`)) notFound()
+    if (parentCountrySlug && !isOn(settings, `country:hot:${parentCountrySlug}.visible`)) return legacyNotFound("hot", await params)
+    if (!isOn(settings, `${p}.visible`)) return legacyNotFound("hot", await params)
   }
 
   const [faqs, resortBlocks] = await Promise.all([

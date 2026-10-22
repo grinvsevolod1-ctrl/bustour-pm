@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { legacyNotFound } from "@/lib/legacy-redirect"
 import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { AviaTourSearchWidget } from "@/components/site/avia-tour-search-widget"
@@ -57,14 +58,14 @@ export default async function AviaCountryPage({
 }) {
   const { countrySlug } = await params
   const country = await resolveCountryPage("avia", countrySlug, searchParams)
-  if (!country || country.category !== "avia") notFound()
-  if (!(await assertCountryPreviewAccess(country, searchParams))) notFound()
+  if (!country || country.category !== "avia") return legacyNotFound("avia", await params)
+  if (!(await assertCountryPreviewAccess(country, searchParams))) return legacyNotFound("avia", await params)
 
   const settings = await getPublicSettings()
   const liveCountrySlug = stripArchivedSuffix(country.slug)
   // 404 if avia home or this country is hidden (skip visibility when previewing archived)
-  if (!country.archived && !isOn(settings, "aviatory.visible")) notFound()
-  if (!country.archived && !isOn(settings, `country:avia:${liveCountrySlug}.visible`)) notFound()
+  if (!country.archived && !isOn(settings, "aviatory.visible")) return legacyNotFound("avia", await params)
+  if (!country.archived && !isOn(settings, `country:avia:${liveCountrySlug}.visible`)) return legacyNotFound("avia", await params)
 
   const p = `country:avia:${liveCountrySlug}`
   const aviaPrefix = `/${resolveAviaSlug(settings["aviatory.slug"])}`

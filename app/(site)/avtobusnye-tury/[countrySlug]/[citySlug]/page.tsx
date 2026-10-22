@@ -1,4 +1,5 @@
 import { notFound, permanentRedirect } from "next/navigation"
+import { legacyNotFound } from "@/lib/legacy-redirect"
 import type { Metadata } from "next"
 import { Breadcrumb } from "@/components/site/breadcrumb"
 import { PublicToursListing } from "@/components/site/public-tours"
@@ -53,8 +54,8 @@ export default async function BusCityPage({
 }) {
   const { countrySlug, citySlug } = await params
   const info = await resolveCityPage("bus", citySlug, searchParams)
-  if (!info) notFound()
-  if (!(await assertCityPreviewAccess(info, searchParams))) notFound()
+  if (!info) return legacyNotFound("bus", await params)
+  if (!(await assertCityPreviewAccess(info, searchParams))) return legacyNotFound("bus", await params)
 
   const liveCitySlug = stripArchivedSuffix(info.slug)
   const p = `city:bus:${liveCitySlug}`
@@ -71,11 +72,11 @@ export default async function BusCityPage({
       getResortBlocksForPage(p),
     ])
 
-  if (!info.archived && !isOn(settings, `${p}.visible`)) notFound()
+  if (!info.archived && !isOn(settings, `${p}.visible`)) return legacyNotFound("bus", await params)
 
   const parentCountrySlug = countrySlugs[info.country] ?? (info.country ? slugify(info.country) : undefined)
   if (!info.archived) {
-    if (parentCountrySlug && !isOn(settings, `country:bus:${parentCountrySlug}.visible`)) notFound()
+    if (parentCountrySlug && !isOn(settings, `country:bus:${parentCountrySlug}.visible`)) return legacyNotFound("bus", await params)
     if (parentCountrySlug && countrySlug !== parentCountrySlug)
       permanentRedirect(`/avtobusnye-tury/${parentCountrySlug}/${liveCitySlug}/`)
   }

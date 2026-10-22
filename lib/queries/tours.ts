@@ -248,7 +248,18 @@ export async function createTour(input: TourInput): Promise<number> {
 
 export async function updateTour(id: number, input: TourInput) {
   await ensureDb()
-  await db.update(tours).set(serializeTour(input)).where(eq(tours.id, id))
+  const patch = serializeTour(input)
+  await db.transaction(async (tx) => {
+    const [prev] = await tx.select({ title: tours.title }).from(tours).where(eq(tours.id, id)).limit(1)
+    await tx.update(tours).set(patch).where(eq(tours.id, id))
+    // Отзывы привязаны к туру по названию (reviews.tour). Без каскада
+    // переименование тура молча отвязывает все его отзывы от страницы тура.
+    const oldTitle = prev?.title?.trim()
+    const newTitle = typeof patch.title === "string" ? patch.title.trim() : ""
+    if (oldTitle && newTitle && oldTitle !== newTitle) {
+      await tx.update(reviews).set({ tour: newTitle }).where(eq(reviews.tour, oldTitle))
+    }
+  })
 }
 
 /** Swap sortOrder with neighbour in the same country group (admin accordion). */

@@ -1,4 +1,5 @@
 import { notFound, permanentRedirect } from "next/navigation"
+import { legacyNotFound } from "@/lib/legacy-redirect"
 import type { Metadata } from "next"
 import { getTour, getTourById, getTours, getRelatedTours, getReviewsByTour, getSlugMaps } from "@/lib/public/queries"
 import { TourPageContent } from "@/components/site/tour-page-content"
@@ -68,11 +69,11 @@ export default async function BusTourPage({
   const preview = await readAuthorizedPreview(searchParams)
   const tour =
     preview?.type === "tour" ? await getTourById(preview.id) : await getTour(tourSlug)
-  if (!tour) notFound()
+  if (!tour) return legacyNotFound("bus", await params)
   if (tour.archived) {
-    if (!(await previewAllows(searchParams, "tour", tour.id))) notFound()
+    if (!(await previewAllows(searchParams, "tour", tour.id))) return legacyNotFound("bus", await params)
   } else if (!(await isTourVisiblePublic(tour.slug))) {
-    notFound()
+    return legacyNotFound("bus", await params)
   }
 
   const liveSlug = stripArchivedSuffix(tour.slug)
@@ -81,7 +82,7 @@ export default async function BusTourPage({
     countrySlug: tour.countrySlug,
     citySlug: tour.citySlug,
   })
-  if (!canonical) notFound()
+  if (!canonical) return legacyNotFound("bus", await params)
 
   // #72: wrong/outdated country or city segment must not 200 as a duplicate URL
   if (
