@@ -416,10 +416,23 @@
   margin: 1em 0;
   font-size: 0.95em;
 }
-/* Scroll wrapper: RichContent wraps html; overflow on prose container */
-.prose-content,
+/* В редакторе обёртки нет — скроллится сам контейнер редактора. */
 .prose-editor {
   overflow-x: auto;
+}
+/* На сайте RichContent оборачивает каждую таблицу в .table-scroll:
+   прокручивается только таблица, рамка и скругление — на обёртке. */
+.prose-content .table-scroll {
+  margin: 1.25em 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+}
+.prose-content .table-scroll > table {
+  margin: 0;
+  border-style: hidden;
 }
 .prose-content table.seo-table th,
 .prose-editor table.seo-table th,
@@ -440,14 +453,38 @@
   background: color-mix(in oklab, var(--color-cream, #faf7f2) 80%, transparent);
   font-weight: 600;
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
 }
 .prose-content table.seo-table td,
 .prose-editor table.seo-table td,
 .prose-content table td,
 .prose-editor table td {
   white-space: normal;
-  overflow-wrap: anywhere;
+  /* anywhere дробил слова по буквам в узких колонках — переносим только длинные токены */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+/* Колонки не сжимаются в «столбик из букв»: не хватает места — таблица скроллится */
+.prose-content .table-scroll :is(th, td) {
+  min-width: 10rem;
+  padding: 0.75em 0.9em;
+  line-height: 1.5;
+}
+/* Первая строка из жирных ячеек (типично для таблиц из Word) — оформляем как шапку */
+.prose-content .table-scroll tr:first-child > td:has(> p:first-child > strong) {
+  background: color-mix(in oklab, var(--color-cream, #faf7f2) 80%, transparent);
+}
+.prose-content .table-scroll tr:nth-child(even):not(:first-child) > td {
+  background: color-mix(in oklab, var(--color-cream, #faf7f2) 35%, transparent);
+}
+@media (max-width: 767px) {
+  .prose-content .table-scroll {
+    font-size: 0.9em;
+    margin-inline: -0.25rem;
+  }
+  .prose-content .table-scroll :is(th, td) {
+    min-width: 12rem;
+  }
 }
 .prose-content table.seo-table p,
 .prose-editor table.seo-table p,

@@ -14,7 +14,12 @@ export async function RichContent({ html, className }: { html?: string | null; c
   if (!html || !html.trim()) return null
   const dict = await getShortcodesDict()
   const parsed = parseShortcodes(html, dict)
-  let sanitized = sanitizeCmsHtml(parsed)
+  // Каждую таблицу кладём в собственный скролл-контейнер: широкая таблица
+  // прокручивается сама по себе, а не растягивает/скроллит весь текст страницы.
+  const withTableWrap = parsed
+    .replace(/<table\b/gi, '<div class="table-scroll"><table')
+    .replace(/<\/table>/gi, "</table></div>")
+  let sanitized = sanitizeCmsHtml(withTableWrap)
   const imageSrcs = collectImageSrcs(sanitized)
   if (imageSrcs.length) {
     const authors = await getAuthorsByUrls(imageSrcs)
