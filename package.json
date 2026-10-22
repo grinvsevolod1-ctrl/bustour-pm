@@ -10,7 +10,7 @@
     "predev": "npx tsx scripts/preflight.ts --dev",
     "dev": "npx tsx scripts/dev-server.mts",
     "dev:remote-db": "npx tsx scripts/preflight.ts --dev && next dev",
-    "prebuild": "npx tsx scripts/preflight.ts --check || exit 1",
+    "prebuild": "npx tsx scripts/preflight.ts --check && npx tsx scripts/regressions.selfcheck.ts || exit 1",
     "build": "next build --webpack",
     "start": "next start",
     "db:migrate:prod": "node scripts/migrate.mjs",
@@ -57,7 +57,8 @@
     "db:reset:dev": "npx tsx scripts/reset-dev-db.ts",
     "test:db-migrations": "npx tsx scripts/db-migration-safety.selfcheck.ts",
     "test:security": "npx tsx --conditions=react-server scripts/rate-limit.selfcheck.ts && npx tsx scripts/password.selfcheck.ts && npx tsx scripts/avia-slug.selfcheck.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:regressions": "npx tsx scripts/regressions.selfcheck.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

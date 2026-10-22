@@ -31,9 +31,11 @@ const sectionAnchors: Partial<Record<TourSection["key"], string>> = {
 export function TourLayoutBuilder({
   layout: initial,
   onChange,
+  approvedReviewsCount = 0,
 }: {
   layout?: TourSection[]
   onChange?: (sections: TourSection[]) => void
+  approvedReviewsCount?: number
 }) {
   const [sections, setSections] = useState<TourSection[]>(() => resolveTourLayout(initial))
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -89,6 +91,7 @@ export function TourLayoutBuilder({
   return (
     <div className="space-y-2">
       <input type="hidden" name="layout" value={JSON.stringify(sections)} />
+      <ReviewsSectionWarning sections={sections} approvedReviewsCount={approvedReviewsCount} onFix={commit} />
 
       {sections.map((s, i) => {
         const anchored = anchoredSectionKeys.includes(s.key)
@@ -281,6 +284,42 @@ export function TourLayoutBuilder({
           ) : null}
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function ReviewsSectionWarning({
+  sections,
+  approvedReviewsCount,
+  onFix,
+}: {
+  sections: TourSection[]
+  approvedReviewsCount: number
+  onFix: (next: TourSection[]) => void
+}) {
+  if (approvedReviewsCount <= 0) return null
+  const reviews = sections.find((s) => s.key === "reviews")
+  if (reviews?.visible) return null
+
+  const fix = () =>
+    onFix(
+      reviews
+        ? sections.map((s) => (s.key === "reviews" ? { ...s, visible: true } : s))
+        : [...sections, { key: "reviews", label: "Отзывы", visible: true }],
+    )
+
+  return (
+    <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+      <span>
+        {`У тура ${approvedReviewsCount} одобр. отзыв(ов), но секция «Отзывы» ${reviews ? "скрыта" : "удалена"} — на сайте их не видно.`}
+      </span>
+      <button
+        type="button"
+        onClick={fix}
+        className="rounded-md border border-amber-300 bg-white px-3 py-1 text-xs font-medium text-amber-800 hover:bg-amber-100"
+      >
+        Показать отзывы
+      </button>
     </div>
   )
 }

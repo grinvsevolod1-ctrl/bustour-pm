@@ -422,7 +422,7 @@
 }
 /* На сайте RichContent оборачивает каждую таблицу в .table-scroll:
    прокручивается только таблица, рамка и скругление — на обёртке. */
-.prose-content .table-scroll {
+.table-scroll {
   margin: 1.25em 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -430,7 +430,7 @@
   border: 1px solid var(--color-line);
   border-radius: 0.75rem;
 }
-.prose-content .table-scroll > table {
+.table-scroll > table {
   margin: 0;
   border-style: hidden;
 }
@@ -465,24 +465,37 @@
   hyphens: auto;
 }
 /* Колонки не сжимаются в «столбик из букв»: не хватает места — таблица скроллится */
-.prose-content .table-scroll :is(th, td) {
+/* Те же правила для таблиц вне .prose-content (FAQ, вкладки, программа тура) */
+.table-scroll > table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-scroll :is(th, td) {
+  border: 1px solid var(--color-line);
+  vertical-align: top;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.table-scroll :is(th, td) {
   min-width: 10rem;
   padding: 0.75em 0.9em;
   line-height: 1.5;
 }
 /* Первая строка из жирных ячеек (типично для таблиц из Word) — оформляем как шапку */
-.prose-content .table-scroll tr:first-child > td:has(> p:first-child > strong) {
+.table-scroll tr:first-child > td:has(> p:first-child > strong) {
   background: color-mix(in oklab, var(--color-cream, #faf7f2) 80%, transparent);
 }
-.prose-content .table-scroll tr:nth-child(even):not(:first-child) > td {
+.table-scroll tr:nth-child(even):not(:first-child) > td {
   background: color-mix(in oklab, var(--color-cream, #faf7f2) 35%, transparent);
 }
 @media (max-width: 767px) {
-  .prose-content .table-scroll {
+  .table-scroll {
     font-size: 0.9em;
     margin-inline: -0.25rem;
   }
-  .prose-content .table-scroll :is(th, td) {
+  .table-scroll :is(th, td) {
     min-width: 12rem;
   }
 }

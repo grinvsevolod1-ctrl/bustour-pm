@@ -256,5 +256,20 @@ export function sanitizeCmsHtml(rawHtml: unknown): string {
     if (HEADING_TAGS.has(tag.name) && !selfClose) headingDepth++
     out.push(`<${tag.name}${renderAttrs(cleanAttrs)}${selfClose ? " /" : ""}>`)
   }
-  return out.join("")
+  return wrapTablesForScroll(out.join(""))
+}
+
+const TABLE_SCROLL_OPEN = '<div class="table-scroll">'
+
+/**
+ * Каждая таблица из CMS получает собственный скролл-контейнер — на любом
+ * блоке сайта (текст, FAQ, вкладки, программа тура), а не только в RichContent.
+ * Идемпотентно: повторный вызов не создаёт вторую обёртку.
+ */
+export function wrapTablesForScroll(html: string): string {
+  if (!html.includes("<table")) return html
+  return html.replace(
+    /(<div class="table-scroll">\s*)?(<table\b[\s\S]*?<\/table>)/gi,
+    (match, wrapped: string | undefined, table: string) => (wrapped ? match : `${TABLE_SCROLL_OPEN}${table}</div>`),
+  )
 }

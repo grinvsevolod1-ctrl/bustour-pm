@@ -9,6 +9,7 @@ import { getBusTourTypes } from "@/lib/bus-tour-types"
 import { buildTourGuide } from "@/lib/setup-guide-builders"
 import { SetupGuide } from "@/components/admin/setup-guide"
 import { TourForm } from "@/components/admin/tour-form"
+import { getReviewsByTour } from "@/lib/queries/reviews"
 
 export default async function EditTourPage({
   params,
@@ -19,7 +20,7 @@ export default async function EditTourPage({
   const tour = await getTourById(Number(id))
   if (!tour) notFound()
 
-  const [countries, cities, currencies, faqBlocks, arrivalCity, tourVisible, settings, tourTypes] = await Promise.all([
+  const [countries, cities, currencies, faqBlocks, arrivalCity, tourVisible, settings, tourTypes, tourReviews] = await Promise.all([
     getCountries("bus"),
     getCityDestinations("bus"),
     getCurrencies(),
@@ -28,6 +29,7 @@ export default async function EditTourPage({
     isTourVisible(tour.slug),
     getSettings(),
     getBusTourTypes(),
+    tour.title ? getReviewsByTour(tour.title) : Promise.resolve([]),
   ])
   const faqs = faqBlocks.map((b) => ({ question: b.title, answer: b.body }))
   const faqGroups = groupFaqBlocks(faqBlocks, "").map((g) => ({
@@ -56,6 +58,7 @@ export default async function EditTourPage({
         arrivalCityName={arrivalCity?.name ?? ""}
         tourVisible={tourVisible}
         tourMeta={tourMeta}
+        approvedReviewsCount={tourReviews.length}
       />
     </div>
   )

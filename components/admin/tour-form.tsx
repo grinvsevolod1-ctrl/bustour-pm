@@ -53,7 +53,9 @@ export function TourForm({
   arrivalCityName = "",
   tourVisible = true,
   tourMeta = {},
+  approvedReviewsCount = 0,
 }: {
+  approvedReviewsCount?: number
   tour?: Tour
   countries?: Country[]
   cities?: CityDestination[]
@@ -417,7 +419,11 @@ export function TourForm({
         <p className="mb-3 text-xs text-admin-fg-subtle">
           Скрыть (глаз), удалить или вернуть через «Добавить секцию» — как на страницах городов/стран.
         </p>
-        <TourLayoutBuilder layout={layout} onChange={(l) => { setLayout(l); markDirty() }} />
+        <TourLayoutBuilder
+          layout={layout}
+          approvedReviewsCount={approvedReviewsCount}
+          onChange={(l) => { setLayout(l); markDirty() }}
+        />
       </FormSection>
       </>
 
